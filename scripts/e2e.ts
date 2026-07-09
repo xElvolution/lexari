@@ -57,10 +57,18 @@ async function main() {
       JSON.stringify(requirements).slice(0, 300),
     );
 
-    const { wrapFetchWithPayment } = await import("@okxweb3/x402-fetch");
+    const { wrapFetchWithPayment, x402Client } = await import(
+      "@okxweb3/x402-fetch"
+    );
+    const { ExactEvmScheme } = await import("@okxweb3/x402-evm/exact/client");
+    const { toClientEvmSigner } = await import("@okxweb3/x402-evm");
     const { privateKeyToAccount } = await import("viem/accounts");
     const account = privateKeyToAccount(key as `0x${string}`);
-    const payFetch = wrapFetchWithPayment(fetch, account);
+    const client = new x402Client().register(
+      "eip155:196",
+      new ExactEvmScheme(toClientEvmSigner(account)),
+    );
+    const payFetch = wrapFetchWithPayment(fetch, client);
 
     const paid = await payFetch(`${BASE}/api/v1/launch-reel`, {
       method: "POST",
@@ -100,11 +108,10 @@ async function main() {
   console.log(`\n[e2e] ✓ done in ${Math.round((Date.now() - started) / 1000)}s`);
 
   // 4. download + verify hashes
-  const mp4 = Buffer.from(
-    new Uint8Array(
-      await fetch(job.downloadUrl as string).then((r) => r.arrayBuffer()),
-    ),
+  const mp4Bytes = new Uint8Array(
+    await fetch(job.downloadUrl as string).then((r) => r.arrayBuffer()),
   );
+  const mp4 = Buffer.from(mp4Bytes.buffer, 0, mp4Bytes.byteLength);
   const hash = "sha256:" + createHash("sha256").update(mp4).digest("hex");
   assert(
     hash === job.outputHash,
