@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Reveal, SectionTitle } from "./Reveal";
 
 /**
@@ -129,7 +129,17 @@ export default function Gallery() {
 function GalleryCard({ item }: { item: GalleryItem }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showJson, setShowJson] = useState(false);
-  const [available, setAvailable] = useState(true);
+  const [available, setAvailable] = useState(false);
+
+  useEffect(() => {
+    // Videos land via render-samples; probe so missing files show the
+    // branded placeholder instead of a black box.
+    fetch(item.video, { method: "HEAD" })
+      .then((r) =>
+        setAvailable(r.ok && (r.headers.get("content-type") ?? "").startsWith("video")),
+      )
+      .catch(() => setAvailable(false));
+  }, [item.video]);
 
   return (
     <div
