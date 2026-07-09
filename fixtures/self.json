@@ -1,0 +1,14 @@
+{
+  "productName": "RenderReel",
+  "oneLiner": "The motion studio that agents hire — cinematic launch videos from a JSON brief, paid per call.",
+  "features": [
+    "Structured JSON in, cinematic MP4 out in minutes",
+    "AI voiceover with word-synced animated captions",
+    "Verifiable on-chain receipt for every render"
+  ],
+  "brandColor": "#6C5CE7",
+  "screenshots": ["https://placehold.co/1600x1000/12121C/8B7CFF/png?text=RenderReel"],
+  "voice": "nova",
+  "tone": "bold",
+  "duration": "short"
+}

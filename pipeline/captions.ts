@@ -64,20 +64,7 @@ export async function captionsForVoiceover(opts: {
   wavPath: string;
   knownScript: string;
 }): Promise<{ captions: Caption[]; pages: CaptionPage[]; audioDurationMs: number }> {
-  await ensureWhisper();
-  const wav16k = await resampleTo16k(opts.wavPath);
-
-  const result = await transcribe({
-    inputPath: wav16k,
-    whisperPath: WHISPER_DIR,
-    whisperCppVersion: WHISPER_VERSION,
-    model: MODEL,
-    tokenLevelTimestamps: true,
-    splitOnWord: true,
-    additionalArgs: [["--prompt", opts.knownScript.slice(0, 800)]],
-  });
-
-  const { captions } = toCaptions({ whisperCppOutput: result });
+  const captions = await transcribeWithFallback(opts);
   const fixed = fixAgainstScript(captions, opts.knownScript);
 
   const { pages } = createTikTokStyleCaptions({
@@ -102,6 +89,61 @@ export async function captionsForVoiceover(opts: {
     })),
     audioDurationMs,
   };
+}
+
+/**
+ * Word timestamps: local whisper.cpp by default (free), OpenAI whisper-1
+ * API as fallback (~$0.006/min) when the local build isn't available —
+ * e.g. missing build toolchain on the dev Mac.
+ * CAPTIONS_PROVIDER=local|openai forces one path.
+ */
+async function transcribeWithFallback(opts: {
+  wavPath: string;
+  knownScript: string;
+}): Promise<Caption[]> {
+  const provider = process.env.CAPTIONS_PROVIDER ?? "auto";
+
+  if (provider !== "openai") {
+    try {
+      await ensureWhisper();
+      const wav16k = await resampleTo16k(opts.wavPath);
+      const result = await transcribe({
+        inputPath: wav16k,
+        whisperPath: WHISPER_DIR,
+        whisperCppVersion: WHISPER_VERSION,
+        model: MODEL,
+        tokenLevelTimestamps: true,
+        splitOnWord: true,
+        additionalArgs: [["--prompt", opts.knownScript.slice(0, 800)]],
+      });
+      return toCaptions({ whisperCppOutput: result }).captions;
+    } catch (err) {
+      if (provider === "local") throw err;
+      console.warn(
+        "[captions] local whisper failed, falling back to OpenAI whisper-1:",
+        err instanceof Error ? err.message.split("\n")[0] : err,
+      );
+    }
+  }
+
+  const { openAiWhisperApiToCaptions } = await import(
+    "@remotion/openai-whisper"
+  );
+  const OpenAI = (await import("openai")).default;
+  const { createReadStream } = await import("node:fs");
+  const openai = new OpenAI();
+  const transcription = await openai.audio.transcriptions.create({
+    file: createReadStream(opts.wavPath),
+    model: "whisper-1",
+    response_format: "verbose_json",
+    timestamp_granularities: ["word"],
+    prompt: opts.knownScript.slice(0, 800),
+  });
+  return openAiWhisperApiToCaptions({
+    transcription: transcription as Parameters<
+      typeof openAiWhisperApiToCaptions
+    >[0]["transcription"],
+  }).captions;
 }
 
 /**

@@ -19,6 +19,7 @@ export const launchReelFixture: LaunchReelProps = {
     screenshots: ["https://placehold.co/1600x1000/png"],
     voice: "nova",
     tone: "bold",
+    duration: "short",
     logoUrl: undefined,
   },
   scenes: [

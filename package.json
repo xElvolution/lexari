@@ -12,6 +12,7 @@
     "studio": "remotion studio remotion/index.ts",
     "render-samples": "tsx scripts/render-samples.ts",
     "stills": "tsx scripts/stills.ts",
+    "preview": "tsx scripts/preview.ts",
     "e2e": "tsx scripts/e2e.ts"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@remotion/layout-utils": "^4.0.486",
     "@remotion/media": "^4.0.486",
     "@remotion/noise": "^4.0.486",
+    "@remotion/openai-whisper": "^4.0.486",
     "@remotion/renderer": "^4.0.486",
     "@remotion/shapes": "^4.0.486",
     "@remotion/transitions": "^4.0.486",

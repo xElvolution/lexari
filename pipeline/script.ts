@@ -1,5 +1,9 @@
 import OpenAI from "openai";
-import type { LaunchReelInput, StatClipInput } from "@/lib/schemas";
+import {
+  DURATION_MAX_SEC,
+  type LaunchReelInput,
+  type StatClipInput,
+} from "@/lib/schemas";
 
 /**
  * Narration script generation. One small-model call with structured output
@@ -30,20 +34,33 @@ const LAUNCH_SCENES = ["hook", "features", "screenshots", "outro"] as const;
 export async function launchReelScript(
   input: LaunchReelInput,
 ): Promise<NarrationScript> {
-  const budget = Math.floor(WORDS_PER_SECOND * (40 - 8)); // ~76 words across 4 scenes
-  const system = `You write voiceover scripts for 30-40 second product launch videos.
+  const maxSec = DURATION_MAX_SEC[input.duration];
+  // Reserve time for the outro tail and scene breathing room.
+  const budget = Math.floor(WORDS_PER_SECOND * (maxSec - 8));
+  const style =
+    input.duration === "short"
+      ? "a punchy 30-40 second product launch clip"
+      : input.duration === "standard"
+        ? "a 60-90 second product launch video"
+        : "a 2-3 minute project demo film (like a hackathon submission video: what it is, why it matters, how it works)";
+  const featureGuidance =
+    input.duration === "short"
+      ? "weave the features into one or two natural sentences (do not read them as a list)"
+      : "give each feature its own short beat, flowing naturally from one to the next";
+  const system = `You write voiceover scripts for ${style}.
 Rules:
 - Exactly 4 narration lines for scenes: hook, features, screenshots, outro.
 - TOTAL across all lines: at most ${budget} words. This is a hard limit.
-- hook: grab attention, introduce the product by name.
-- features: weave the three features into natural speech (do not read them as a list).
-- screenshots: one line inviting the viewer to look ("Here it is in action...").
+- hook: grab attention, introduce the product by name and the problem it solves.
+- features: ${featureGuidance}.
+- screenshots: walk the viewer through what they're seeing ("Here it is in action...").
 - outro: a confident closing call to action with the product name.
 - Tone: ${input.tone}. No emojis, no hashtags, no quotation marks. Plain spoken English.`;
   const user = JSON.stringify({
     productName: input.productName,
     oneLiner: input.oneLiner,
     features: input.features,
+    targetLengthSeconds: maxSec,
   });
   return generateScenes(system, user, [...LAUNCH_SCENES], budget);
 }

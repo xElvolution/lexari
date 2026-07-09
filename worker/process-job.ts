@@ -7,6 +7,7 @@ import { completeJob, updateProgress } from "@/lib/jobs";
 import { buildAndStoreReceipt } from "@/lib/payments/receipt";
 import { putFileFrom } from "@/lib/storage";
 import {
+  DURATION_MAX_SEC,
   TEMPLATES,
   type Job,
   type LaunchReelInput,
@@ -117,7 +118,7 @@ async function prepareLaunchReel(
     captions,
     pages,
     audioDurationMs,
-    maxDurationSec: TEMPLATES["launch-reel"].maxDurationSec,
+    maxDurationSec: DURATION_MAX_SEC[input.duration],
   });
 
   return {

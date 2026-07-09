@@ -14,22 +14,37 @@ export const HEX_COLOR = /^#([0-9a-fA-F]{6})$/;
 export const VOICES = ["nova", "onyx", "shimmer"] as const;
 export const TONES = ["bold", "friendly", "technical"] as const;
 
+export const DURATIONS = ["short", "standard", "extended"] as const;
+/** Max seconds per duration mode: social clip, launch video, full demo film. */
+export const DURATION_MAX_SEC: Record<(typeof DURATIONS)[number], number> = {
+  short: 40,
+  standard: 90,
+  extended: 180,
+};
+
 export const LaunchReelInput = z.object({
   productName: z.string().trim().min(2).max(40),
   oneLiner: z.string().trim().min(10).max(120),
   features: z
     .array(z.string().trim().min(3).max(80))
-    .length(3)
-    .describe("Exactly three feature bullets"),
+    .min(3)
+    .max(6)
+    .describe("3-6 feature bullets (3 is ideal for short, up to 6 for extended)"),
   logoUrl: z.string().url().max(500).optional(),
   brandColor: z.string().regex(HEX_COLOR).default("#6C5CE7"),
   screenshots: z
     .array(z.string().url().max(500))
     .min(1)
-    .max(3)
-    .describe("1-3 image URLs (PNG/JPG/WebP, max 8MB each, min 400px wide)"),
+    .max(6)
+    .describe("1-6 image URLs (PNG/JPG/WebP, max 8MB each, min 400px wide)"),
   voice: z.enum(VOICES).default("nova"),
   tone: z.enum(TONES).default("bold"),
+  duration: z
+    .enum(DURATIONS)
+    .default("short")
+    .describe(
+      "short: ≤40s social launch clip · standard: ≤90s launch video (fits most hackathon demo rules) · extended: ≤180s full project demo",
+    ),
 });
 export type LaunchReelInput = z.infer<typeof LaunchReelInput>;
 
