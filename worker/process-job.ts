@@ -1,4 +1,5 @@
 import path from "node:path";
+import { existsSync } from "node:fs";
 import { rm, stat } from "node:fs/promises";
 import { ingestImages } from "@/lib/assets";
 import { sha256File } from "@/lib/hash";
@@ -40,10 +41,15 @@ export async function processJob(job: Job): Promise<void> {
     await updateProgress(job.id, 25);
 
     const outPath = path.join(jobDir, "out.mp4");
+    const hasAudio =
+      "audioUrl" in props && props.audioUrl !== null
+        ? voiceoverPathIfExists(jobDir)
+        : null;
     const { durationInFrames } = await renderComposition({
       compositionId: t.compositionId,
       inputProps: props as unknown as Record<string, unknown>,
       outPath,
+      audioPath: hasAudio,
       scale: job.demo ? 2 / 3 : 1, // demo renders at 720p
       onProgress: (pct) => updateProgress(job.id, 25 + pct * 0.65),
     });
@@ -73,6 +79,11 @@ export async function processJob(job: Job): Promise<void> {
   } finally {
     await rm(jobDir, { recursive: true, force: true }).catch(() => {});
   }
+}
+
+function voiceoverPathIfExists(jobDir: string): string | null {
+  const p = voiceoverPath(jobDir);
+  return existsSync(p) ? p : null;
 }
 
 async function prepareLaunchReel(
