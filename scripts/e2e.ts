@@ -108,10 +108,9 @@ async function main() {
   console.log(`\n[e2e] ✓ done in ${Math.round((Date.now() - started) / 1000)}s`);
 
   // 4. download + verify hashes
-  const mp4Bytes = new Uint8Array(
+  const mp4 = new Uint8Array(
     await fetch(job.downloadUrl as string).then((r) => r.arrayBuffer()),
   );
-  const mp4 = Buffer.from(mp4Bytes.buffer, 0, mp4Bytes.byteLength);
   const hash = "sha256:" + createHash("sha256").update(mp4).digest("hex");
   assert(
     hash === job.outputHash,
