@@ -9,6 +9,41 @@ import {
 } from "remotion";
 import type { Theme } from "@/remotion/shared/theme";
 import { DISPLAY_FONT, BODY_FONT } from "@/remotion/shared/fonts";
+import { LightSweep } from "@/remotion/shared/Backdrop";
+
+/** Deterministic radial particle burst fired when the logo lands. */
+const Burst: React.FC<{ delay: number; theme: Theme }> = ({ delay, theme }) => {
+  const frame = useCurrentFrame();
+  const local = frame - delay;
+  if (local < 0 || local > 40) return null;
+  const p = local / 40;
+  return (
+    <AbsoluteFill
+      style={{ justifyContent: "center", alignItems: "center", pointerEvents: "none" }}
+    >
+      {Array.from({ length: 22 }).map((_, i) => {
+        const angle = (i / 22) * Math.PI * 2 + (i % 2) * 0.15;
+        const dist = (140 + ((i * 53) % 120)) * Math.pow(p, 0.6);
+        const size = 4 + ((i * 37) % 7) * (1 - p);
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              transform: `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist * 0.85}px)`,
+              width: size,
+              height: size,
+              borderRadius: "50%",
+              background: i % 3 === 0 ? theme.gradient[1] : theme.accentSoft,
+              opacity: (1 - p) * 0.9,
+              boxShadow: `0 0 ${10 * (1 - p)}px ${theme.accent}`,
+            }}
+          />
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
 
 /** Scene 4 — logo reveal on brand gradient, name, and a quiet close. */
 export const LogoOutro: React.FC<{
@@ -25,6 +60,8 @@ export const LogoOutro: React.FC<{
 
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+      <Burst delay={10} theme={theme} />
+      <LightSweep delay={22} durationInFrames={28} />
       {/* expanding accent ring */}
       <div
         style={{

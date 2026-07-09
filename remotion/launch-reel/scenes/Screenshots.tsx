@@ -9,6 +9,38 @@ import {
 import type { ScreenshotAsset } from "@/remotion/props";
 import type { Theme } from "@/remotion/shared/theme";
 import { DeviceFrame } from "@/remotion/shared/DeviceFrame";
+import { LightSweep } from "@/remotion/shared/Backdrop";
+
+/** 3D-tilted device with a fading floor reflection — the "showcase" look. */
+const Reflected: React.FC<{
+  asset: ScreenshotAsset;
+  theme: Theme;
+  maxWidth: number;
+  maxHeight: number;
+  tilt: number;
+  children?: never;
+}> = ({ asset, theme, maxWidth, maxHeight, tilt }) => (
+  <div style={{ perspective: 1400 }}>
+    <div style={{ transform: `rotateY(${tilt}deg) rotateX(${Math.abs(tilt) * 0.25}deg)` }}>
+      <DeviceFrame asset={asset} theme={theme} maxWidth={maxWidth} maxHeight={maxHeight} />
+      {/* floor reflection */}
+      <div
+        style={{
+          transform: "scaleY(-1)",
+          marginTop: 6,
+          opacity: 0.22,
+          maskImage: "linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.85) 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.85) 100%)",
+          filter: "blur(1.5px)",
+          pointerEvents: "none",
+        }}
+      >
+        <DeviceFrame asset={asset} theme={theme} maxWidth={maxWidth} maxHeight={maxHeight} />
+      </div>
+    </div>
+  </div>
+);
 
 /**
  * Scene 3 — the product in action.
@@ -56,10 +88,13 @@ const SinglePush: React.FC<{
 }> = ({ shot, theme, durationInFrames }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const push = interpolate(frame, [0, durationInFrames], [1.0, 1.06], {
+  const push = interpolate(frame, [0, durationInFrames], [1.0, 1.08], {
     extrapolateRight: "clamp",
   });
-  const drift = interpolate(frame, [0, durationInFrames], [8, -8], {
+  const drift = interpolate(frame, [0, durationInFrames], [10, -10], {
+    extrapolateRight: "clamp",
+  });
+  const tilt = interpolate(frame, [0, durationInFrames], [-9, 4], {
     extrapolateRight: "clamp",
   });
   const enter = spring({ frame, fps, config: { damping: 18, stiffness: 90 } });
@@ -67,12 +102,19 @@ const SinglePush: React.FC<{
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
       <div
         style={{
-          transform: `scale(${push * (0.9 + enter * 0.1)}) translateY(${(1 - enter) * 90 + drift}px)`,
+          transform: `scale(${push * (0.88 + enter * 0.12)}) translateY(${(1 - enter) * 110 + drift}px)`,
           opacity: enter,
         }}
       >
-        <DeviceFrame asset={shot} theme={theme} maxWidth={1460} maxHeight={780} />
+        <Reflected
+          asset={shot}
+          theme={theme}
+          maxWidth={1400}
+          maxHeight={700}
+          tilt={tilt}
+        />
       </div>
+      <LightSweep delay={16} durationInFrames={32} />
     </AbsoluteFill>
   );
 };
@@ -150,11 +192,15 @@ const Sequential: React.FC<{
           [i === 0 ? 1 : 0, 1, 1, i === screenshots.length - 1 ? 1 : 0],
           { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
         );
-        const push = interpolate(local, [0, per], [0.97, 1.05], {
+        const push = interpolate(local, [0, per], [0.95, 1.07], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
-        const drift = interpolate(local, [0, per], [10, -10], {
+        const drift = interpolate(local, [0, per], [12, -12], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
+        const tilt = interpolate(local, [0, per], [i % 2 === 0 ? -10 : 10, i % 2 === 0 ? 3 : -3], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
@@ -167,7 +213,13 @@ const Sequential: React.FC<{
               transform: `scale(${push}) translateY(${drift}px)`,
             }}
           >
-            <DeviceFrame asset={shot} theme={theme} maxWidth={1460} maxHeight={780} />
+            <Reflected
+              asset={shot}
+              theme={theme}
+              maxWidth={1400}
+              maxHeight={700}
+              tilt={tilt}
+            />
           </div>
         );
       })}

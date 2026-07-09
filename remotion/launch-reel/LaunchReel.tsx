@@ -104,16 +104,50 @@ const SceneFade: React.FC<{
   );
 };
 
+/**
+ * Whip-zoom transition: scenes arrive slightly oversized and blurred,
+ * snap to focus, then punch out with scale + blur as the next arrives.
+ */
 const FadeWrapper: React.FC<{
   durationInFrames: number;
   children: React.ReactNode;
 }> = ({ durationInFrames, children }) => {
   const frame = useCurrentFrame();
+  const outStart = durationInFrames - FADE_FRAMES;
   const opacity = interpolate(
     frame,
-    [0, FADE_FRAMES, durationInFrames - FADE_FRAMES, durationInFrames + FADE_FRAMES],
+    [0, FADE_FRAMES, outStart, durationInFrames + FADE_FRAMES],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
-  return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
+  const scaleIn = interpolate(frame, [0, FADE_FRAMES + 4], [1.12, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const scaleOut = interpolate(
+    frame,
+    [outStart, durationInFrames + FADE_FRAMES],
+    [1, 0.94],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+  const blur =
+    interpolate(frame, [0, FADE_FRAMES + 2], [10, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }) +
+    interpolate(frame, [outStart, durationInFrames + FADE_FRAMES], [0, 8], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+  return (
+    <AbsoluteFill
+      style={{
+        opacity,
+        transform: `scale(${scaleIn * scaleOut})`,
+        filter: blur > 0.5 ? `blur(${blur}px)` : undefined,
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
 };

@@ -49,24 +49,49 @@ export const Features: React.FC<{
             config: { damping: 17, stiffness: 105, mass: 0.9 },
           });
           const slide = twoCol
-            ? { x: 0, y: (1 - s) * 90 }
-            : { x: (1 - s) * (i % 2 === 0 ? -140 : 140), y: 0 };
+            ? { x: 0, y: (1 - s) * 120 }
+            : { x: (1 - s) * (i % 2 === 0 ? -180 : 180), y: 0 };
+          const rotY = twoCol ? 0 : (1 - s) * (i % 2 === 0 ? -24 : 24);
+          const landed = s > 0.85;
+          const idleFloat = Math.sin((frame - delay) / 38 + i * 1.7) * 4;
+          const underline = interpolate(
+            frame - delay - 10,
+            [0, 26],
+            [0, 1],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+          );
           return (
             <div
               key={i}
               style={{
+                position: "relative",
                 display: "flex",
                 alignItems: "center",
                 gap: twoCol ? 30 : 44,
                 padding: twoCol ? "32px 38px" : "40px 52px",
                 borderRadius: 28,
                 background: `linear-gradient(135deg, ${theme.surface}F2, ${theme.bgSoft}E6)`,
-                border: "1px solid rgba(255,255,255,0.09)",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
-                transform: `translate(${slide.x}px, ${slide.y}px) scale(${0.94 + s * 0.06})`,
+                border: `1px solid ${landed ? theme.accent + "44" : "rgba(255,255,255,0.09)"}`,
+                boxShadow: landed
+                  ? `0 30px 80px rgba(0,0,0,0.35), 0 0 46px ${theme.accent}22`
+                  : "0 30px 80px rgba(0,0,0,0.35)",
+                transform: `perspective(1100px) translate(${slide.x}px, ${slide.y + (landed ? idleFloat : 0)}px) rotateY(${rotY}deg) scale(${0.92 + s * 0.08})`,
                 opacity: interpolate(s, [0, 0.3, 1], [0, 1, 1]),
+                overflow: "hidden",
               }}
             >
+              {/* animated accent underline */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  bottom: 0,
+                  height: 4,
+                  width: `${underline * 100}%`,
+                  background: `linear-gradient(90deg, ${theme.gradient[0]}, ${theme.gradient[1]})`,
+                  opacity: 0.85,
+                }}
+              />
               <div
                 style={{
                   minWidth: twoCol ? 68 : 84,
