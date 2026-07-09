@@ -1,0 +1,17 @@
+# fly launch --no-deploy && fly secrets set … && fly deploy
+app = "renderreel"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false   # worker must keep polling the queue
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "performance-4x"       # renders are CPU-bound; 4 dedicated vCPUs
+  memory = "8gb"

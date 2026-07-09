@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+tmp/
+*.log
+.env
+.env.local
+.DS_Store
+whisper/
+public/samples/*.mp4
