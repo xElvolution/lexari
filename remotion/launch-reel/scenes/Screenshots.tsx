@@ -88,9 +88,22 @@ const SinglePush: React.FC<{
 }> = ({ shot, theme, durationInFrames }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const push = interpolate(frame, [0, durationInFrames], [1.0, 1.08], {
-    extrapolateRight: "clamp",
-  });
+  // Continuous push with a punch-in beat at the scene's midpoint —
+  // the "let me show you this part" moment.
+  const midStart = durationInFrames * 0.45;
+  const midEnd = durationInFrames * 0.8;
+  const punch = interpolate(
+    frame,
+    [midStart, midStart + 18, midEnd, midEnd + 14],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+  const push =
+    interpolate(frame, [0, durationInFrames], [1.0, 1.08], {
+      extrapolateRight: "clamp",
+    }) *
+    (1 + punch * 0.14);
+  const panY = punch * -46;
   const drift = interpolate(frame, [0, durationInFrames], [10, -10], {
     extrapolateRight: "clamp",
   });
@@ -102,7 +115,7 @@ const SinglePush: React.FC<{
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
       <div
         style={{
-          transform: `scale(${push * (0.88 + enter * 0.12)}) translateY(${(1 - enter) * 110 + drift}px)`,
+          transform: `scale(${push * (0.88 + enter * 0.12)}) translateY(${(1 - enter) * 110 + drift + panY}px)`,
           opacity: enter,
         }}
       >

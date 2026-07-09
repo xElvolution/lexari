@@ -22,10 +22,18 @@ export const Features: React.FC<{
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const twoCol = features.length > 3;
-  // Spread the reveals across the first ~60% of the scene so long scenes
-  // (standard/extended narration) don't front-load all motion.
-  const staggerWindow = Math.max(durationInFrames * 0.55 - 8, 12);
-  const stagger = Math.min(staggerWindow / features.length, 22);
+  // Entrances spread across the first ~40% of the scene; after landing,
+  // cards take turns holding "focus" so the scene keeps developing for
+  // its entire duration instead of idling after the entrance.
+  const staggerWindow = Math.max(durationInFrames * 0.4 - 8, 12);
+  const stagger = Math.min(staggerWindow / features.length, 26);
+  const focusStart = staggerWindow + 12;
+  const focusSpan = Math.max(durationInFrames - focusStart - 6, 1);
+  const focusIndex = Math.min(
+    Math.floor(((frame - focusStart) / focusSpan) * features.length),
+    features.length - 1,
+  );
+  const focusActive = frame >= focusStart;
 
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
@@ -54,6 +62,10 @@ export const Features: React.FC<{
           const rotY = twoCol ? 0 : (1 - s) * (i % 2 === 0 ? -24 : 24);
           const landed = s > 0.85;
           const idleFloat = Math.sin((frame - delay) / 38 + i * 1.7) * 4;
+          const focused = focusActive && focusIndex === i;
+          const dimmed = focusActive && focusIndex !== i;
+          const focusScale = focused ? 1.045 : dimmed ? 0.985 : 1;
+          const focusOpacity = dimmed ? 0.55 : 1;
           const underline = interpolate(
             frame - delay - 10,
             [0, 26],
@@ -71,12 +83,13 @@ export const Features: React.FC<{
                 padding: twoCol ? "32px 38px" : "40px 52px",
                 borderRadius: 28,
                 background: `linear-gradient(135deg, ${theme.surface}F2, ${theme.bgSoft}E6)`,
-                border: `1px solid ${landed ? theme.accent + "44" : "rgba(255,255,255,0.09)"}`,
-                boxShadow: landed
-                  ? `0 30px 80px rgba(0,0,0,0.35), 0 0 46px ${theme.accent}22`
+                border: `1px solid ${focused ? theme.accent + "AA" : landed ? theme.accent + "33" : "rgba(255,255,255,0.09)"}`,
+                boxShadow: focused
+                  ? `0 30px 80px rgba(0,0,0,0.4), 0 0 70px ${theme.accent}44`
                   : "0 30px 80px rgba(0,0,0,0.35)",
-                transform: `perspective(1100px) translate(${slide.x}px, ${slide.y + (landed ? idleFloat : 0)}px) rotateY(${rotY}deg) scale(${0.92 + s * 0.08})`,
-                opacity: interpolate(s, [0, 0.3, 1], [0, 1, 1]),
+                transform: `perspective(1100px) translate(${slide.x}px, ${slide.y + (landed ? idleFloat : 0)}px) rotateY(${rotY}deg) scale(${(0.92 + s * 0.08) * focusScale})`,
+                opacity: interpolate(s, [0, 0.3, 1], [0, 1, 1]) * focusOpacity,
+                transition: "border 120ms",
                 overflow: "hidden",
               }}
             >

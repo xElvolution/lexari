@@ -23,10 +23,10 @@ export const launchReelFixture: LaunchReelProps = {
     logoUrl: undefined,
   },
   scenes: [
-    { id: "hook", from: 0, durationInFrames: 210 },
-    { id: "features", from: 210, durationInFrames: 300 },
-    { id: "screenshots", from: 510, durationInFrames: 270 },
-    { id: "outro", from: 780, durationInFrames: 180 },
+    { id: "hook", from: 0, durationInFrames: 150 },
+    { id: "features", from: 150, durationInFrames: 270 },
+    { id: "screenshots", from: 420, durationInFrames: 240 },
+    { id: "outro", from: 660, durationInFrames: 150 },
   ],
   captionPages: [
     {
@@ -49,7 +49,7 @@ export const launchReelFixture: LaunchReelProps = {
   ],
   logoUrl: null,
   audioUrl: null,
-  durationInFrames: 960,
+  durationInFrames: 810,
   watermark: false,
 };
 

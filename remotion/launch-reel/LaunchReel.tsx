@@ -31,6 +31,7 @@ export const LaunchReel: React.FC<LaunchReelProps> = (props) => {
           oneLiner={props.input.oneLiner}
           logoUrl={props.logoUrl}
           theme={theme}
+          durationInFrames={byId["hook"]?.durationInFrames ?? 180}
         />
       ),
     },
@@ -68,7 +69,8 @@ export const LaunchReel: React.FC<LaunchReelProps> = (props) => {
 
   return (
     <AbsoluteFill>
-      <Backdrop theme={theme} seed={props.input.productName} />
+      <CameraDrift>
+        <Backdrop theme={theme} seed={props.input.productName} />
 
       {scenes.map(({ id, node }) => {
         const timing = byId[id];
@@ -86,9 +88,24 @@ export const LaunchReel: React.FC<LaunchReelProps> = (props) => {
         );
       })}
 
+      </CameraDrift>
       <Captions pages={props.captionPages} theme={theme} />
       {props.audioUrl && <Audio src={props.audioUrl} />}
       {props.watermark && <Watermark />}
+    </AbsoluteFill>
+  );
+};
+
+/** Global slow dolly + sway so no frame of the film is ever static. */
+const CameraDrift: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const frame = useCurrentFrame();
+  const sway = Math.sin(frame / 210) * 6;
+  const breathe = 1.015 + Math.sin(frame / 260) * 0.012;
+  return (
+    <AbsoluteFill
+      style={{ transform: `scale(${breathe}) translateX(${sway}px)` }}
+    >
+      {children}
     </AbsoluteFill>
   );
 };
