@@ -23,11 +23,12 @@ const PLANS = [
     color: "#6C5CE7",
     flagship: true,
     features: [
-      "Up to 40s cinematic launch film",
+      "Launch clip to full 3-min demo film",
       "Kinetic typography + device-framed shots",
       "AI voiceover, 3 voices, 3 tones",
       "Word-synced animated captions",
       "1080p MP4 · on-chain receipt",
+      "Built for hackathon demo deadlines",
     ],
   },
   {
