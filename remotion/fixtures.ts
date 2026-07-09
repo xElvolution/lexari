@@ -53,6 +53,63 @@ export const launchReelFixture: LaunchReelProps = {
   watermark: false,
 };
 
+/** Extended-mode fixture: ~101s, 6 features, 3 sequential screenshots. */
+export const extendedLaunchReelFixture: LaunchReelProps = {
+  input: {
+    productName: "Vaultline",
+    oneLiner: "Every yield strategy on every chain, one dashboard — built solo in 10 days for this hackathon.",
+    features: [
+      "Live APY tracking across 40+ protocols",
+      "One-click position migration between vaults",
+      "Risk scoring on every strategy",
+      "Gas-optimized batch rebalancing",
+      "Alerts when your yield drops off a cliff",
+      "Full portfolio P&L, exportable anywhere",
+    ],
+    brandColor: "#00B894",
+    screenshots: [
+      "https://placehold.co/1600x1000/0E1512/00B894/png?text=Dashboard",
+      "https://placehold.co/1600x1000/0E1512/4ADEDE/png?text=Strategy+View",
+      "https://placehold.co/800x1400/0E1512/00B894/png?text=Mobile",
+    ],
+    voice: "nova",
+    tone: "technical",
+    duration: "extended",
+    logoUrl: undefined,
+  },
+  scenes: [
+    { id: "hook", from: 0, durationInFrames: 240 },
+    { id: "features", from: 240, durationInFrames: 1350 },
+    { id: "screenshots", from: 1590, durationInFrames: 1200 },
+    { id: "outro", from: 2790, durationInFrames: 240 },
+  ],
+  captionPages: [],
+  screenshots: [
+    {
+      url: "https://placehold.co/1600x1000/0E1512/00B894/png?text=Dashboard",
+      width: 1600,
+      height: 1000,
+      aspect: "desktop",
+    },
+    {
+      url: "https://placehold.co/1600x1000/0E1512/4ADEDE/png?text=Strategy+View",
+      width: 1600,
+      height: 1000,
+      aspect: "desktop",
+    },
+    {
+      url: "https://placehold.co/800x1400/0E1512/00B894/png?text=Mobile",
+      width: 800,
+      height: 1400,
+      aspect: "phone",
+    },
+  ],
+  logoUrl: null,
+  audioUrl: null,
+  durationInFrames: 3030,
+  watermark: false,
+};
+
 export const statClipFixture: StatClipProps = {
   input: {
     title: "Weekly On-Chain Report",

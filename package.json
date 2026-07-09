@@ -13,6 +13,7 @@
     "render-samples": "tsx scripts/render-samples.ts",
     "stills": "tsx scripts/stills.ts",
     "preview": "tsx scripts/preview.ts",
+    "render-fixture": "tsx scripts/render-fixture.ts",
     "e2e": "tsx scripts/e2e.ts"
   },
   "dependencies": {
