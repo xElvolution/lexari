@@ -39,7 +39,7 @@ Free, no wallet: `POST /api/v1/validate` (dry-run input validation) and `POST /a
 One package, two processes:
 
 - **`next`** — landing page, paid API routes (x402-gated), MCP server, job status.
-- **`worker`** — claims jobs from a Supabase Postgres queue (`FOR UPDATE SKIP LOCKED`), runs the pipeline: narration script (gpt-4o-mini) → TTS (gpt-4o-mini-tts) → word timestamps (local whisper.cpp over the generated audio) → timeline → Remotion `renderMedia` → Supabase Storage upload → receipt.
+- **`worker`** — claims jobs from a Neon Postgres queue (`FOR UPDATE SKIP LOCKED`), runs the pipeline: narration script (gpt-4o-mini) → TTS (gpt-4o-mini-tts) → word timestamps (local whisper.cpp over the generated audio) → timeline → Remotion `renderMedia` → local storage (HMAC-signed download URLs) → receipt.
 
 ```
 app/            landing, /api/v1/*, /api/mcp, /api/demo, /jobs/[id]
@@ -54,9 +54,9 @@ scripts/        e2e (buyer-side x402 test), render-samples, stills
 
 ```bash
 npm install
-cp .env.example .env.local          # fill in Supabase + OpenAI (+ OKX for payments)
-# run supabase/migration.sql in the Supabase SQL editor; create private
-# storage buckets "renders" and "receipts"
+cp .env.example .env.local          # fill in Neon DATABASE_URL + OpenAI (+ OKX for payments)
+# run db/migration.sql in the Neon SQL editor; set FILES_SECRET to any long
+# random string (openssl rand -hex 32)
 npm run dev                          # web
 npm run worker                       # renderer
 npm run studio                       # Remotion Studio (template dev)

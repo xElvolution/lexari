@@ -1,9 +1,5 @@
-import {
-  RENDERS_BUCKET,
-  RECEIPTS_BUCKET,
-  SIGNED_URL_TTL_SECONDS,
-  supabase,
-} from "./supabase";
+import { db } from "./db";
+import { signedUrl } from "./storage";
 import { sha256Json } from "./hash";
 import {
   TEMPLATES,
@@ -21,50 +17,49 @@ export async function createJob(opts: {
   payment: PaymentRecord | null;
   demo?: boolean;
 }): Promise<Job> {
-  const { data, error } = await supabase()
-    .from("jobs")
-    .insert({
-      template: opts.template,
-      status: "queued",
-      input: opts.input,
-      input_hash: sha256Json(opts.input),
-      payment: opts.payment,
-      demo: opts.demo ?? false,
-      progress: 0,
-    })
-    .select()
-    .single();
-  if (error) throw new Error(`createJob failed: ${error.message}`);
-  return data as Job;
+  const { rows } = await db().query(
+    `insert into jobs (template, status, input, input_hash, payment, demo, progress)
+     values ($1, 'queued', $2, $3, $4, $5, 0)
+     returning *`,
+    [
+      opts.template,
+      JSON.stringify(opts.input),
+      sha256Json(opts.input),
+      opts.payment ? JSON.stringify(opts.payment) : null,
+      opts.demo ?? false,
+    ],
+  );
+  return rows[0] as Job;
 }
 
 export async function getJob(id: string): Promise<Job | null> {
-  const { data, error } = await supabase()
-    .from("jobs")
-    .select()
-    .eq("id", id)
-    .maybeSingle();
-  if (error) throw new Error(`getJob failed: ${error.message}`);
-  return (data as Job) ?? null;
+  const { rows } = await db().query(`select * from jobs where id = $1`, [id]);
+  return (rows[0] as Job) ?? null;
 }
 
 /**
- * Claim the oldest queued job. Paid jobs jump ahead of demo jobs.
- * Uses a SECURITY DEFINER Postgres function (FOR UPDATE SKIP LOCKED)
- * so concurrent workers never double-claim — see supabase/migration.sql.
+ * Atomically claim the oldest queued job (paid before demo) —
+ * FOR UPDATE SKIP LOCKED means concurrent workers never double-claim.
  */
 export async function claimNextJob(): Promise<Job | null> {
-  const { data, error } = await supabase().rpc("claim_next_job");
-  if (error) throw new Error(`claimNextJob failed: ${error.message}`);
-  const rows = data as Job[] | null;
-  return rows && rows.length > 0 ? rows[0] : null;
+  const { rows } = await db().query(
+    `update jobs set status = 'rendering', started_at = now()
+     where id = (
+       select id from jobs where status = 'queued'
+       order by demo asc, created_at asc
+       limit 1
+       for update skip locked
+     )
+     returning *`,
+  );
+  return (rows[0] as Job) ?? null;
 }
 
 export async function updateProgress(id: string, progress: number) {
-  await supabase()
-    .from("jobs")
-    .update({ progress: Math.round(progress) })
-    .eq("id", id);
+  await db().query(`update jobs set progress = $2 where id = $1`, [
+    id,
+    Math.round(progress),
+  ]);
 }
 
 export async function completeJob(
@@ -73,77 +68,62 @@ export async function completeJob(
     output_path: string;
     output_hash: string;
     receipt_path: string;
-    payment?: PaymentRecord | null;
   },
 ) {
-  const { error } = await supabase()
-    .from("jobs")
-    .update({
-      status: "done",
-      progress: 100,
-      completed_at: new Date().toISOString(),
-      ...fields,
-    })
-    .eq("id", id);
-  if (error) throw new Error(`completeJob failed: ${error.message}`);
+  await db().query(
+    `update jobs set status = 'done', progress = 100, completed_at = now(),
+       output_path = $2, output_hash = $3, receipt_path = $4
+     where id = $1`,
+    [id, fields.output_path, fields.output_hash, fields.receipt_path],
+  );
 }
 
 export async function failJob(id: string, message: string) {
-  await supabase()
-    .from("jobs")
-    .update({
-      status: "failed",
-      error: message.slice(0, 1000),
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", id);
+  await db().query(
+    `update jobs set status = 'failed', error = $2, completed_at = now()
+     where id = $1`,
+    [id, message.slice(0, 1000)],
+  );
 }
 
 /** Requeue jobs stuck in `rendering` (crashed worker). One retry, then failed. */
 export async function reapStaleJobs() {
-  const cutoff = new Date(
-    Date.now() - STALE_RENDER_MINUTES * 60_000,
-  ).toISOString();
-  const { data } = await supabase()
-    .from("jobs")
-    .select("id, error")
-    .eq("status", "rendering")
-    .lt("started_at", cutoff);
-  for (const row of data ?? []) {
+  const { rows } = await db().query(
+    `select id, error from jobs
+     where status = 'rendering' and started_at < now() - interval '${STALE_RENDER_MINUTES} minutes'`,
+  );
+  for (const row of rows) {
     if (row.error === "requeued-after-stall") {
       await failJob(row.id, "render stalled twice");
     } else {
-      await supabase()
-        .from("jobs")
-        .update({ status: "queued", error: "requeued-after-stall" })
-        .eq("id", row.id);
+      await db().query(
+        `update jobs set status = 'queued', error = 'requeued-after-stall' where id = $1`,
+        [row.id],
+      );
     }
   }
 }
 
 export async function recentCompletedJobs(limit = 10): Promise<Job[]> {
-  const { data } = await supabase()
-    .from("jobs")
-    .select()
-    .eq("status", "done")
-    .order("completed_at", { ascending: false })
-    .limit(limit);
-  return (data as Job[]) ?? [];
+  const { rows } = await db().query(
+    `select * from jobs where status = 'done'
+     order by completed_at desc limit $1`,
+    [limit],
+  );
+  return rows as Job[];
 }
 
 export async function countDemoJobsToday(ip: string): Promise<number> {
-  const dayStart = new Date();
-  dayStart.setUTCHours(0, 0, 0, 0);
-  const { count } = await supabase()
-    .from("demo_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("ip", ip)
-    .gte("created_at", dayStart.toISOString());
-  return count ?? 0;
+  const { rows } = await db().query(
+    `select count(*)::int as n from demo_requests
+     where ip = $1 and created_at >= date_trunc('day', now() at time zone 'utc')`,
+    [ip],
+  );
+  return rows[0]?.n ?? 0;
 }
 
 export async function recordDemoRequest(ip: string) {
-  await supabase().from("demo_requests").insert({ ip });
+  await db().query(`insert into demo_requests (ip) values ($1)`, [ip]);
 }
 
 export async function toPublic(job: Job): Promise<JobPublic> {
@@ -158,19 +138,8 @@ export async function toPublic(job: Job): Promise<JobPublic> {
   };
   if (job.status === "failed" && job.error) pub.error = job.error;
   if (job.status === "done" && job.output_path) {
-    const sb = supabase();
-    const [render, receipt] = await Promise.all([
-      sb.storage
-        .from(RENDERS_BUCKET)
-        .createSignedUrl(job.output_path, SIGNED_URL_TTL_SECONDS),
-      job.receipt_path
-        ? sb.storage
-            .from(RECEIPTS_BUCKET)
-            .createSignedUrl(job.receipt_path, SIGNED_URL_TTL_SECONDS)
-        : Promise.resolve({ data: null }),
-    ]);
-    if (render.data) pub.downloadUrl = render.data.signedUrl;
-    if (receipt.data) pub.receiptUrl = receipt.data.signedUrl;
+    pub.downloadUrl = signedUrl(job.output_path);
+    if (job.receipt_path) pub.receiptUrl = signedUrl(job.receipt_path);
     if (job.output_hash) pub.outputHash = job.output_hash;
   }
   return pub;

@@ -12,7 +12,7 @@ export default async function ReceiptsFeed() {
   try {
     jobs = await recentCompletedJobs(10);
   } catch {
-    // Supabase not configured yet — render the empty state.
+    // Database not configured yet — render the empty state.
   }
 
   return (

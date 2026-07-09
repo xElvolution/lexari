@@ -3,8 +3,8 @@ import { rm, stat } from "node:fs/promises";
 import { ingestImages } from "@/lib/assets";
 import { sha256File } from "@/lib/hash";
 import { completeJob, updateProgress } from "@/lib/jobs";
-import { buildAndUploadReceipt } from "@/lib/payments/receipt";
-import { RENDERS_BUCKET, supabase } from "@/lib/supabase";
+import { buildAndStoreReceipt } from "@/lib/payments/receipt";
+import { putFileFrom } from "@/lib/storage";
 import {
   TEMPLATES,
   type Job,
@@ -54,16 +54,10 @@ export async function processJob(job: Job): Promise<void> {
       stat(outPath),
     ]);
 
-    const outputPath = `${job.id}.mp4`;
-    const { error } = await supabase()
-      .storage.from(RENDERS_BUCKET)
-      .upload(outputPath, await fileBuffer(outPath), {
-        contentType: "video/mp4",
-        upsert: true,
-      });
-    if (error) throw new Error(`upload failed: ${error.message}`);
+    const outputPath = `renders/${job.id}.mp4`;
+    await putFileFrom(outputPath, outPath);
 
-    const { path: receiptPath } = await buildAndUploadReceipt({
+    const { path: receiptPath } = await buildAndStoreReceipt({
       job,
       outputHash,
       outputBytes,
@@ -79,11 +73,6 @@ export async function processJob(job: Job): Promise<void> {
   } finally {
     await rm(jobDir, { recursive: true, force: true }).catch(() => {});
   }
-}
-
-async function fileBuffer(p: string): Promise<Buffer> {
-  const { readFile } = await import("node:fs/promises");
-  return readFile(p);
 }
 
 async function prepareLaunchReel(

@@ -1,4 +1,4 @@
--- RenderReel jobs schema. Run once in the Supabase SQL editor.
+-- RenderReel schema for Neon Postgres. Run once in the Neon SQL editor.
 
 create extension if not exists "pgcrypto";
 
@@ -30,27 +30,3 @@ create table if not exists demo_requests (
 );
 
 create index if not exists demo_requests_ip_idx on demo_requests (ip, created_at);
-
--- Atomic claim: paid jobs before demo jobs, oldest first.
-create or replace function claim_next_job()
-returns setof jobs
-language plpgsql
-security definer
-as $$
-begin
-  return query
-  update jobs
-  set status = 'rendering', started_at = now()
-  where id = (
-    select id from jobs
-    where status = 'queued'
-    order by demo asc, created_at asc
-    limit 1
-    for update skip locked
-  )
-  returning *;
-end;
-$$;
-
--- Storage buckets (private; MP4s + receipts served via signed URLs):
--- Dashboard -> Storage -> create buckets: "renders" and "receipts", both private.

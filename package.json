@@ -34,7 +34,6 @@
     "@remotion/shapes": "^4.0.486",
     "@remotion/transitions": "^4.0.486",
     "@remotion/zod-types": "^4.0.486",
-    "@supabase/supabase-js": "^2.110.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
@@ -46,6 +45,7 @@
     "motion": "^12.42.2",
     "next": "^16.2.10",
     "openai": "^6.45.0",
+    "pg": "^8.22.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "remotion": "^4.0.486",
@@ -57,6 +57,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/pg": "^8.20.0",
+    "ffmpeg-static": "^5.3.0",
     "playwright": "^1.61.1",
     "typescript": "^5.9.3"
   }

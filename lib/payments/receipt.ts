@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
-import { RECEIPTS_BUCKET, supabase } from "@/lib/supabase";
+import { putFile } from "@/lib/storage";
 import { sha256Json } from "@/lib/hash";
 import { TEMPLATES, type Job } from "@/lib/schemas";
 
 /**
- * Tamper-evident work receipt, uploaded next to every rendered MP4.
+ * Tamper-evident work receipt, stored next to every rendered MP4.
  * Anyone can recompute inputHash from the canonical input JSON and
  * outputHash from the downloaded file, and check the payment tx on
  * the X Layer explorer.
@@ -29,7 +29,7 @@ export interface Receipt {
   demo: boolean;
 }
 
-export async function buildAndUploadReceipt(opts: {
+export async function buildAndStoreReceipt(opts: {
   job: Job;
   outputHash: string;
   outputBytes: number;
@@ -58,14 +58,8 @@ export async function buildAndUploadReceipt(opts: {
     demo: opts.job.demo,
   };
 
-  const path = `${opts.job.id}.json`;
-  const { error } = await supabase()
-    .storage.from(RECEIPTS_BUCKET)
-    .upload(path, JSON.stringify(receipt, null, 2), {
-      contentType: "application/json",
-      upsert: true,
-    });
-  if (error) throw new Error(`receipt upload failed: ${error.message}`);
+  const path = `receipts/${opts.job.id}.json`;
+  await putFile(path, JSON.stringify(receipt, null, 2));
   return { path, receipt };
 }
 
@@ -75,9 +69,7 @@ async function getRemotionVersion(): Promise<string> {
   try {
     const pkg = JSON.parse(
       await readFile(
-        new URL(
-          await import.meta.resolve("remotion/package.json"),
-        ),
+        new URL(await import.meta.resolve("remotion/package.json")),
         "utf8",
       ),
     );
