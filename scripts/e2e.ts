@@ -101,7 +101,9 @@ async function main() {
 
   // 4. download + verify hashes
   const mp4 = Buffer.from(
-    await fetch(job.downloadUrl as string).then((r) => r.arrayBuffer()),
+    new Uint8Array(
+      await fetch(job.downloadUrl as string).then((r) => r.arrayBuffer()),
+    ),
   );
   const hash = "sha256:" + createHash("sha256").update(mp4).digest("hex");
   assert(
