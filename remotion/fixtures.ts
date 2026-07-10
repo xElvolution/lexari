@@ -1,4 +1,4 @@
-import type { LaunchReelProps, StatClipProps } from "./props";
+import type { AppTourProps, LaunchReelProps, StatClipProps } from "./props";
 
 /**
  * Studio-only fixtures with fake (but realistic) timings so compositions
@@ -131,5 +131,38 @@ export const statClipFixture: StatClipProps = {
   captionPages: [],
   audioUrl: null,
   durationInFrames: 390,
+  watermark: false,
+};
+
+/** App Tour fixture — expects public/tour-sample.mp4 (a captured walkthrough). */
+export const appTourFixture: AppTourProps = {
+  input: {
+    productName: "RenderReel",
+    url: "http://localhost:3000",
+    steps: [
+      { action: "wait", caption: "Meet RenderReel" },
+      { action: "scroll", caption: "Cinematic templates" },
+      { action: "scroll", caption: "Call it from any agent" },
+      { action: "scroll", caption: "Priced per render" },
+    ],
+    brandColor: "#6C5CE7",
+    tagline: "The motion studio that agents hire",
+    narrate: true,
+    voice: "nova",
+    tone: "friendly",
+  },
+  footageUrl: "tour-sample.mp4",
+  introFrames: 66,
+  footageFrames: 300,
+  outroFrames: 72,
+  stepCaptions: [
+    { text: "Meet RenderReel", fromFrame: 66, toFrame: 141 },
+    { text: "Cinematic templates", fromFrame: 141, toFrame: 216 },
+    { text: "Call it from any agent", fromFrame: 216, toFrame: 291 },
+    { text: "Priced per render", fromFrame: 291, toFrame: 366 },
+  ],
+  captionPages: [],
+  audioUrl: null,
+  durationInFrames: 438,
   watermark: false,
 };

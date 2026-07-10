@@ -60,6 +60,49 @@ export const StatItem = z.object({
 });
 export type StatItem = z.infer<typeof StatItem>;
 
+export const TOUR_ACTIONS = [
+  "goto",
+  "click",
+  "scroll",
+  "type",
+  "hover",
+  "wait",
+] as const;
+
+export const TourStep = z.object({
+  action: z.enum(TOUR_ACTIONS),
+  selector: z
+    .string()
+    .max(200)
+    .optional()
+    .describe("CSS selector or text= locator for click/hover/type/scroll"),
+  url: z.string().url().max(500).optional().describe("for goto"),
+  text: z.string().max(200).optional().describe("for type"),
+  caption: z
+    .string()
+    .max(90)
+    .optional()
+    .describe("on-screen label narrated for this step"),
+  waitMs: z.number().int().min(0).max(8000).optional(),
+});
+export type TourStep = z.infer<typeof TourStep>;
+
+export const AppTourInput = z.object({
+  productName: z.string().trim().min(2).max(40),
+  url: z.string().url().max(500).describe("Public URL of the app to record"),
+  steps: z
+    .array(TourStep)
+    .min(2)
+    .max(12)
+    .describe("Ordered walkthrough steps; a real animated cursor performs each"),
+  brandColor: z.string().regex(HEX_COLOR).default("#6C5CE7"),
+  tagline: z.string().trim().max(120).optional(),
+  narrate: z.boolean().default(true),
+  voice: z.enum(VOICES).default("nova"),
+  tone: z.enum(TONES).default("friendly"),
+});
+export type AppTourInput = z.infer<typeof AppTourInput>;
+
 export const StatClipInput = z.object({
   title: z.string().trim().min(2).max(60),
   stats: z.array(StatItem).min(2).max(6),
@@ -88,6 +131,15 @@ export const TEMPLATES = {
     compositionId: "StatClip",
     estimatedRenderSec: 150,
   },
+  "app-tour": {
+    id: "app-tour" as const,
+    version: 1,
+    schema: AppTourInput,
+    priceUsd: "$8.00",
+    maxDurationSec: 180,
+    compositionId: "AppTour",
+    estimatedRenderSec: 420,
+  },
 } as const;
 export type TemplateId = keyof typeof TEMPLATES;
 
@@ -103,7 +155,7 @@ export interface Job {
   id: string;
   template: TemplateId;
   status: JobStatus;
-  input: LaunchReelInput | StatClipInput;
+  input: LaunchReelInput | StatClipInput | AppTourInput;
   input_hash: string;
   payment: PaymentRecord | null;
   progress: number;

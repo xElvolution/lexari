@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createJob, getJob, toPublic } from "@/lib/jobs";
 import { payment } from "@/lib/payments/server";
 import {
+  AppTourInput,
   LaunchReelInput,
   StatClipInput,
   TEMPLATES,
@@ -123,6 +124,19 @@ const handler = createMcpHandler(
       async (args, extra) =>
         createRenderJob(
           "stat-clip",
+          args,
+          (extra as { requestInfo?: { headers?: Headers } })?.requestInfo
+            ?.headers ?? new Headers(),
+        ),
+    );
+
+    server.tool(
+      "create_app_tour",
+      `Record a real screen-capture walkthrough of a live web app and wrap it in a branded intro/outro with narration and captions. Input: product URL, ordered steps (goto/click/scroll/type/hover/wait, each with a caption), product name, brand color. An animated cursor performs each step. Price: ${TEMPLATES["app-tour"].priceUsd} per render (x402, USDT0 on X Layer). Returns a jobId — poll with get_job.`,
+      AppTourInput.shape,
+      async (args, extra) =>
+        createRenderJob(
+          "app-tour",
           args,
           (extra as { requestInfo?: { headers?: Headers } })?.requestInfo
             ?.headers ?? new Headers(),

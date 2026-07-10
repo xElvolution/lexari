@@ -65,6 +65,44 @@ Rules:
   return generateScenes(system, user, [...LAUNCH_SCENES], budget);
 }
 
+/**
+ * Narration for an app tour, generated from the step captions and fitted
+ * to the recorded footage length so the voice never outruns the video.
+ */
+export async function appTourScript(opts: {
+  productName: string;
+  tagline?: string;
+  stepCaptions: string[];
+  footageSec: number;
+  tone: string;
+}): Promise<NarrationScript> {
+  const budget = Math.max(Math.floor(WORDS_PER_SECOND * (opts.footageSec - 2)), 12);
+  const system = `You narrate a screen-recorded product walkthrough of "${opts.productName}".
+Rules:
+- Write ONE flowing voiceover, at most ${budget} words TOTAL (hard limit).
+- Follow the on-screen steps in order; describe what the viewer is seeing as it happens.
+- Open by naming the product and what it's for, then guide through the steps, then a short closing line.
+- Tone: ${opts.tone}. No emojis, no hashtags, no quotation marks. Natural spoken English.`;
+  const user = JSON.stringify({
+    productName: opts.productName,
+    tagline: opts.tagline,
+    steps: opts.stepCaptions,
+  });
+  const res = await openai().chat.completions.create({
+    model: process.env.SCRIPT_MODEL ?? "gpt-4o-mini",
+    temperature: 0.6,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+  let voiceover = (res.choices[0].message.content ?? "").trim();
+  if (voiceover.split(/\s+/).length > budget) {
+    voiceover = voiceover.split(/\s+/).slice(0, budget).join(" ");
+  }
+  return { scenes: [{ id: "tour", voLine: voiceover }], fullVoiceover: voiceover };
+}
+
 export async function statClipScript(
   input: StatClipInput,
 ): Promise<NarrationScript> {

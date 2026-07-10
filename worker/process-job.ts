@@ -9,21 +9,33 @@ import { putFileFrom } from "@/lib/storage";
 import {
   DURATION_MAX_SEC,
   TEMPLATES,
+  type AppTourInput,
   type Job,
   type LaunchReelInput,
   type StatClipInput,
 } from "@/lib/schemas";
-import { launchReelScript, statClipScript } from "@/pipeline/script";
+import {
+  appTourScript,
+  launchReelScript,
+  statClipScript,
+} from "@/pipeline/script";
 import { synthesizeVoiceover, voiceoverPath } from "@/pipeline/tts";
 import { captionsForVoiceover } from "@/pipeline/captions";
 import {
+  FPS,
   buildTimeline,
   silentStatTimeline,
   type Timeline,
 } from "@/pipeline/timeline";
+import { captureAppTour } from "@/pipeline/capture";
 import { renderComposition } from "@/pipeline/render";
 import { assetUrl, tmpRoot } from "./assets-server";
-import type { LaunchReelProps, StatClipProps } from "@/remotion/props";
+import type {
+  AppTourProps,
+  LaunchReelProps,
+  StatClipProps,
+  TourCaption,
+} from "@/remotion/props";
 
 /**
  * Full pipeline for one claimed job:
@@ -38,7 +50,9 @@ export async function processJob(job: Job): Promise<void> {
     const props =
       job.template === "launch-reel"
         ? await prepareLaunchReel(job, jobDir)
-        : await prepareStatClip(job, jobDir);
+        : job.template === "app-tour"
+          ? await prepareAppTour(job, jobDir)
+          : await prepareStatClip(job, jobDir);
     await updateProgress(job.id, 25);
 
     const outPath = path.join(jobDir, "out.mp4");
@@ -85,6 +99,81 @@ export async function processJob(job: Job): Promise<void> {
 function voiceoverPathIfExists(jobDir: string): string | null {
   const p = voiceoverPath(jobDir);
   return existsSync(p) ? p : null;
+}
+
+const INTRO_FRAMES = 66;
+const OUTRO_FRAMES = 72;
+
+async function prepareAppTour(job: Job, jobDir: string): Promise<AppTourProps> {
+  const input = job.input as AppTourInput;
+
+  // 1. Record the live walkthrough (0-45% progress).
+  const capture = await captureAppTour({
+    input,
+    jobDir,
+    onProgress: (pct) => updateProgress(job.id, 5 + pct * 0.4),
+  });
+  const footageSec = capture.durationMs / 1000;
+  const footageFrames = Math.max(Math.round(footageSec * FPS), FPS);
+
+  // Copy footage where the render's asset server can serve it.
+  const { copyFile } = await import("node:fs/promises");
+  await copyFile(capture.mp4Path, path.join(jobDir, "tour.mp4"));
+
+  // 2. Narrate + caption, fitted to the footage length.
+  let audioUrl: string | null = null;
+  let captionPages: AppTourProps["captionPages"] = [];
+  if (input.narrate) {
+    const script = await appTourScript({
+      productName: input.productName,
+      tagline: input.tagline,
+      stepCaptions: capture.steps
+        .map((s) => s.caption)
+        .filter((c): c is string => Boolean(c)),
+      footageSec,
+      tone: input.tone,
+    });
+    await synthesizeVoiceover({
+      jobDir,
+      text: script.fullVoiceover,
+      voice: input.voice,
+      tone: input.tone,
+    });
+    const caps = await captionsForVoiceover({
+      wavPath: voiceoverPath(jobDir),
+      knownScript: script.fullVoiceover,
+    });
+    captionPages = caps.pages;
+    audioUrl = assetUrl(job.id, "voiceover.wav");
+    await updateProgress(job.id, 22);
+  }
+
+  // 3. Step-caption chips timed to when each step happened in the footage.
+  const stepCaptions: TourCaption[] = capture.steps
+    .map((s, i) => {
+      const next = capture.steps[i + 1];
+      return {
+        text: s.caption ?? "",
+        fromFrame: INTRO_FRAMES + Math.round((s.atMs / 1000) * FPS),
+        toFrame:
+          INTRO_FRAMES +
+          Math.round(((next ? next.atMs : capture.durationMs) / 1000) * FPS),
+      };
+    })
+    .filter((c) => c.text);
+
+  return {
+    input,
+    footageUrl: assetUrl(job.id, "tour.mp4"),
+    introFrames: INTRO_FRAMES,
+    footageFrames,
+    outroFrames: OUTRO_FRAMES,
+    stepCaptions,
+    captionPages,
+    audioUrl,
+    durationInFrames: INTRO_FRAMES + footageFrames + OUTRO_FRAMES,
+    watermark: job.demo,
+  };
 }
 
 async function prepareLaunchReel(

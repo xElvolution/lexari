@@ -4,7 +4,7 @@ create extension if not exists "pgcrypto";
 
 create table if not exists jobs (
   id uuid primary key default gen_random_uuid(),
-  template text not null check (template in ('launch-reel', 'stat-clip')),
+  template text not null check (template in ('launch-reel', 'stat-clip', 'app-tour')),
   status text not null default 'queued'
     check (status in ('queued', 'rendering', 'done', 'failed')),
   input jsonb not null,

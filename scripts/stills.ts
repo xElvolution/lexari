@@ -2,7 +2,11 @@ import path from "node:path";
 import { mkdirSync } from "node:fs";
 import { bundle } from "@remotion/bundler";
 import { renderStill, selectComposition } from "@remotion/renderer";
-import { launchReelFixture, statClipFixture } from "../remotion/fixtures";
+import {
+  appTourFixture,
+  launchReelFixture,
+  statClipFixture,
+} from "../remotion/fixtures";
 
 /** Render key frames of both compositions to PNGs for visual review. */
 async function main() {
@@ -28,9 +32,11 @@ async function main() {
     { comp: "LaunchReel", frame: 80, props: launchReelFixture },
     { comp: "LaunchReel", frame: 330, props: launchReelFixture },
     { comp: "LaunchReel", frame: 620, props: launchReelFixture },
-    { comp: "LaunchReel", frame: 850, props: launchReelFixture },
+    { comp: "LaunchReel", frame: 760, props: launchReelFixture },
     { comp: "StatClip", frame: 40, props: statClipFixture },
     { comp: "StatClip", frame: 200, props: statClipFixture },
+    { comp: "AppTour", frame: 30, props: appTourFixture },
+    { comp: "AppTour", frame: 180, props: appTourFixture },
   ];
 
   for (const shot of shots) {

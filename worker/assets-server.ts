@@ -15,6 +15,7 @@ const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".wav": "audio/wav",
   ".mp3": "audio/mpeg",
+  ".mp4": "video/mp4",
 };
 
 export function tmpRoot(): string {

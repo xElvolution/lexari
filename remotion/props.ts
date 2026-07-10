@@ -1,4 +1,8 @@
-import type { LaunchReelInput, StatClipInput } from "@/lib/schemas";
+import type {
+  AppTourInput,
+  LaunchReelInput,
+  StatClipInput,
+} from "@/lib/schemas";
 import type { SceneTiming } from "@/pipeline/timeline";
 import type { CaptionPage } from "@/pipeline/captions";
 import type { AspectClass } from "@/lib/assets";
@@ -27,6 +31,25 @@ export interface LaunchReelProps {
 export interface StatClipProps {
   input: StatClipInput;
   scenes: SceneTiming[];
+  captionPages: CaptionPage[];
+  audioUrl: string | null;
+  durationInFrames: number;
+  watermark: boolean;
+}
+
+export interface TourCaption {
+  text: string;
+  fromFrame: number;
+  toFrame: number;
+}
+
+export interface AppTourProps {
+  input: AppTourInput;
+  footageUrl: string;
+  introFrames: number;
+  footageFrames: number;
+  outroFrames: number;
+  stepCaptions: TourCaption[];
   captionPages: CaptionPage[];
   audioUrl: string | null;
   durationInFrames: number;

@@ -2,9 +2,11 @@ import React from "react";
 import { Composition } from "remotion";
 import { LaunchReel } from "./launch-reel/LaunchReel";
 import { StatClip } from "./stat-clip/StatClip";
-import type { LaunchReelProps, StatClipProps } from "./props";
+import { AppTour } from "./app-tour/AppTour";
+import type { AppTourProps, LaunchReelProps, StatClipProps } from "./props";
 import { FPS } from "@/pipeline/timeline";
 import {
+  appTourFixture,
   launchReelFixture,
   statClipFixture,
 } from "./fixtures";
@@ -38,6 +40,17 @@ export const Root: React.FC = () => {
         calculateMetadata={({ props }) => ({
           durationInFrames:
             (props as unknown as StatClipProps).durationInFrames,
+        })}
+      />
+      <Composition
+        id="AppTour"
+        component={AppTour as unknown as React.ComponentType<Record<string, unknown>>}
+        width={1920}
+        height={1080}
+        fps={FPS}
+        defaultProps={appTourFixture as unknown as Record<string, unknown>}
+        calculateMetadata={({ props }) => ({
+          durationInFrames: (props as unknown as AppTourProps).durationInFrames,
         })}
       />
     </>
