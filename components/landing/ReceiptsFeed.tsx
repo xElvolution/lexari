@@ -1,7 +1,6 @@
 import { recentCompletedJobs } from "@/lib/jobs";
 import { SectionTitle } from "./Reveal";
-
-export const EXPLORER_TX = "https://web3.okx.com/explorer/x-layer/tx/";
+import { EXPLORER_TX } from "@/lib/constants";
 
 /**
  * Server component: last 10 completed renders with their payment tx —

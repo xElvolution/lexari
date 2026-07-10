@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import type { JobPublic } from "@/lib/schemas";
-import { EXPLORER_TX } from "@/components/landing/ReceiptsFeed";
+import { EXPLORER_TX } from "@/lib/constants";
 
 const POLL_MS = 5000;
 
