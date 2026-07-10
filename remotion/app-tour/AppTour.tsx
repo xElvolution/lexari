@@ -2,7 +2,6 @@ import React from "react";
 import {
   AbsoluteFill,
   Audio,
-  OffthreadVideo,
   Sequence,
   interpolate,
   spring,
@@ -10,6 +9,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { Video } from "@remotion/media";
 import type { AppTourProps } from "@/remotion/props";
 import { makeTheme } from "@/remotion/shared/theme";
 import { Backdrop, LightSweep, Shockwave } from "@/remotion/shared/Backdrop";
@@ -191,10 +191,9 @@ const TourStage: React.FC<{
             }}
           />
         </div>
-        <OffthreadVideo
+        <Video
           src={footageUrl}
           style={{ width: 1600, display: "block" }}
-          startFrom={0}
         />
       </div>
 
