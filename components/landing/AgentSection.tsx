@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Reveal, SectionTitle } from "./Reveal";
+
+const FloatingKnot = dynamic(() => import("./FloatingKnot"), { ssr: false });
 
 const MCP_SNIPPET = (base: string) => `claude mcp add --transport http renderreel ${base}/api/mcp/mcp
 
@@ -44,6 +47,9 @@ export default function AgentSection() {
 
   return (
     <section id="agents" className="relative mx-auto max-w-5xl px-6 py-32">
+      <div className="pointer-events-none absolute -right-16 top-0 hidden h-[340px] w-[340px] overflow-hidden opacity-30 lg:block">
+        <FloatingKnot />
+      </div>
       <SectionTitle
         kicker="Agent-native"
         title="Machines are the customers here"

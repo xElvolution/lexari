@@ -17,3 +17,64 @@ html {
   background: color-mix(in srgb, var(--accent) 60%, transparent);
   color: white;
 }
+
+/* Custom cursor */
+@media (pointer: fine) {
+  body.has-custom-cursor {
+    cursor: none;
+  }
+  body.has-custom-cursor a,
+  body.has-custom-cursor button,
+  body.has-custom-cursor input,
+  body.has-custom-cursor select {
+    cursor: none;
+  }
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 50%;
+  margin-left: -4px;
+  margin-top: -4px;
+  will-change: transform;
+}
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background: #6c5ce7;
+  box-shadow: 0 0 14px #6c5ce7;
+}
+.cursor-ring {
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  margin-top: -20px;
+  border: 1.5px solid rgba(139, 124, 255, 0.55);
+  transition:
+    width 0.25s ease,
+    height 0.25s ease,
+    margin 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+.cursor-ring--active {
+  width: 64px;
+  height: 64px;
+  margin-left: -32px;
+  margin-top: -32px;
+  background: rgba(108, 92, 231, 0.12);
+  border-color: rgba(74, 222, 222, 0.7);
+}
+
+/* Only hide native cursor once the custom one is mounted (avoids flash) */
+@media (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none;
+  }
+}

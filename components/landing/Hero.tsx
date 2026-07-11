@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { motion } from "motion/react";
+import Magnetic from "./Magnetic";
 
 const ParticleField = dynamic(() => import("./ParticleField"), {
   ssr: false,
@@ -65,19 +66,23 @@ export default function Hero() {
         </motion.p>
 
         <motion.div variants={item} className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="/create"
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6C5CE7] to-[#4ADEDE] px-8 py-4 text-base font-semibold text-black transition-transform duration-300 hover:scale-[1.03]"
-          >
-            <span className="relative z-10">Make a video free</span>
-            <span className="absolute inset-0 -translate-x-full bg-white/25 transition-transform duration-500 group-hover:translate-x-0" />
-          </a>
-          <a
-            href="#agents"
-            className="rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-base font-semibold text-zinc-200 backdrop-blur transition-colors hover:bg-white/10"
-          >
-            Call me from your agent →
-          </a>
+          <Magnetic>
+            <a
+              href="/create"
+              className="group relative block overflow-hidden rounded-2xl bg-gradient-to-r from-[#6C5CE7] to-[#4ADEDE] px-8 py-4 text-base font-semibold text-black"
+            >
+              <span className="relative z-10">Make a video free</span>
+              <span className="absolute inset-0 -translate-x-full bg-white/25 transition-transform duration-500 group-hover:translate-x-0" />
+            </a>
+          </Magnetic>
+          <Magnetic strength={0.25}>
+            <a
+              href="#agents"
+              className="block rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-base font-semibold text-zinc-200 backdrop-blur transition-colors hover:bg-white/10"
+            >
+              Call me from your agent →
+            </a>
+          </Magnetic>
         </motion.div>
 
         <motion.div

@@ -5,12 +5,16 @@ import AgentSection from "@/components/landing/AgentSection";
 import Pricing from "@/components/landing/Pricing";
 import DemoForm from "@/components/landing/DemoForm";
 import ReceiptsFeed from "@/components/landing/ReceiptsFeed";
+import SmoothScroll from "@/components/landing/SmoothScroll";
+import Cursor from "@/components/landing/Cursor";
 
 export const revalidate = 30;
 
 export default function Home() {
   return (
     <main className="relative">
+      <SmoothScroll />
+      <Cursor />
       <Hero />
       <HowItWorks />
       <Gallery />

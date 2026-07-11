@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
+import SmoothScroll from "@/components/landing/SmoothScroll";
+import Cursor from "@/components/landing/Cursor";
 
 /**
  * The human self-serve studio: pick a template, fill a brief, choose options,
@@ -40,6 +42,8 @@ export default function CreateStudio() {
 
   return (
     <main className="min-h-screen bg-[#07070B] text-zinc-100">
+      <SmoothScroll />
+      <Cursor />
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/5 bg-[#07070B]/80 px-6 py-4 backdrop-blur">
         <Link href="/" className="font-display text-lg font-bold">
           RenderReel

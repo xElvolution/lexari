@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 
-/** Scroll-linked reveal used across sections. */
+/** Scroll-linked reveal used across sections (Framer Motion, in-view). */
 export function Reveal({
   children,
   delay = 0,
@@ -39,7 +39,8 @@ export function SectionTitle({
   return (
     <div className="mx-auto mb-16 max-w-3xl text-center">
       <Reveal>
-        <div className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-[#8B7CFF]">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-[#8B7CFF]">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#8B7CFF]" />
           {kicker}
         </div>
       </Reveal>
