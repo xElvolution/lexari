@@ -4,15 +4,22 @@ import {
   createJob,
   recordDemoRequest,
 } from "@/lib/jobs";
-import { LaunchReelInput } from "@/lib/schemas";
+import { LaunchReelInput, StatClipInput, type TemplateId } from "@/lib/schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DAILY_LIMIT = 2;
+const DAILY_LIMIT = 3;
+
+// Templates a human can render free (watermarked). App Tour is paid-only
+// (it drives a real browser — too heavy for an anonymous free tier).
+const DEMO_SCHEMAS = {
+  "launch-reel": LaunchReelInput,
+  "stat-clip": StatClipInput,
+} as const;
 
 /**
- * Free watermarked 720p Launch Reel — the zero-setup judge/user path.
+ * Free watermarked render — the zero-setup human path from the Create studio.
  * Rate limited per IP per UTC day; demo jobs queue behind paid jobs.
  */
 export async function POST(req: NextRequest) {
@@ -26,20 +33,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: "demo limit reached",
-        message: `Free demos are limited to ${DAILY_LIMIT} per day. For unlimited renders, call the paid API — $5 per launch reel via x402.`,
+        message: `Free demos are limited to ${DAILY_LIMIT} per day. Connect a wallet to render unlimited clean 1080p videos — from $2 per render via x402.`,
       },
       { status: 429 },
     );
   }
 
-  let body: unknown;
+  let body: { template?: string; input?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = LaunchReelInput.safeParse(body);
+  const template = body.template as keyof typeof DEMO_SCHEMAS;
+  const schema = DEMO_SCHEMAS[template];
+  if (!schema) {
+    return NextResponse.json(
+      { error: "free demo supports launch-reel and stat-clip only" },
+      { status: 400 },
+    );
+  }
+
+  const parsed = schema.safeParse(body.input);
   if (!parsed.success) {
     return NextResponse.json(
       {
@@ -55,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   await recordDemoRequest(ip);
   const job = await createJob({
-    template: "launch-reel",
+    template: template as TemplateId,
     input: parsed.data,
     payment: null,
     demo: true,

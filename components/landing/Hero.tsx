@@ -66,10 +66,10 @@ export default function Hero() {
 
         <motion.div variants={item} className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <a
-            href="#try"
+            href="/create"
             className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#6C5CE7] to-[#4ADEDE] px-8 py-4 text-base font-semibold text-black transition-transform duration-300 hover:scale-[1.03]"
           >
-            <span className="relative z-10">Render one free</span>
+            <span className="relative z-10">Make a video free</span>
             <span className="absolute inset-0 -translate-x-full bg-white/25 transition-transform duration-500 group-hover:translate-x-0" />
           </a>
           <a
