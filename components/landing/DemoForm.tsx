@@ -56,7 +56,7 @@ export default function DemoForm() {
   }
 
   const input =
-    "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-[15px] text-zinc-100 placeholder-zinc-600 outline-none transition-colors focus:border-[#6C5CE7]/70";
+    "w-full rounded-xl border border-line bg-surface px-4 py-3.5 text-[15px] text-ink placeholder:text-faint outline-none transition-colors focus:border-[#6C5CE7]/70";
 
   return (
     <section id="try" className="relative mx-auto max-w-3xl px-6 py-32">
@@ -68,13 +68,13 @@ export default function DemoForm() {
       <Reveal>
         <form
           onSubmit={submit}
-          className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.03] p-8"
+          className="space-y-4 rounded-3xl border border-line bg-surface p-8"
         >
           <div className="grid gap-4 md:grid-cols-2">
             <input required maxLength={40} placeholder="Product name" value={form.productName} onChange={set("productName")} className={input} />
             <div className="flex items-center gap-3">
-              <input type="color" value={form.brandColor} onChange={set("brandColor")} className="h-12 w-14 cursor-pointer rounded-lg border border-white/10 bg-transparent" aria-label="Brand color" />
-              <span className="text-sm text-zinc-500">Brand color</span>
+              <input type="color" value={form.brandColor} onChange={set("brandColor")} className="h-12 w-14 cursor-pointer rounded-lg border border-line bg-transparent" aria-label="Brand color" />
+              <span className="text-sm text-faint">Brand color</span>
             </div>
           </div>
           <input required minLength={10} maxLength={120} placeholder="One-liner — what does it do?" value={form.oneLiner} onChange={set("oneLiner")} className={input} />

@@ -60,7 +60,7 @@ export default function Pricing() {
               className={`relative h-full rounded-3xl border p-8 ${
                 plan.flagship
                   ? "border-[#6C5CE7]/60 bg-gradient-to-b from-[#6C5CE7]/15 to-transparent"
-                  : "border-white/10 bg-white/[0.03]"
+                  : "border-line bg-surface"
               }`}
             >
               {plan.flagship && (
@@ -73,11 +73,11 @@ export default function Pricing() {
               </h3>
               <div className="mt-4 flex items-baseline gap-2">
                 <span className="font-display text-6xl font-bold">{plan.price}</span>
-                <span className="text-sm text-zinc-500">{plan.per}</span>
+                <span className="text-sm text-faint">{plan.per}</span>
               </div>
               <ul className="mt-8 space-y-3">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-[15px] text-zinc-300">
+                  <li key={f} className="flex items-start gap-3 text-[15px] text-muted">
                     <span style={{ color: plan.color }}>✓</span>
                     {f}
                   </li>
@@ -88,7 +88,7 @@ export default function Pricing() {
         ))}
       </div>
       <Reveal delay={0.2}>
-        <p className="mt-10 text-center text-sm text-zinc-500">
+        <p className="mt-10 text-center text-sm text-faint">
           Paid in USDT0 on X Layer via x402 · gasless EIP-3009 transfers · settlement confirmed before render starts
         </p>
       </Reveal>

@@ -1,28 +1,75 @@
 @import "tailwindcss";
 
-@theme {
-  --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---- Design tokens (semantic; theme-swappable) ---- */
+:root,
+.dark {
+  --bg: #07070b;
+  --bg-2: #0b0b12;
+  --elev: #10101a;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #f4f4f6;
+  --muted: rgba(244, 244, 246, 0.62);
+  --faint: rgba(244, 244, 246, 0.34);
+  --accent: #6c5ce7;
+  --accent-2: #4adede;
+  --glow: 0.5;
 }
 
-:root {
+.light {
+  --bg: #f6f6fb;
+  --bg-2: #eef0f7;
+  --elev: #ffffff;
+  --surface: rgba(18, 18, 34, 0.03);
+  --surface-2: rgba(18, 18, 34, 0.05);
+  --border: rgba(18, 18, 34, 0.10);
+  --border-strong: rgba(18, 18, 34, 0.18);
+  --text: #141420;
+  --muted: rgba(20, 20, 32, 0.62);
+  --faint: rgba(20, 20, 32, 0.4);
   --accent: #6c5ce7;
+  --accent-2: #17b6b6;
+  --glow: 0.28;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg-2);
+  --color-elev: var(--elev);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent2: var(--accent-2);
+  --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
 }
-
-::selection {
-  background: color-mix(in srgb, var(--accent) 60%, transparent);
-  color: white;
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* Custom cursor */
+::selection {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: #fff;
+}
+
+/* ---- Custom cursor ---- */
 @media (pointer: fine) {
-  body.has-custom-cursor {
-    cursor: none;
-  }
+  body.has-custom-cursor,
   body.has-custom-cursor a,
   body.has-custom-cursor button,
   body.has-custom-cursor input,
@@ -30,7 +77,6 @@ html {
     cursor: none;
   }
 }
-
 .cursor-dot,
 .cursor-ring {
   position: fixed;
@@ -39,39 +85,30 @@ html {
   pointer-events: none;
   z-index: 9999;
   border-radius: 50%;
-  margin-left: -4px;
-  margin-top: -4px;
   will-change: transform;
 }
 .cursor-dot {
   width: 8px;
   height: 8px;
-  background: #6c5ce7;
-  box-shadow: 0 0 14px #6c5ce7;
+  margin: -4px 0 0 -4px;
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
 }
 .cursor-ring {
   width: 40px;
   height: 40px;
-  margin-left: -20px;
-  margin-top: -20px;
-  border: 1.5px solid rgba(139, 124, 255, 0.55);
-  transition:
-    width 0.25s ease,
-    height 0.25s ease,
-    margin 0.25s ease,
-    background 0.25s ease,
-    border-color 0.25s ease;
+  margin: -20px 0 0 -20px;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: width 0.25s ease, height 0.25s ease, margin 0.25s ease,
+    background 0.25s ease, border-color 0.25s ease;
 }
 .cursor-ring--active {
   width: 64px;
   height: 64px;
-  margin-left: -32px;
-  margin-top: -32px;
-  background: rgba(108, 92, 231, 0.12);
-  border-color: rgba(74, 222, 222, 0.7);
+  margin: -32px 0 0 -32px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-2) 70%, transparent);
 }
-
-/* Only hide native cursor once the custom one is mounted (avoids flash) */
 @media (pointer: coarse) {
   .cursor-dot,
   .cursor-ring {

@@ -56,8 +56,8 @@ export default function AgentSection() {
         sub="A report agent renders its numbers as a clip every week. A launch agent ships the video with the release. That's motion design as infrastructure — priced per call, not per seat."
       />
       <Reveal>
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#0B0B12]">
-          <div className="flex items-center justify-between border-b border-white/10 px-4">
+        <div className="overflow-hidden rounded-3xl border border-line bg-elev">
+          <div className="flex items-center justify-between border-b border-line px-4">
             <div className="flex">
               {tabs.map((tab) => (
                 <button
@@ -69,7 +69,7 @@ export default function AgentSection() {
                   className={`px-5 py-4 text-sm font-medium transition-colors ${
                     active === tab.id
                       ? "border-b-2 border-[#6C5CE7] text-white"
-                      : "text-zinc-500 hover:text-zinc-300"
+                      : "text-faint hover:text-muted"
                   }`}
                 >
                   {tab.label}
@@ -83,7 +83,7 @@ export default function AgentSection() {
                   setTimeout(() => setCopied(false), 1500);
                 });
               }}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:text-white"
+              className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:text-white"
             >
               {copied ? "copied ✓" : "copy"}
             </button>

@@ -39,7 +39,7 @@ export function SectionTitle({
   return (
     <div className="mx-auto mb-16 max-w-3xl text-center">
       <Reveal>
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-[#8B7CFF]">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-[#8B7CFF]">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#8B7CFF]" />
           {kicker}
         </div>
@@ -51,7 +51,7 @@ export function SectionTitle({
       </Reveal>
       {sub && (
         <Reveal delay={0.16}>
-          <p className="mt-5 text-lg leading-relaxed text-zinc-400">{sub}</p>
+          <p className="mt-5 text-lg leading-relaxed text-muted">{sub}</p>
         </Reveal>
       )}
     </div>

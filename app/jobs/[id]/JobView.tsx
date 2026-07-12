@@ -5,6 +5,8 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import type { JobPublic } from "@/lib/schemas";
 import { EXPLORER_TX } from "@/lib/constants";
+import Ambient from "@/components/site/Ambient";
+import Nav from "@/components/site/Nav";
 
 const POLL_MS = 5000;
 
@@ -62,7 +64,7 @@ export default function JobView({ jobId }: { jobId: string }) {
   if (!job) {
     return (
       <Shell>
-        <div className="animate-pulse text-zinc-500">loading job…</div>
+        <div className="animate-pulse text-faint">loading job…</div>
       </Shell>
     );
   }
@@ -87,7 +89,7 @@ export default function JobView({ jobId }: { jobId: string }) {
             autoPlay
             muted
             playsInline
-            className="mt-8 w-full rounded-2xl border border-white/10 shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
+            className="mt-8 w-full rounded-2xl border border-line shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
           />
           <div className="mt-6 flex flex-wrap gap-4">
             <a
@@ -102,16 +104,16 @@ export default function JobView({ jobId }: { jobId: string }) {
                 href={job.receiptUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-xl border border-white/15 px-6 py-3 font-semibold text-zinc-200 hover:bg-white/5"
+                className="rounded-xl border border-line-strong px-6 py-3 font-semibold text-ink hover:bg-surface"
               >
                 View receipt JSON
               </a>
             )}
           </div>
 
-          <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <div className="mt-10 rounded-2xl border border-line bg-surface p-6">
             <h2 className="font-display text-xl font-semibold">Verify this work</h2>
-            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-muted">
               <li>
                 <code className="text-[#4ADEDE]">sha256</code> the downloaded MP4 — it must equal{" "}
                 <code className="break-all text-[#4ADEDE]">{job.outputHash}</code>
@@ -140,8 +142,8 @@ export default function JobView({ jobId }: { jobId: string }) {
       ) : job.status === "failed" ? (
         <div>
           <h1 className="font-display text-4xl font-bold text-red-300">Render failed</h1>
-          <p className="mt-4 text-zinc-400">{job.error ?? "unknown error"}</p>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-4 text-muted">{job.error ?? "unknown error"}</p>
+          <p className="mt-2 text-sm text-faint">
             Paid jobs that fail are refunded manually — contact us with this job id.
           </p>
         </div>
@@ -150,25 +152,25 @@ export default function JobView({ jobId }: { jobId: string }) {
           <h1 className="font-display text-4xl font-bold">
             {job.status === "queued" ? "In the queue…" : "Rendering your film…"}
           </h1>
-          <div className="mt-8 h-3 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="mt-8 h-3 w-full overflow-hidden rounded-full bg-surface2">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-[#6C5CE7] to-[#4ADEDE]"
               animate={{ width: `${Math.max(job.progress, 3)}%` }}
               transition={{ ease: "easeOut", duration: 0.6 }}
             />
           </div>
-          <div className="mt-3 flex justify-between text-sm text-zinc-500">
+          <div className="mt-3 flex justify-between text-sm text-faint">
             <span>{job.progress}%</span>
             <span>~{job.estimatedSeconds}s typical</span>
           </div>
-          <p className="mt-8 text-sm leading-relaxed text-zinc-500">
+          <p className="mt-8 text-sm leading-relaxed text-faint">
             Script → voiceover → word-level caption timing → 1080p motion-graphics render.
             This page updates automatically.
           </p>
         </div>
       )}
 
-      <Link href="/" className="mt-12 inline-block text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/" className="mt-12 inline-block text-sm text-faint hover:text-muted">
         ← RenderReel home
       </Link>
     </Shell>
@@ -177,8 +179,12 @@ export default function JobView({ jobId }: { jobId: string }) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-6 py-24">
-      {children}
-    </main>
+    <>
+      <Ambient />
+      <Nav />
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-6 pb-24 pt-36">
+        {children}
+      </main>
+    </>
   );
 }

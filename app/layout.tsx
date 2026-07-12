@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import ThemeProvider from "@/components/site/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-display" });
@@ -23,9 +24,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`dark ${inter.variable} ${grotesk.variable}`}>
-      <body className="bg-[#07070B] font-body text-zinc-100 antialiased">
-        {children}
+    <html
+      lang="en"
+      className={`${inter.variable} ${grotesk.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="font-body antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

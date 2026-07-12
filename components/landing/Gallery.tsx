@@ -143,7 +143,7 @@ function GalleryCard({ item }: { item: GalleryItem }) {
 
   return (
     <div
-      className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] transition-colors duration-300 hover:border-white/25"
+      className="group overflow-hidden rounded-3xl border border-line bg-surface transition-colors duration-300 hover:border-line-strong"
       onMouseEnter={() => videoRef.current?.play().catch(() => {})}
       onMouseLeave={() => videoRef.current?.pause()}
     >
@@ -163,10 +163,10 @@ function GalleryCard({ item }: { item: GalleryItem }) {
           <div
             className="flex h-full w-full items-center justify-center"
             style={{
-              background: `radial-gradient(ellipse at 30% 20%, ${item.brandColor}33, transparent 60%), #0B0B12`,
+              background: `radial-gradient(ellipse at 30% 20%, ${item.brandColor}33, transparent 60%), var(--bg-2)`,
             }}
           >
-            <span className="text-sm font-medium tracking-wide text-zinc-500">
+            <span className="text-sm font-medium tracking-wide text-faint">
               rendering sample…
             </span>
           </div>
@@ -184,13 +184,13 @@ function GalleryCard({ item }: { item: GalleryItem }) {
           <h3 className="text-lg font-semibold">{item.title}</h3>
           <button
             onClick={() => setShowJson((v) => !v)}
-            className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-[#6C5CE7]/60 hover:text-zinc-100"
+            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-[#6C5CE7]/60 hover:text-ink"
           >
             {showJson ? "hide input" : "{ input }"}
           </button>
         </div>
         {showJson && (
-          <pre className="mt-4 max-h-56 overflow-auto rounded-xl border border-white/10 bg-black/60 p-4 text-[12px] leading-relaxed text-[#4ADEDE]">
+          <pre className="mt-4 max-h-56 overflow-auto rounded-xl border border-line bg-elev p-4 text-[12px] leading-relaxed text-[#4ADEDE]">
             {JSON.stringify(item.input, null, 2)}
           </pre>
         )}

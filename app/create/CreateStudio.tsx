@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import SmoothScroll from "@/components/landing/SmoothScroll";
 import Cursor from "@/components/landing/Cursor";
+import Ambient from "@/components/site/Ambient";
+import Nav from "@/components/site/Nav";
 
 /**
  * The human self-serve studio: pick a template, fill a brief, choose options,
@@ -41,21 +42,17 @@ export default function CreateStudio() {
   const tpl = TEMPLATES.find((t) => t.id === active)!;
 
   return (
-    <main className="min-h-screen bg-[#07070B] text-zinc-100">
+    <main className="min-h-screen text-ink">
+      <Ambient />
       <SmoothScroll />
       <Cursor />
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/5 bg-[#07070B]/80 px-6 py-4 backdrop-blur">
-        <Link href="/" className="font-display text-lg font-bold">
-          RenderReel
-        </Link>
-        <div className="text-sm text-zinc-500">Create studio</div>
-      </header>
+      <Nav />
 
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-6xl px-6 pb-24 pt-32">
         <h1 className="font-display text-4xl font-bold tracking-tight">
           Make a video
         </h1>
-        <p className="mt-2 text-zinc-400">
+        <p className="mt-2 text-muted">
           Fill the brief, pick your look, render. No editor, no timeline.
         </p>
 
@@ -68,7 +65,7 @@ export default function CreateStudio() {
               className={`rounded-2xl border p-5 text-left transition-all ${
                 active === t.id
                   ? "border-transparent ring-2"
-                  : "border-white/10 hover:border-white/25"
+                  : "border-line hover:border-line-strong"
               }`}
               style={active === t.id ? { boxShadow: `0 0 0 2px ${t.color}`, background: `${t.color}12` } : {}}
             >
@@ -76,9 +73,9 @@ export default function CreateStudio() {
                 <span className="font-semibold" style={{ color: active === t.id ? t.color : undefined }}>
                   {t.name}
                 </span>
-                <span className="text-sm text-zinc-500">{t.price}</span>
+                <span className="text-sm text-faint">{t.price}</span>
               </div>
-              <div className="mt-1 text-sm text-zinc-400">{t.blurb}</div>
+              <div className="mt-1 text-sm text-muted">{t.blurb}</div>
               <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider" style={{ color: t.free ? "#4ADE80" : "#F5A623" }}>
                 {t.free ? "Free demo available" : "Wallet required"}
               </div>
@@ -107,12 +104,12 @@ export default function CreateStudio() {
 }
 
 const inputCls =
-  "w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3.5 text-[15px] outline-none transition-colors focus:border-white/40 placeholder-zinc-600";
+  "w-full rounded-xl border border-line bg-surface px-4 py-3.5 text-[15px] outline-none transition-colors focus:border-line-strong placeholder:text-faint";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-medium text-zinc-400">{label}</span>
+      <span className="mb-2 block text-sm font-medium text-muted">{label}</span>
       {children}
     </label>
   );
@@ -150,7 +147,7 @@ function SubmitBar({
             ? "Render free preview (720p, watermarked)"
             : "Connect wallet to render"}
       </button>
-      <p className="mt-3 text-center text-xs text-zinc-600">
+      <p className="mt-3 text-center text-xs text-faint">
         {free
           ? "Free previews are watermarked 720p. Clean 1080p is $2–8 per render, paid in USDT on X Layer."
           : "Paid via x402 — USDT on X Layer, gasless. Wallet connect ships with the deployed build."}
@@ -217,8 +214,8 @@ function LaunchReelForm({ color }: { color: string }) {
           </Field>
           <Field label="Brand color">
             <div className="flex items-center gap-3">
-              <input type="color" value={f.brandColor} onChange={(e) => set("brandColor", e.target.value)} className="h-12 w-16 cursor-pointer rounded-lg border border-white/10 bg-transparent" />
-              <span className="text-sm text-zinc-500">{f.brandColor}</span>
+              <input type="color" value={f.brandColor} onChange={(e) => set("brandColor", e.target.value)} className="h-12 w-16 cursor-pointer rounded-lg border border-line bg-transparent" />
+              <span className="text-sm text-faint">{f.brandColor}</span>
             </div>
           </Field>
         </div>
@@ -231,7 +228,7 @@ function LaunchReelForm({ color }: { color: string }) {
               <input key={i} className={inputCls} maxLength={80} value={feat} onChange={(e) => setFeature(i, e.target.value)} placeholder={`Feature ${i + 1}`} />
             ))}
             {f.features.length < 6 && (
-              <button onClick={() => set("features", [...f.features, ""])} className="text-sm text-zinc-500 hover:text-zinc-300">
+              <button onClick={() => set("features", [...f.features, ""])} className="text-sm text-faint hover:text-muted">
                 + add feature
               </button>
             )}
@@ -308,8 +305,8 @@ function StatClipForm({ color }: { color: string }) {
           </Field>
           <Field label="Brand color">
             <div className="flex items-center gap-3">
-              <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="h-12 w-16 cursor-pointer rounded-lg border border-white/10 bg-transparent" />
-              <span className="text-sm text-zinc-500">{brandColor}</span>
+              <input type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="h-12 w-16 cursor-pointer rounded-lg border border-line bg-transparent" />
+              <span className="text-sm text-faint">{brandColor}</span>
             </div>
           </Field>
         </div>
@@ -323,13 +320,13 @@ function StatClipForm({ color }: { color: string }) {
               </div>
             ))}
             {stats.length < 6 && (
-              <button onClick={() => setStats([...stats, { label: "", value: "", unit: "" }])} className="text-sm text-zinc-500 hover:text-zinc-300">
+              <button onClick={() => setStats([...stats, { label: "", value: "", unit: "" }])} className="text-sm text-faint hover:text-muted">
                 + add stat
               </button>
             )}
           </div>
         </Field>
-        <label className="flex items-center gap-3 text-sm text-zinc-400">
+        <label className="flex items-center gap-3 text-sm text-muted">
           <input type="checkbox" checked={narrate} onChange={(e) => setNarrate(e.target.checked)} className="h-4 w-4 accent-[#4ADEDE]" />
           Add AI narration
         </label>
@@ -369,7 +366,7 @@ function AppTourForm({ color }: { color: string }) {
         <Field label="App URL">
           <input className={inputCls} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://your-app.com" />
         </Field>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-sm leading-relaxed text-zinc-400">
+        <div className="rounded-2xl border border-line bg-surface p-6 text-sm leading-relaxed text-muted">
           App Tour drives a real browser through your app with an animated cursor, then
           wraps the recording in a branded intro, caption chips, and narration. Because it
           runs a live browser session, it&apos;s a paid render — connect a wallet on the
@@ -399,14 +396,14 @@ function Preview({
   const grad = useMemo(() => `radial-gradient(ellipse at 30% 15%, ${color}33, transparent 60%), #0B0B12`, [color]);
   return (
     <div className="lg:sticky lg:top-24 lg:self-start">
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">Live preview</div>
-      <div className="mt-3 aspect-video overflow-hidden rounded-2xl border border-white/10 p-8" style={{ background: grad }}>
+      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-faint">Live preview</div>
+      <div className="mt-3 aspect-video overflow-hidden rounded-2xl border border-line p-8" style={{ background: grad }}>
         <div className="flex h-full flex-col justify-center">
           <div className="font-display text-3xl font-bold" style={{ color }}>{title}</div>
-          <div className="mt-2 text-sm text-zinc-400">{sub}</div>
+          <div className="mt-2 text-sm text-muted">{sub}</div>
           <div className="mt-4 space-y-1.5">
             {rows.slice(0, 6).map((r, i) => (
-              <div key={i} className="flex items-center gap-2 text-[13px] text-zinc-300">
+              <div key={i} className="flex items-center gap-2 text-[13px] text-muted">
                 <span style={{ color }}>▸</span>
                 {r}
               </div>
@@ -414,7 +411,7 @@ function Preview({
           </div>
         </div>
       </div>
-      <div className="mt-3 text-center text-xs text-zinc-600">{footer}</div>
+      <div className="mt-3 text-center text-xs text-faint">{footer}</div>
     </div>
   );
 }

@@ -28,7 +28,10 @@ export default function Hero() {
       <ParticleField />
 
       {/* gradient wash under content */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#07070B_82%)]" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse at center, transparent 30%, var(--bg) 82%)" }}
+      />
 
       <motion.div
         variants={container}
@@ -38,7 +41,7 @@ export default function Hero() {
       >
         <motion.div
           variants={item}
-          className="mb-8 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-medium tracking-wide text-zinc-300 backdrop-blur"
+          className="mb-8 flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2 text-sm font-medium tracking-wide text-muted backdrop-blur"
         >
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
           Live on OKX.AI · pay-per-call · USDT on X Layer
@@ -57,12 +60,12 @@ export default function Hero() {
 
         <motion.p
           variants={item}
-          className="mt-8 max-w-2xl text-lg leading-relaxed text-zinc-400 md:text-xl"
+          className="mt-8 max-w-2xl text-lg leading-relaxed text-muted md:text-xl"
         >
           Send structured JSON. Get back a cinematic, voice-narrated,
           caption-synced MP4 — with a verifiable on-chain receipt. No
           designer, no timeline editor, no subscription.{" "}
-          <span className="text-zinc-200">$5 a launch reel. $2 a stat clip.</span>
+          <span className="text-ink">$5 a launch reel. $2 a stat clip.</span>
         </motion.p>
 
         <motion.div variants={item} className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -78,7 +81,7 @@ export default function Hero() {
           <Magnetic strength={0.25}>
             <a
               href="#agents"
-              className="block rounded-2xl border border-white/15 bg-white/5 px-8 py-4 text-base font-semibold text-zinc-200 backdrop-blur transition-colors hover:bg-white/10"
+              className="block rounded-2xl border border-line-strong bg-surface px-8 py-4 text-base font-semibold text-ink backdrop-blur transition-colors hover:bg-surface2"
             >
               Call me from your agent →
             </a>
@@ -87,7 +90,7 @@ export default function Hero() {
 
         <motion.div
           variants={item}
-          className="mt-14 flex items-center gap-8 text-xs font-medium uppercase tracking-[0.2em] text-zinc-600"
+          className="mt-14 flex items-center gap-8 text-xs font-medium uppercase tracking-[0.2em] text-faint"
         >
           <span>JSON in</span>
           <Arrow />
@@ -97,7 +100,7 @@ export default function Hero() {
         </motion.div>
       </motion.div>
 
-      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce text-zinc-600">
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce text-faint">
         ↓
       </div>
     </section>

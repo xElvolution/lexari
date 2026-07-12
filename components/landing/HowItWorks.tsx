@@ -25,7 +25,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section className="relative mx-auto max-w-6xl px-6 py-32">
+    <section id="how" className="relative mx-auto max-w-6xl px-6 py-32">
       <SectionTitle
         kicker="How it works"
         title="Three requests. One film."
@@ -34,14 +34,14 @@ export default function HowItWorks() {
       <div className="grid gap-6 md:grid-cols-3">
         {STEPS.map((step, i) => (
           <Reveal key={step.n} delay={i * 0.12}>
-            <div className="group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-8 transition-colors duration-300 hover:border-[#6C5CE7]/50">
+            <div className="group relative h-full overflow-hidden rounded-3xl border border-line bg-surface p-8 transition-colors duration-300 hover:border-[#6C5CE7]/50">
               <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#6C5CE7]/10 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
-              <div className="font-display text-5xl font-bold text-white/10 transition-colors duration-300 group-hover:text-[#6C5CE7]/40">
+              <div className="font-display text-5xl font-bold text-faint/60 transition-colors duration-300 group-hover:text-[#6C5CE7]/40">
                 {step.n}
               </div>
               <h3 className="mt-4 text-2xl font-semibold">{step.title}</h3>
-              <p className="mt-3 leading-relaxed text-zinc-400">{step.body}</p>
-              <code className="mt-6 block rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-[13px] text-[#4ADEDE]">
+              <p className="mt-3 leading-relaxed text-muted">{step.body}</p>
+              <code className="mt-6 block rounded-xl border border-line bg-elev px-4 py-3 text-[13px] text-[#4ADEDE]">
                 {step.code}
               </code>
             </div>

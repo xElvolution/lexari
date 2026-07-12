@@ -21,9 +21,9 @@ export default async function ReceiptsFeed() {
         title="Every render leaves a receipt"
         sub="Input hash, payment transaction, output hash — recompute them yourself. This feed is the live production log."
       />
-      <div className="overflow-hidden rounded-3xl border border-white/10">
+      <div className="overflow-hidden rounded-3xl border border-line">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-white/10 bg-white/[0.04] text-xs uppercase tracking-wider text-zinc-500">
+          <thead className="border-b border-line bg-surface text-xs uppercase tracking-wider text-faint">
             <tr>
               <th className="px-6 py-4">Template</th>
               <th className="px-6 py-4">Completed</th>
@@ -34,19 +34,19 @@ export default async function ReceiptsFeed() {
           <tbody>
             {jobs.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-zinc-600">
+                <td colSpan={4} className="px-6 py-12 text-center text-faint">
                   Renders will appear here the moment the first job completes.
                 </td>
               </tr>
             )}
             {jobs.map((job) => (
-              <tr key={job.id} className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
+              <tr key={job.id} className="border-b border-white/5 transition-colors hover:bg-surface">
                 <td className="px-6 py-4">
                   <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wide ${job.template === "launch-reel" ? "bg-[#6C5CE7]/20 text-[#8B7CFF]" : "bg-[#4ADEDE]/15 text-[#4ADEDE]"}`}>
                     {job.demo ? "demo" : job.template}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-zinc-400">
+                <td className="px-6 py-4 text-muted">
                   {job.completed_at ? new Date(job.completed_at).toUTCString().replace(" GMT", " UTC") : "—"}
                 </td>
                 <td className="px-6 py-4">
@@ -60,10 +60,10 @@ export default async function ReceiptsFeed() {
                       {job.payment.txHash.slice(0, 10)}…
                     </a>
                   ) : (
-                    <span className="text-zinc-600">{job.demo ? "free demo" : "—"}</span>
+                    <span className="text-faint">{job.demo ? "free demo" : "—"}</span>
                   )}
                 </td>
-                <td className="px-6 py-4 font-mono text-xs text-zinc-500">
+                <td className="px-6 py-4 font-mono text-xs text-faint">
                   {job.output_hash ? `${job.output_hash.slice(0, 18)}…` : "—"}
                 </td>
               </tr>
