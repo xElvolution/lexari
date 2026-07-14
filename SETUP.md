@@ -1,4 +1,4 @@
-# RenderReel — go-live setup (do these in order)
+# Lexari — go-live setup (do these in order)
 
 Everything is built and the production build passes. These steps need *your* accounts;
 each one unlocks a capability. Do them top to bottom.
@@ -22,9 +22,9 @@ each one unlocks a capability. Do them top to bottom.
 ## 4. Deploy — unlocks fast renders + the public URL the listing needs  ·  ~15 min
 Pick one:
 - **Fly.io** (recommended): install flyctl, `fly launch --no-deploy` (uses our `fly.toml`),
-  `fly secrets set DATABASE_URL=… OPENAI_API_KEY=… FILES_SECRET=… OKX_API_KEY=… OKX_SECRET_KEY=… OKX_PASSPHRASE=… PAY_TO=… NEXT_PUBLIC_BASE_URL=https://<app>.fly.dev`,
+  `fly secrets set DATABASE_URL=… OPENAI_API_KEY=… FILES_SECRET=… OKX_API_KEY=… OKX_SECRET_KEY=… OKX_PASSPHRASE=… PAY_TO=… NEXT_PUBLIC_BASE_URL=https://lexari.ai`,
   then `fly deploy`.
-- **Any VPS** with Docker: `docker build -t renderreel . && docker run --env-file .env.local -p 3000:3000 renderreel`.
+- **Any VPS** with Docker: `docker build -t lexari . && docker run --env-file .env.local -p 3000:3000 lexari`.
 
 → Gives a stable HTTPS URL. Renders drop from ~40 min (this Mac) to ~30 sec.
 
@@ -36,7 +36,7 @@ Pick one:
 4. Fund that wallet with ~$20 USDT0 on X Layer (for our own test payments).
 5. Install skills:  `npx skills add okx/onchainos-skills`  (or the Claude Code plugin).
 6. Register as ASP (role `asp`) via the `okx-ai` skill; choose **A2MCP pay-per-call**;
-   point it at the deployed MCP URL:  `https://<app>.fly.dev/api/mcp/mcp`.
+   point it at the deployed MCP URL:  `https://lexari.ai/api/mcp/mcp`.
 7. Submit the listing for review using the copy in `LISTING.md`.
 
 → This is the gate: an approved, live listing is what makes the hackathon submission valid.
@@ -56,6 +56,6 @@ OKX_API_KEY=…
 OKX_SECRET_KEY=…
 OKX_PASSPHRASE=…
 PAY_TO=0x…
-NEXT_PUBLIC_BASE_URL=https://<app>.fly.dev
+NEXT_PUBLIC_BASE_URL=https://lexari.ai
 ```
 Leave `PAYMENTS_DISABLED` unset in production; set it to `1` only for local dev without OKX creds.

@@ -69,7 +69,7 @@ async function buildHttpServer(): Promise<x402HTTPResourceServer> {
         price: t.priceUsd,
         maxTimeoutSeconds: 300,
       },
-      description: `RenderReel ${t.id}: branded motion-graphics MP4 render. POST the input JSON, receive a jobId, poll /api/v1/jobs/{id} for the video.`,
+      description: `Lexari ${t.id}: branded motion-graphics MP4 render. POST the input JSON, receive a jobId, poll /api/v1/jobs/{id} for the video.`,
       mimeType: "application/json",
     };
   }

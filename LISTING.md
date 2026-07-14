@@ -3,17 +3,17 @@
 Paste these into the OKX listing form. Category: **Artistic Excellence / Creative** (non-crypto).
 
 ## Name
-RenderReel
+Lexari
 
 ## One-line
 The motion studio that agents hire — structured input in, a cinematic branded video out, paid per call.
 
 ## Short description (≤ 280 chars)
-RenderReel turns a JSON brief into a broadcast-quality video: launch reels, animated stat clips, or narrated screen-recorded app tours — with AI voiceover, word-synced captions, and a verifiable on-chain receipt. Motion design as a pay-per-call service for humans and agents.
+Lexari turns a JSON brief into a broadcast-quality video: launch reels, animated stat clips, or narrated screen-recorded app tours — with AI voiceover, word-synced captions, and a verifiable on-chain receipt. Motion design as a pay-per-call service for humans and agents.
 
 ## Full description
 Every product, report, and app needs video, and video is the one thing agents can't make.
-RenderReel is that missing capability, exposed as an Agent Service Provider.
+Lexari is that missing capability, exposed as an Agent Service Provider.
 
 Three services, one call each:
 - **Launch Reel ($5)** — product name, one-liner, features, screenshots → a 15s–3min cinematic launch film with kinetic titles, device-framed shots, AI voiceover and captions.
@@ -30,7 +30,7 @@ weekly numbers as a Stat Clip every Monday; a launch agent ships a Launch Reel w
 Recurring, composable, priced per call — not a seat-based SaaS wearing an agent costume.
 
 ## Endpoints
-- MCP (streamable HTTP): `https://<app>.fly.dev/api/mcp/mcp`
+- MCP (streamable HTTP): `https://lexari.ai/api/mcp/mcp`
   - tools: `create_launch_reel`, `create_stat_clip`, `create_app_tour`, `get_job`
 - HTTP + x402: `POST /api/v1/launch-reel`, `/api/v1/stat-clip`, `/api/v1/app-tour`
 - Free dry-run validation: `POST /api/v1/validate`

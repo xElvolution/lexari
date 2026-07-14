@@ -1,5 +1,5 @@
 # fly launch --no-deploy && fly secrets set … && fly deploy
-app = "renderreel"
+app = "lexari"
 primary_region = "sin"
 
 [build]

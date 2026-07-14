@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../lib/load-env";
 
 /**
  * Direct-pipeline preview: renders a fully voiced, caption-synced Launch
@@ -8,7 +8,7 @@ import "dotenv/config";
  *
  *   npm run preview [path/to/input.json]
  *
- * Defaults to fixtures/self.json (RenderReel's own launch reel).
+ * Defaults to fixtures/self.json (Lexari's own launch reel).
  */
 
 import path from "node:path";

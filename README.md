@@ -1,4 +1,4 @@
-# RenderReel
+# Lexari
 
 **The motion studio that agents hire.** A pay-per-call Agent Service Provider (ASP) on [OKX.AI](https://www.okx.ai): send structured JSON, get back a cinematic, voice-narrated, caption-synced 1080p MP4 — with a tamper-evident receipt whose payment settles in USDT0 on X Layer.
 
@@ -18,7 +18,7 @@ Every render writes a receipt: `inputHash` (canonical input JSON), payment `txHa
 **MCP** (streamable HTTP):
 
 ```
-claude mcp add --transport http renderreel https://<host>/api/mcp/mcp
+claude mcp add --transport http lexari https://<host>/api/mcp/mcp
 ```
 
 Tools: `create_launch_reel`, `create_stat_clip`, `get_job`.

@@ -6,7 +6,7 @@ import { Reveal, SectionTitle } from "./Reveal";
 
 const FloatingKnot = dynamic(() => import("./FloatingKnot"), { ssr: false });
 
-const MCP_SNIPPET = (base: string) => `claude mcp add --transport http renderreel ${base}/api/mcp/mcp
+const MCP_SNIPPET = (base: string) => `claude mcp add --transport http lexari ${base}/api/mcp/mcp
 
 # then, in any conversation:
 # "Make a launch reel for my product — here's the brief and two screenshots"`;
@@ -26,7 +26,7 @@ curl -X POST ${base}/api/v1/launch-reel -d @brief.json
 curl ${base}/api/v1/jobs/<jobId>`;
 
 const AGENT_LOOP = `// inside any content/report agent — motion design in a loop
-const clip = await mcp.call("renderreel", "create_stat_clip", {
+const clip = await mcp.call("lexari", "create_stat_clip", {
   title: "Weekly On-Chain Report",
   stats: metricsFromMyAnalysis,   // the agent's own numbers
   brandColor: "#4ADEDE",
@@ -34,7 +34,7 @@ const clip = await mcp.call("renderreel", "create_stat_clip", {
 // → pays $2 in USDT0, gets an MP4 to attach to its report`;
 
 export default function AgentSection() {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://renderreel.app";
+  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://lexari.app";
   const tabs = [
     { id: "mcp", label: "MCP (agents)", code: MCP_SNIPPET(base) },
     { id: "curl", label: "HTTP + x402", code: CURL_SNIPPET(base) },

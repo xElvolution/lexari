@@ -1,15 +1,21 @@
 "use client";
 
+import IconPattern from "./IconPattern";
+
 /**
- * Fixed ambient backdrop behind all content: two slow-drifting brand glows,
- * a faint perspective grid, and film grain. Uses theme tokens so it adapts
- * to light/dark. This is what stops the page reading as flat black.
+ * Fixed ambient backdrop behind all content: a Telegram-style scattered
+ * motion-icon wallpaper, two slow-drifting brand glows, a faint perspective
+ * grid, and film grain. Uses theme tokens so it adapts to light/dark.
+ * This is what stops the page reading as flat black.
  */
 export default function Ambient() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       {/* base wash */}
       <div className="absolute inset-0" style={{ background: "var(--bg)" }} />
+
+      {/* Telegram-style scattered motion-icon pattern */}
+      <IconPattern />
 
       {/* drifting brand glows */}
       <div className="ambient-glow ambient-glow-1" />
@@ -63,6 +69,10 @@ export default function Ambient() {
         @keyframes drift2 {
           from { transform: translate(0,0) scale(1.1); }
           to   { transform: translate(-7vw, -5vw) scale(0.95); }
+        }
+        @keyframes iconDrift {
+          from { background-position: 0 0; }
+          to   { background-position: 240px 480px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .ambient-glow { animation: none; }

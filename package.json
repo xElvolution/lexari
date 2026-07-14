@@ -1,8 +1,8 @@
 {
-  "name": "renderreel",
+  "name": "lexari",
   "version": "0.1.0",
   "private": true,
-  "description": "RenderReel — pay-per-call motion-graphics render agent on OKX.AI. Structured JSON in, cinematic MP4 + verifiable receipt out.",
+  "description": "Lexari — pay-per-call motion-graphics render agent on OKX.AI. Structured JSON in, cinematic MP4 + verifiable receipt out.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

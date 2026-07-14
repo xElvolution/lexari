@@ -8,7 +8,7 @@ import type { AppTourProps, LaunchReelProps, StatClipProps } from "./props";
 
 export const launchReelFixture: LaunchReelProps = {
   input: {
-    productName: "RenderReel",
+    productName: "Lexari",
     oneLiner: "Turn a product brief into a cinematic launch video — rendered by an agent, paid per call.",
     features: [
       "Structured JSON in, branded 1080p MP4 out",
@@ -30,12 +30,12 @@ export const launchReelFixture: LaunchReelProps = {
   ],
   captionPages: [
     {
-      text: "Meet RenderReel",
+      text: "Meet Lexari",
       startMs: 400,
       durationMs: 1600,
       tokens: [
         { text: "Meet", fromMs: 400, toMs: 900 },
-        { text: " RenderReel", fromMs: 900, toMs: 2000 },
+        { text: " Lexari", fromMs: 900, toMs: 2000 },
       ],
     },
   ],
@@ -137,10 +137,10 @@ export const statClipFixture: StatClipProps = {
 /** App Tour fixture — expects public/tour-sample.mp4 (a captured walkthrough). */
 export const appTourFixture: AppTourProps = {
   input: {
-    productName: "RenderReel",
+    productName: "Lexari",
     url: "http://localhost:3000",
     steps: [
-      { action: "wait", caption: "Meet RenderReel" },
+      { action: "wait", caption: "Meet Lexari" },
       { action: "scroll", caption: "Cinematic templates" },
       { action: "scroll", caption: "Call it from any agent" },
       { action: "scroll", caption: "Priced per render" },
@@ -156,7 +156,7 @@ export const appTourFixture: AppTourProps = {
   footageFrames: 300,
   outroFrames: 72,
   stepCaptions: [
-    { text: "Meet RenderReel", fromFrame: 66, toFrame: 141 },
+    { text: "Meet Lexari", fromFrame: 66, toFrame: 141 },
     { text: "Cinematic templates", fromFrame: 141, toFrame: 216 },
     { text: "Call it from any agent", fromFrame: 216, toFrame: 291 },
     { text: "Priced per render", fromFrame: 291, toFrame: 366 },

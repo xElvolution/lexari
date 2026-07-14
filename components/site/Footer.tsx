@@ -10,9 +10,9 @@ export default function Footer() {
               className="flex h-8 w-8 items-center justify-center rounded-lg font-display text-lg font-bold text-black"
               style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
             >
-              R
+              L
             </span>
-            <span className="font-display text-lg font-bold">RenderReel</span>
+            <span className="font-display text-lg font-bold">Lexari</span>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-muted">
             Motion graphics as a pay-per-call service. Structured input in, a cinematic
@@ -35,7 +35,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="mx-auto mt-12 max-w-6xl border-t border-line pt-6 text-xs text-faint">
-        Live on OKX.AI · Paid in USDT0 on X Layer via x402 · © {new Date().getFullYear()} RenderReel
+        Live on OKX.AI · Paid in USDT0 on X Layer via x402 · © {new Date().getFullYear()} Lexari
       </div>
     </footer>
   );

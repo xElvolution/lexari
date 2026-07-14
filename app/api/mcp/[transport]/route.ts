@@ -12,7 +12,7 @@ import {
 
 /**
  * MCP surface (streamable HTTP, stateless): the agent-native way to call
- * RenderReel. Payment modes:
+ * Lexari. Payment modes:
  *  (a) OKX A2MCP gateway fronts pay-per-call and forwards the request after
  *      settlement (detected via forwarded payment headers), or
  *  (b) the tool responds with payment instructions pointing at the x402
@@ -166,7 +166,7 @@ const handler = createMcpHandler(
     );
   },
   {
-    serverInfo: { name: "renderreel", version: "0.1.0" },
+    serverInfo: { name: "lexari", version: "0.1.0" },
   },
   {
     basePath: "/api/mcp",

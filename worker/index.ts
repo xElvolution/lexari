@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../lib/load-env";
 import { claimNextJob, failJob, reapStaleJobs } from "@/lib/jobs";
 import { ensureWhisper } from "@/pipeline/captions";
 import { getBundle } from "@/pipeline/render";

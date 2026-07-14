@@ -11,7 +11,7 @@ import { TEMPLATES, type Job } from "@/lib/schemas";
  */
 export interface Receipt {
   jobId: string;
-  service: "renderreel";
+  service: "lexari";
   template: string;
   createdAt: string;
   completedAt: string;
@@ -40,7 +40,7 @@ export async function buildAndStoreReceipt(opts: {
   const t = TEMPLATES[opts.job.template];
   const receipt: Receipt = {
     jobId: opts.job.id,
-    service: "renderreel",
+    service: "lexari",
     template: `${t.id}@${t.version}`,
     createdAt: opts.job.created_at,
     completedAt: new Date().toISOString(),

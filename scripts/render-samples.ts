@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../lib/load-env";
 
 /**
  * Renders the landing-page gallery by driving the real pipeline through

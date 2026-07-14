@@ -10,7 +10,7 @@ import type { Theme } from "./theme";
  */
 export const Backdrop: React.FC<{ theme: Theme; seed?: string }> = ({
   theme,
-  seed = "renderreel",
+  seed = "lexari",
 }) => {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();

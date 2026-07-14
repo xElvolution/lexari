@@ -35,9 +35,9 @@ export default function Nav() {
             className="flex h-8 w-8 items-center justify-center rounded-lg font-display text-lg font-bold text-black"
             style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
           >
-            R
+            L
           </span>
-          <span className="font-display text-[17px] font-bold tracking-tight">RenderReel</span>
+          <span className="font-display text-[17px] font-bold tracking-tight">Lexari</span>
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">

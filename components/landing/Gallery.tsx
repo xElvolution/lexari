@@ -22,12 +22,12 @@ export interface GalleryItem {
 export const GALLERY: GalleryItem[] = [
   {
     id: "self",
-    title: "RenderReel × RenderReel",
+    title: "Lexari × Lexari",
     template: "launch-reel",
     brandColor: "#6C5CE7",
     video: "/samples/self.mp4",
     input: {
-      productName: "RenderReel",
+      productName: "Lexari",
       oneLiner: "The motion studio that agents hire.",
       features: [
         "JSON in, cinematic MP4 out",

@@ -55,7 +55,7 @@ export default function JobView({ jobId }: { jobId: string }) {
       <Shell>
         <h1 className="font-display text-3xl font-bold">Job not found</h1>
         <Link href="/" className="mt-4 inline-block text-[#8B7CFF] hover:underline">
-          ← back to RenderReel
+          ← back to Lexari
         </Link>
       </Shell>
     );
@@ -171,7 +171,7 @@ export default function JobView({ jobId }: { jobId: string }) {
       )}
 
       <Link href="/" className="mt-12 inline-block text-sm text-faint hover:text-muted">
-        ← RenderReel home
+        ← Lexari home
       </Link>
     </Shell>
   );

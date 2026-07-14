@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../lib/load-env";
 import { mkdir, copyFile } from "node:fs/promises";
 import path from "node:path";
 import { captureAppTour } from "../pipeline/capture";
@@ -10,7 +10,7 @@ async function main() {
   await mkdir(jobDir, { recursive: true });
 
   const input: AppTourInput = {
-    productName: "RenderReel",
+    productName: "Lexari",
     url: process.argv[2] ?? "http://localhost:3000",
     steps: [
       { action: "wait", caption: "The motion studio that agents hire", waitMs: 1400 },

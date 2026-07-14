@@ -60,10 +60,17 @@ export async function renderComposition(opts: {
 }): Promise<{ durationInFrames: number }> {
   const serveUrl = await getBundle();
 
+  // On the darwin<15 fallback, select with silent props too — selectComposition
+  // evaluates the composition and would otherwise trigger the audio probe that
+  // crashes the bundled macOS-15 compositor binary.
+  const selectProps = needsFfmpegFallback
+    ? { ...opts.inputProps, audioUrl: null }
+    : opts.inputProps;
+
   const composition = await selectComposition({
     serveUrl,
     id: opts.compositionId,
-    inputProps: opts.inputProps,
+    inputProps: selectProps,
   });
 
   const concurrency = Math.max(os.cpus().length - 1, 1);
@@ -98,11 +105,17 @@ export async function renderComposition(opts: {
   await rm(seqDir, { recursive: true, force: true });
   await mkdir(seqDir, { recursive: true });
 
+  // Render frames SILENT: Remotion's bundled compositor probes embedded
+  // audio (getAudioChannelsAndDuration) with a macOS-15 binary that crashes
+  // here, so we null any audio props and mux the real voiceover back in
+  // during the ffmpeg-static stitch below.
+  const silentProps = { ...opts.inputProps, audioUrl: null };
+
   await renderFrames({
     composition,
     serveUrl,
     outputDir: seqDir,
-    inputProps: opts.inputProps,
+    inputProps: silentProps,
     imageFormat: "jpeg",
     jpegQuality: 90,
     scale: opts.scale ?? 1,
