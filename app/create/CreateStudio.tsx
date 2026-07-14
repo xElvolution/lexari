@@ -7,6 +7,7 @@ import SmoothScroll from "@/components/landing/SmoothScroll";
 import Cursor from "@/components/landing/Cursor";
 import Ambient from "@/components/site/Ambient";
 import Nav from "@/components/site/Nav";
+import { useAuth } from "@/components/site/Auth";
 
 /**
  * The human self-serve studio: pick a template, fill a brief, choose options,
@@ -40,6 +41,7 @@ const DURATIONS = [
 export default function CreateStudio() {
   const [active, setActive] = useState<TemplateId>("launch-reel");
   const tpl = TEMPLATES.find((t) => t.id === active)!;
+  const { user } = useAuth();
 
   return (
     <main className="min-h-screen text-ink">
@@ -49,6 +51,9 @@ export default function CreateStudio() {
       <Nav />
 
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-32">
+        <div className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+          {user ? `Welcome back, ${user.name ?? user.email.split("@")[0]}` : "Create studio"}
+        </div>
         <h1 className="font-display text-4xl font-bold tracking-tight">
           Make a video
         </h1>

@@ -70,9 +70,12 @@ export default function Ambient() {
           from { transform: translate(0,0) scale(1.1); }
           to   { transform: translate(-7vw, -5vw) scale(0.95); }
         }
-        @keyframes iconDrift {
-          from { background-position: 0 0; }
-          to   { background-position: 240px 480px; }
+        @keyframes iconFloat {
+          from { transform: translateY(0); }
+          to   { transform: translateY(-22px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="iconFloat"] { animation: none !important; }
         }
         @media (prefers-reduced-motion: reduce) {
           .ambient-glow { animation: none; }

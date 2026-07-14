@@ -30,3 +30,20 @@ create table if not exists demo_requests (
 );
 
 create index if not exists demo_requests_ip_idx on demo_requests (ip, created_at);
+
+create table if not exists users (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  password_hash text not null,
+  name text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists sessions (
+  token text primary key,
+  user_id uuid not null references users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null
+);
+
+create index if not exists sessions_user_idx on sessions (user_id);
