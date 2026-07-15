@@ -47,3 +47,7 @@ create table if not exists sessions (
 );
 
 create index if not exists sessions_user_idx on sessions (user_id);
+
+-- Link renders to accounts (nullable: agent/x402 and demo jobs have no user).
+alter table jobs add column if not exists user_id uuid references users(id) on delete set null;
+create index if not exists jobs_user_idx on jobs (user_id, created_at desc);

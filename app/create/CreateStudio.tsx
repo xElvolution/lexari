@@ -333,7 +333,7 @@ function StatClipForm({ color }: { color: string }) {
         </Field>
         <label className="flex items-center gap-3 text-sm text-muted">
           <input type="checkbox" checked={narrate} onChange={(e) => setNarrate(e.target.checked)} className="h-4 w-4 accent-[#4ADEDE]" />
-          Add AI narration
+          Add narration
         </label>
         <SubmitBar
           color={color}
@@ -380,7 +380,7 @@ function AppTourForm({ color }: { color: string }) {
         </div>
         <SubmitBar color={color} free={false} submitting={false} error={null} onSubmit={() => {}} />
       </div>
-      <Preview color={color} title="App Tour" sub={url || "https://your-app.com"} rows={["Animated cursor walkthrough", "Step caption chips", "Branded intro + outro", "AI narration"]} footer="up to 3 min · real screen recording" />
+      <Preview color={color} title="App Tour" sub={url || "https://your-app.com"} rows={["Animated cursor walkthrough", "Step caption chips", "Branded intro + outro", "Narration"]} footer="up to 3 min · real screen recording" />
     </div>
   );
 }

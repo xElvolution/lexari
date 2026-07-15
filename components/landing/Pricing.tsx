@@ -11,7 +11,7 @@ const PLANS = [
     features: [
       "10–20s animated data highlight",
       "2–6 stats, count-ups & deltas",
-      "Optional AI narration",
+      "Optional narration",
       "1080p MP4 · brand-themed",
       "On-chain receipt",
     ],
@@ -25,7 +25,7 @@ const PLANS = [
     features: [
       "Launch clip to full 3-min demo film",
       "Kinetic typography + device-framed shots",
-      "AI voiceover, 3 voices, 3 tones",
+      "Narrated voiceover — 3 voices, 3 tones",
       "Word-synced animated captions",
       "1080p MP4 · on-chain receipt",
       "Built for hackathon demo deadlines",

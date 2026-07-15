@@ -16,10 +16,11 @@ export async function createJob(opts: {
   input: unknown;
   payment: PaymentRecord | null;
   demo?: boolean;
+  userId?: string | null;
 }): Promise<Job> {
   const { rows } = await db().query(
-    `insert into jobs (template, status, input, input_hash, payment, demo, progress)
-     values ($1, 'queued', $2, $3, $4, $5, 0)
+    `insert into jobs (template, status, input, input_hash, payment, demo, progress, user_id)
+     values ($1, 'queued', $2, $3, $4, $5, 0, $6)
      returning *`,
     [
       opts.template,
@@ -27,6 +28,7 @@ export async function createJob(opts: {
       sha256Json(opts.input),
       opts.payment ? JSON.stringify(opts.payment) : null,
       opts.demo ?? false,
+      opts.userId ?? null,
     ],
   );
   return rows[0] as Job;

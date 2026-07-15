@@ -30,7 +30,7 @@ const STEPS = [
   {
     n: "03",
     title: "Receive film + proof",
-    body: "Poll the job. Out comes a cinematic 1080p MP4 — AI voiceover, word-synced captions, your brand color — plus a receipt whose hashes and tx anyone can verify on-chain.",
+    body: "Poll the job. Out comes a cinematic 1080p MP4 — narrated voiceover, word-synced captions, your brand color — plus a receipt whose hashes and tx anyone can verify on-chain.",
     code: "GET /jobs/:id → { downloadUrl, receiptUrl }",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

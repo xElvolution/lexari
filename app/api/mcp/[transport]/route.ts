@@ -106,7 +106,7 @@ const handler = createMcpHandler(
   (server) => {
     server.tool(
       "create_launch_reel",
-      `Render a cinematic ≤40s product launch video (1080p MP4) from structured input: product name, one-liner, three feature bullets, optional logo, brand color, and 1-3 screenshot URLs. Includes AI voiceover and word-synced captions. Price: ${TEMPLATES["launch-reel"].priceUsd} per render (x402, USDT0 on X Layer). Returns a jobId — poll with get_job.`,
+      `Render a cinematic ≤40s product launch video (1080p MP4) from structured input: product name, one-liner, three feature bullets, optional logo, brand color, and 1-3 screenshot URLs. Includes narrated voiceover and word-synced captions. Price: ${TEMPLATES["launch-reel"].priceUsd} per render (x402, USDT0 on X Layer). Returns a jobId — poll with get_job.`,
       LaunchReelInput.shape,
       async (args, extra) =>
         createRenderJob(
@@ -119,7 +119,7 @@ const handler = createMcpHandler(
 
     server.tool(
       "create_stat_clip",
-      `Render a 10-20s animated data-highlight video (1080p MP4) from a title and 2-6 stats (label, value, optional unit and delta). Optional AI narration. Price: ${TEMPLATES["stat-clip"].priceUsd} per render (x402, USDT0 on X Layer). Returns a jobId — poll with get_job.`,
+      `Render a 10-20s animated data-highlight video (1080p MP4) from a title and 2-6 stats (label, value, optional unit and delta). Optional narration. Price: ${TEMPLATES["stat-clip"].priceUsd} per render (x402, USDT0 on X Layer). Returns a jobId — poll with get_job.`,
       StatClipInput.shape,
       async (args, extra) =>
         createRenderJob(
