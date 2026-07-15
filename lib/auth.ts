@@ -1,28 +1,12 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { db } from "./db";
 
 /**
- * Minimal session auth: scrypt password hashing + opaque session tokens in
- * an httpOnly cookie, stored in Neon. No external auth service needed.
+ * Server-side auth: verifies Privy access tokens (ES256 JWTs in the
+ * `privy-token` cookie) against Privy's JWKS, and mirrors users into our
+ * Neon `users` table so jobs can reference user_id.
  */
-
-const COOKIE = "lexari_session";
-const SESSION_DAYS = 30;
-
-export function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
-
-export function verifyPassword(password: string, stored: string): boolean {
-  const [salt, hash] = stored.split(":");
-  if (!salt || !hash) return false;
-  const test = scryptSync(password, salt, 64);
-  const known = Buffer.from(hash, "hex");
-  return test.length === known.length && timingSafeEqual(test, known);
-}
 
 export interface User {
   id: string;
@@ -30,56 +14,40 @@ export interface User {
   name: string | null;
 }
 
-export async function createUser(email: string, password: string, name?: string): Promise<User> {
-  const { rows } = await db().query(
-    `insert into users (email, password_hash, name) values ($1, $2, $3) returning id, email, name`,
-    [email.toLowerCase().trim(), hashPassword(password), name?.trim() || null],
-  );
-  return rows[0] as User;
-}
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
-export async function findUserByEmail(email: string) {
-  const { rows } = await db().query(
-    `select id, email, name, password_hash from users where email = $1`,
-    [email.toLowerCase().trim()],
-  );
-  return rows[0] as (User & { password_hash: string }) | undefined;
-}
+const jwks = PRIVY_APP_ID
+  ? createRemoteJWKSet(
+      new URL(`https://auth.privy.io/api/v1/apps/${PRIVY_APP_ID}/jwks.json`),
+    )
+  : null;
 
-export async function startSession(userId: string): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-  const expires = new Date(Date.now() + SESSION_DAYS * 864e5);
-  await db().query(
-    `insert into sessions (token, user_id, expires_at) values ($1, $2, $3)`,
-    [token, userId, expires],
-  );
-  (await cookies()).set(COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires,
-  });
-  return token;
-}
-
-export async function endSession() {
-  const jar = await cookies();
-  const token = jar.get(COOKIE)?.value;
-  if (token) {
-    await db().query(`delete from sessions where token = $1`, [token]);
-    jar.delete(COOKIE);
-  }
-}
-
+/** Verify the Privy session and return (creating if needed) our local user. */
 export async function currentUser(): Promise<User | null> {
-  const token = (await cookies()).get(COOKIE)?.value;
+  if (!jwks || !PRIVY_APP_ID) return null;
+  const jar = await cookies();
+  const token = jar.get("privy-token")?.value;
   if (!token) return null;
-  const { rows } = await db().query(
-    `select u.id, u.email, u.name from sessions s
-     join users u on u.id = s.user_id
-     where s.token = $1 and s.expires_at > now()`,
-    [token],
-  );
-  return (rows[0] as User) ?? null;
+
+  try {
+    const { payload } = await jwtVerify(token, jwks, {
+      issuer: "privy.io",
+      audience: PRIVY_APP_ID,
+    });
+    const privyDid = payload.sub;
+    if (!privyDid) return null;
+
+    // Mirror into users table keyed by the Privy DID (stored in email slot
+    // when no email is present — wallet-only users).
+    const { rows } = await db().query(
+      `insert into users (email, password_hash, name)
+       values ($1, 'privy', null)
+       on conflict (email) do update set email = excluded.email
+       returning id, email, name`,
+      [privyDid],
+    );
+    return rows[0] as User;
+  } catch {
+    return null;
+  }
 }
