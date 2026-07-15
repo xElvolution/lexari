@@ -7,12 +7,13 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { Theme } from "@/remotion/shared/theme";
-import { DISPLAY_FONT, BODY_FONT } from "@/remotion/shared/fonts";
+import { DISPLAY_FONT } from "@/remotion/shared/fonts";
+import { Shake, Flash } from "@/remotion/shared/Impact";
 
 /**
- * Scene 2 — feature cards cascade in with numbered accents.
- * 3 features: single column, alternating slide directions.
- * 4-6 features: two-column grid, staggered rise.
+ * Scene 2 — full-screen typographic takeovers: one feature per beat.
+ * Giant words punch in word-by-word over a ghost number, hold, then
+ * whip out as the next beat whips in. No cards — the type IS the scene.
  */
 export const Features: React.FC<{
   features: string[];
@@ -20,125 +21,215 @@ export const Features: React.FC<{
   durationInFrames: number;
 }> = ({ features, theme, durationInFrames }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const twoCol = features.length > 3;
-  // Entrances spread across the first ~40% of the scene; after landing,
-  // cards take turns holding "focus" so the scene keeps developing for
-  // its entire duration instead of idling after the entrance.
-  const staggerWindow = Math.max(durationInFrames * 0.4 - 8, 12);
-  const stagger = Math.min(staggerWindow / features.length, 26);
-  const focusStart = staggerWindow + 12;
-  const focusSpan = Math.max(durationInFrames - focusStart - 6, 1);
-  const focusIndex = Math.min(
-    Math.floor(((frame - focusStart) / focusSpan) * features.length),
-    features.length - 1,
-  );
-  const focusActive = frame >= focusStart;
+  const per = durationInFrames / features.length;
 
   return (
-    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-      <div
-        style={
-          twoCol
-            ? {
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 34,
-                width: 1560,
-              }
-            : { display: "flex", flexDirection: "column", gap: 42, width: 1240 }
-        }
-      >
-        {features.map((feature, i) => {
-          const delay = 4 + i * stagger;
-          const s = spring({
-            frame: frame - delay,
-            fps,
-            config: { damping: 17, stiffness: 105, mass: 0.9 },
-          });
-          const slide = twoCol
-            ? { x: 0, y: (1 - s) * 120 }
-            : { x: (1 - s) * (i % 2 === 0 ? -180 : 180), y: 0 };
-          const rotY = twoCol ? 0 : (1 - s) * (i % 2 === 0 ? -24 : 24);
-          const landed = s > 0.85;
-          const idleFloat = Math.sin((frame - delay) / 38 + i * 1.7) * 4;
-          const focused = focusActive && focusIndex === i;
-          const dimmed = focusActive && focusIndex !== i;
-          const focusScale = focused ? 1.045 : dimmed ? 0.985 : 1;
-          const focusOpacity = dimmed ? 0.55 : 1;
-          const underline = interpolate(
-            frame - delay - 10,
-            [0, 26],
-            [0, 1],
-            { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-          );
-          return (
-            <div
-              key={i}
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                gap: twoCol ? 30 : 44,
-                padding: twoCol ? "32px 38px" : "40px 52px",
-                borderRadius: 28,
-                background: `linear-gradient(135deg, ${theme.surface}F2, ${theme.bgSoft}E6)`,
-                border: `1px solid ${focused ? theme.accent + "AA" : landed ? theme.accent + "33" : "rgba(255,255,255,0.09)"}`,
-                boxShadow: focused
-                  ? `0 30px 80px rgba(0,0,0,0.4), 0 0 70px ${theme.accent}44`
-                  : "0 30px 80px rgba(0,0,0,0.35)",
-                transform: `perspective(1100px) translate(${slide.x}px, ${slide.y + (landed ? idleFloat : 0)}px) rotateY(${rotY}deg) scale(${(0.92 + s * 0.08) * focusScale})`,
-                opacity: interpolate(s, [0, 0.3, 1], [0, 1, 1]) * focusOpacity,
-                transition: "border 120ms",
-                overflow: "hidden",
-              }}
-            >
-              {/* animated accent underline */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  bottom: 0,
-                  height: 4,
-                  width: `${underline * 100}%`,
-                  background: `linear-gradient(90deg, ${theme.gradient[0]}, ${theme.gradient[1]})`,
-                  opacity: 0.85,
-                }}
-              />
-              <div
-                style={{
-                  minWidth: twoCol ? 68 : 84,
-                  height: twoCol ? 68 : 84,
-                  borderRadius: twoCol ? 18 : 22,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: DISPLAY_FONT,
-                  fontWeight: 700,
-                  fontSize: twoCol ? 32 : 40,
-                  color: theme.bg,
-                  background: `linear-gradient(135deg, ${theme.gradient[0]}, ${theme.gradient[1]})`,
-                  boxShadow: `0 0 44px ${theme.accent}55`,
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </div>
-              <div
-                style={{
-                  fontFamily: BODY_FONT,
-                  fontWeight: 600,
-                  fontSize: twoCol ? 36 : 44,
-                  lineHeight: 1.3,
-                  color: theme.text,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                {feature}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <AbsoluteFill>
+      {features.map((feature, i) => {
+        const start = i * per;
+        const local = frame - start;
+        if (local < -2 || local > per + 2) return null;
+        return (
+          <Beat
+            key={i}
+            text={feature}
+            index={i}
+            theme={theme}
+            local={local}
+            per={per}
+            direction={i % 2 === 0 ? 1 : -1}
+            isLast={i === features.length - 1}
+          />
+        );
+      })}
     </AbsoluteFill>
+  );
+};
+
+const Beat: React.FC<{
+  text: string;
+  index: number;
+  theme: Theme;
+  local: number;
+  per: number;
+  direction: 1 | -1;
+  isLast: boolean;
+}> = ({ text, index, theme, local, per, direction, isLast }) => {
+  const { fps, width } = useVideoConfig();
+  const words = text.split(/\s+/).filter(Boolean);
+
+  // Whip in from the side; whip out the other way. Beat 0 enters via the
+  // scene-level transition, so it skips its own whip-in.
+  const WHIP = Math.min(9, per * 0.18);
+  const whipIn =
+    index === 0
+      ? 0
+      : interpolate(local, [0, WHIP], [direction * width, 0], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
+  const outStart = per - WHIP;
+  // Last beat exits via the scene-level whip transition, not its own.
+  const whipOut = isLast
+    ? 0
+    : interpolate(local, [outStart, per], [0, -direction * width * 0.6], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      });
+  const outFade = isLast
+    ? 1
+    : interpolate(local, [outStart, per], [1, 0], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      });
+  const whipBlur =
+    (index === 0
+      ? 0
+      : interpolate(local, [0, WHIP], [18, 0], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        })) +
+    (isLast
+      ? 0
+      : interpolate(local, [outStart, per], [0, 14], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        }));
+
+  // Word sizing: few words → huge; many → still large, wrapped.
+  const wordCount = words.length;
+  const fontSize = Math.max(72, Math.min(150, 1550 / Math.max(wordCount * 2.4, 5)));
+  const wordStagger = Math.min(3.4, (per * 0.3) / Math.max(wordCount, 1));
+  const lastLand = WHIP + wordCount * wordStagger + 4;
+
+  // Slow push for the whole beat so the hold never sits still.
+  const push = interpolate(local, [0, per], [1, 1.07], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  // Shake/Flash read the scene-global frame, so offset by the beat start.
+  const beatStart = index * per;
+
+  return (
+    <Shake delay={beatStart + lastLand} strength={9} durationInFrames={12} seed={`beat${index}`}>
+      <Flash delay={beatStart + lastLand} color={theme.accentSoft} peak={0.22} />
+      <AbsoluteFill
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          transform: `translateX(${whipIn + whipOut}px) scale(${push})`,
+          opacity: outFade,
+          filter: whipBlur > 0.5 ? `blur(${whipBlur}px)` : undefined,
+        }}
+      >
+        {/* ghost number fills the background */}
+        <div
+          style={{
+            position: "absolute",
+            fontFamily: DISPLAY_FONT,
+            fontWeight: 700,
+            fontSize: 860,
+            lineHeight: 1,
+            color: "transparent",
+            WebkitTextStroke: `2px ${theme.accent}30`,
+            transform: `translateX(${direction * 320}px) translateY(${local * -0.5}px)`,
+            userSelect: "none",
+          }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </div>
+
+        {/* the feature, word by word, punching in */}
+        <WordPunch
+          words={words}
+          delay={WHIP}
+          stagger={wordStagger}
+          fontSize={fontSize}
+          theme={theme}
+          fps={fps}
+          local={local}
+        />
+
+        {/* accent underline slashes in after the last word */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "26%",
+            height: 6,
+            borderRadius: 3,
+            width: interpolate(local, [lastLand, lastLand + 10], [0, 420], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+            background: `linear-gradient(90deg, ${theme.gradient[0]}, ${theme.gradient[1]})`,
+            boxShadow: `0 0 40px ${theme.accent}AA`,
+          }}
+        />
+      </AbsoluteFill>
+    </Shake>
+  );
+};
+
+const WordPunch: React.FC<{
+  words: string[];
+  delay: number;
+  stagger: number;
+  fontSize: number;
+  theme: Theme;
+  fps: number;
+  local: number;
+}> = ({ words, delay, stagger, fontSize, theme, fps, local }) => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        alignItems: "baseline",
+        columnGap: "0.28em",
+        rowGap: "0.06em",
+        maxWidth: 1560,
+        padding: "0 90px",
+      }}
+    >
+      {words.map((word, i) => {
+        const s = spring({
+          frame: local - delay - i * stagger,
+          fps,
+          config: { damping: 12, stiffness: 260, mass: 0.6 },
+        });
+        // Every 3rd-ish word gets the accent gradient — rhythm without
+        // needing to know which words matter.
+        const accent = i % 3 === 2 || words.length === 1;
+        return (
+          <span
+            key={i}
+            style={{
+              fontFamily: DISPLAY_FONT,
+              fontWeight: 700,
+              fontSize,
+              lineHeight: 1.06,
+              letterSpacing: "-0.02em",
+              display: "inline-block",
+              transform: `scale(${2.2 - s * 1.2}) translateY(${(1 - s) * 30}px)`,
+              transformOrigin: "50% 70%",
+              opacity: interpolate(s, [0, 0.3, 1], [0, 1, 1]),
+              filter: s < 0.6 ? `blur(${(1 - s) * 6}px)` : undefined,
+              ...(accent
+                ? {
+                    backgroundImage: `linear-gradient(120deg, ${theme.accentSoft}, ${theme.gradient[1]})`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    textShadow: "none",
+                  }
+                : { color: theme.text }),
+            }}
+          >
+            {word}
+          </span>
+        );
+      })}
+    </div>
   );
 };

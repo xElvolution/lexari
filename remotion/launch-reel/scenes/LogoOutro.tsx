@@ -10,6 +10,7 @@ import {
 import type { Theme } from "@/remotion/shared/theme";
 import { DISPLAY_FONT, BODY_FONT } from "@/remotion/shared/fonts";
 import { LightSweep } from "@/remotion/shared/Backdrop";
+import { Shake, Flash, ChromaBurst } from "@/remotion/shared/Impact";
 
 /** Deterministic radial particle burst fired when the logo lands. */
 const Burst: React.FC<{ delay: number; theme: Theme }> = ({ delay, theme }) => {
@@ -59,8 +60,10 @@ export const LogoOutro: React.FC<{
   const nameSpring = spring({ frame: frame - 16, fps, config: { damping: 18, stiffness: 100 } });
 
   return (
-    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-      <Burst delay={10} theme={theme} />
+    <Shake delay={10} strength={13} seed={productName + "outro"}>
+      <Flash delay={10} color={theme.accentSoft} peak={0.4} />
+      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+        <Burst delay={10} theme={theme} />
       <LightSweep delay={22} durationInFrames={28} />
       {/* expanding accent ring */}
       <div
@@ -114,19 +117,21 @@ export const LogoOutro: React.FC<{
           )}
         </div>
 
-        <div
-          style={{
-            fontFamily: DISPLAY_FONT,
-            fontWeight: 700,
-            fontSize: 92,
-            letterSpacing: "-0.02em",
-            color: theme.text,
-            transform: `translateY(${(1 - nameSpring) * 36}px)`,
-            opacity: nameSpring,
-          }}
-        >
-          {productName}
-        </div>
+        <ChromaBurst delay={16} strength={10}>
+          <div
+            style={{
+              fontFamily: DISPLAY_FONT,
+              fontWeight: 700,
+              fontSize: 92,
+              letterSpacing: "-0.02em",
+              color: theme.text,
+              transform: `translateY(${(1 - nameSpring) * 36}px)`,
+              opacity: nameSpring,
+            }}
+          >
+            {productName}
+          </div>
+        </ChromaBurst>
 
         <div
           style={{
@@ -142,6 +147,7 @@ export const LogoOutro: React.FC<{
           Available now
         </div>
       </div>
-    </AbsoluteFill>
+      </AbsoluteFill>
+    </Shake>
   );
 };
