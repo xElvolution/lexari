@@ -25,9 +25,9 @@ const TEMPLATES: {
   color: string;
   free: boolean;
 }[] = [
-  { id: "launch-reel", name: "Launch Reel", price: "$5", blurb: "Cinematic product launch film", color: "#6C5CE7", free: true },
-  { id: "stat-clip", name: "Stat Clip", price: "$2", blurb: "Animated data highlight", color: "#4ADEDE", free: true },
-  { id: "app-tour", name: "App Tour", price: "$8", blurb: "Recorded walkthrough with a live cursor", color: "#FF7A59", free: false },
+  { id: "launch-reel", name: "Launch Reel", price: "$1", blurb: "Cinematic product launch film", color: "#6C5CE7", free: true },
+  { id: "stat-clip", name: "Stat Clip", price: "25¢", blurb: "Animated data highlight", color: "#4ADEDE", free: true },
+  { id: "app-tour", name: "App Tour", price: "$2", blurb: "Recorded walkthrough with a live cursor", color: "#FF7A59", free: false },
 ];
 
 const VOICES = ["nova", "onyx", "shimmer"] as const;
@@ -154,7 +154,7 @@ function SubmitBar({
       </button>
       <p className="mt-3 text-center text-xs text-faint">
         {free
-          ? "Free previews are watermarked 720p. Clean 1080p is $2–8 per render, paid in USDT on X Layer."
+          ? "Free previews are watermarked 720p. Clean 1080p is 25¢–$2 per render, paid in USDT on X Layer."
           : "Paid via x402 — USDT on X Layer, gasless. Wallet connect ships with the deployed build."}
       </p>
     </div>

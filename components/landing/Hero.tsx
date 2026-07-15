@@ -65,7 +65,7 @@ export default function Hero() {
           Send structured JSON. Get back a cinematic, voice-narrated,
           caption-synced MP4 — with a verifiable on-chain receipt. No
           designer, no timeline editor, no subscription.{" "}
-          <span className="text-ink">$5 a launch reel. $2 a stat clip.</span>
+          <span className="text-ink">$1 a launch reel. 25¢ a stat clip.</span>
         </motion.p>
 
         <motion.div variants={item} className="mt-10 flex flex-wrap items-center justify-center gap-4">

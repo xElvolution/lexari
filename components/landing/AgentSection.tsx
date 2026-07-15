@@ -31,7 +31,7 @@ const clip = await mcp.call("lexari", "create_stat_clip", {
   stats: metricsFromMyAnalysis,   // the agent's own numbers
   brandColor: "#4ADEDE",
 });
-// → pays $2 in USDT0, gets an MP4 to attach to its report`;
+// → pays 25¢ in USDT0, gets an MP4 to attach to its report`;
 
 export default function AgentSection() {
   const base = process.env.NEXT_PUBLIC_BASE_URL || "https://lexari.app";

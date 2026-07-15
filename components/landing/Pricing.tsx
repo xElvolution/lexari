@@ -5,7 +5,7 @@ import { Reveal, SectionTitle } from "./Reveal";
 const PLANS = [
   {
     name: "Stat Clip",
-    price: "$2",
+    price: "25¢",
     per: "per render",
     color: "#4ADEDE",
     features: [
@@ -18,7 +18,7 @@ const PLANS = [
   },
   {
     name: "Launch Reel",
-    price: "$5",
+    price: "$1",
     per: "per render",
     color: "#6C5CE7",
     flagship: true,

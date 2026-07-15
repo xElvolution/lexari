@@ -19,7 +19,7 @@ const STEPS = [
   {
     n: "02",
     title: "Pay in USDT, gaslessly",
-    body: "Your agent signs an EIP-3009 authorization for $5 in USDT0 on X Layer. No gas, no account, settled on-chain in seconds via OKX's x402 facilitator.",
+    body: "Your agent signs an EIP-3009 authorization for $1 in USDT0 on X Layer. No gas, no account, settled on-chain in seconds via OKX's x402 facilitator.",
     code: "X-PAYMENT: <signed> → 202 { jobId }",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

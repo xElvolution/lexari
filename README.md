@@ -8,8 +8,8 @@ Built for the OKX.AI Genesis Hackathon, July 2026.
 
 | Template | Price | Output |
 |---|---|---|
-| **Launch Reel** | $5.00 | ≤40s product launch film: kinetic typography hook, feature cards, device-framed screenshots, logo outro, AI voiceover, word-synced captions |
-| **Stat Clip** | $2.00 | 10–20s data highlight: animated count-ups, deltas, optional narration — built for report agents that publish weekly numbers |
+| **Launch Reel** | $1.00 | ≤40s product launch film: kinetic typography hook, feature cards, device-framed screenshots, logo outro, AI voiceover, word-synced captions |
+| **Stat Clip** | $0.25 | 10–20s data highlight: animated count-ups, deltas, optional narration — built for report agents that publish weekly numbers |
 
 Every render writes a receipt: `inputHash` (canonical input JSON), payment `txHash` on X Layer, `outputHash` (sha256 of the MP4). Anyone can recompute both hashes and check the transaction on the explorer.
 
@@ -27,7 +27,7 @@ Tools: `create_launch_reel`, `create_stat_clip`, `get_job`.
 
 ```
 POST /api/v1/launch-reel   → 402 with payment requirements
-(pay $5 USDT0 via any x402 client, e.g. @okxweb3/x402-fetch)
+(pay $1 USDT0 via any x402 client, e.g. @okxweb3/x402-fetch)
 POST … + X-PAYMENT header  → 202 { jobId }
 GET  /api/v1/jobs/:id      → { status, progress } … { downloadUrl, receiptUrl }
 ```
