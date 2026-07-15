@@ -1,6 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { setDefaultAutoSelectFamilyAttemptTimeout } from "node:net";
 import path from "node:path";
 import sharp from "sharp";
+
+// Node's happy-eyeballs default (250ms per address-family attempt) is too
+// aggressive on some networks and makes fetch() fail with
+// UND_ERR_CONNECT_TIMEOUT against hosts that resolve to both A and AAAA
+// records (most CDNs). Give each attempt a realistic budget.
+setDefaultAutoSelectFamilyAttemptTimeout(2000);
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const MIN_WIDTH = 400;
@@ -24,22 +31,30 @@ export function classifyAspect(width: number, height: number): AspectClass {
 }
 
 async function fetchImage(url: string): Promise<Buffer> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) throw new Error(`fetch ${res.status} for ${url}`);
-    const type = res.headers.get("content-type") ?? "";
-    if (!type.startsWith("image/")) {
-      throw new Error(`not an image (${type}): ${url}`);
+  // One retry: transient slow responses/timeouts shouldn't fail a paid job.
+  for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`fetch ${res.status} for ${url}`);
+      const type = res.headers.get("content-type") ?? "";
+      if (!type.startsWith("image/")) {
+        throw new Error(`not an image (${type}): ${url}`);
+      }
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (buf.byteLength > MAX_BYTES) {
+        throw new Error(`image exceeds 8MB: ${url}`);
+      }
+      return buf;
+    } catch (err) {
+      const timedOut = err instanceof DOMException && err.name === "AbortError";
+      if (attempt >= 1 || !timedOut) {
+        throw timedOut ? new Error(`image fetch timed out: ${url}`) : err;
+      }
+    } finally {
+      clearTimeout(timer);
     }
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.byteLength > MAX_BYTES) {
-      throw new Error(`image exceeds 8MB: ${url}`);
-    }
-    return buf;
-  } finally {
-    clearTimeout(timer);
   }
 }
 

@@ -10,6 +10,7 @@ import type { ScreenshotAsset } from "@/remotion/props";
 import type { Theme } from "@/remotion/shared/theme";
 import { DeviceFrame } from "@/remotion/shared/DeviceFrame";
 import { LightSweep } from "@/remotion/shared/Backdrop";
+import { Shake, SpeedStreaks } from "@/remotion/shared/Impact";
 
 /** 3D-tilted device with a fading floor reflection — the "showcase" look. */
 const Reflected: React.FC<{
@@ -92,9 +93,12 @@ const SinglePush: React.FC<{
   // the "let me show you this part" moment.
   const midStart = durationInFrames * 0.45;
   const midEnd = durationInFrames * 0.8;
+  // Short scenes: keep the ramp inside [midStart, midEnd] so the input
+  // range stays strictly monotonic (18-frame ramp overshoots below ~52f).
+  const ramp = Math.min(18, (midEnd - midStart) / 2);
   const punch = interpolate(
     frame,
-    [midStart, midStart + 18, midEnd, midEnd + 14],
+    [midStart, midStart + ramp, midEnd, midEnd + 14],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
@@ -110,25 +114,34 @@ const SinglePush: React.FC<{
   const tilt = interpolate(frame, [0, durationInFrames], [-9, 4], {
     extrapolateRight: "clamp",
   });
-  const enter = spring({ frame, fps, config: { damping: 18, stiffness: 90 } });
+  const enter = spring({ frame, fps, config: { damping: 15, stiffness: 110, mass: 0.9 } });
+  // Arc fly-in: sweeps in from bottom-right along a curve, rotating to rest.
+  const arcX = (1 - enter) * 620;
+  const arcY = (1 - enter) * 340 - Math.sin(enter * Math.PI) * 90;
+  const arcRot = (1 - enter) * 16;
+  const landAt = 11; // ~where the spring visually settles
   return (
-    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-      <div
-        style={{
-          transform: `scale(${push * (0.88 + enter * 0.12)}) translateY(${(1 - enter) * 110 + drift + panY}px)`,
-          opacity: enter,
-        }}
-      >
-        <Reflected
-          asset={shot}
-          theme={theme}
-          maxWidth={1400}
-          maxHeight={700}
-          tilt={tilt}
-        />
-      </div>
-      <LightSweep delay={16} durationInFrames={32} />
-    </AbsoluteFill>
+    <Shake delay={landAt} strength={10} durationInFrames={12} seed="shot-land">
+      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+        <SpeedStreaks delay={0} durationInFrames={landAt + 4} angle={-24} color={theme.accentSoft} />
+        <div
+          style={{
+            transform: `translate(${arcX}px, ${arcY + drift + panY}px) rotate(${arcRot}deg) scale(${push * (0.86 + enter * 0.14)})`,
+            opacity: interpolate(enter, [0, 0.25, 1], [0, 1, 1]),
+            filter: enter < 0.65 ? `blur(${(1 - enter) * 8}px)` : undefined,
+          }}
+        >
+          <Reflected
+            asset={shot}
+            theme={theme}
+            maxWidth={1400}
+            maxHeight={700}
+            tilt={tilt}
+          />
+        </div>
+        <LightSweep delay={landAt + 3} durationInFrames={32} />
+      </AbsoluteFill>
+    </Shake>
   );
 };
 
@@ -152,22 +165,28 @@ const Fan: React.FC<{ screenshots: ScreenshotAsset[]; theme: Theme }> = ({
 
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+      <SpeedStreaks delay={2} durationInFrames={16} angle={10} color={theme.accentSoft} count={10} />
       {screenshots.map((shot, i) => {
         const l = layouts[i];
         const s = spring({
           frame: frame - 4 - i * 7,
           fps,
-          config: { damping: 16, stiffness: 95, mass: 0.9 },
+          config: { damping: 14, stiffness: 120, mass: 0.9 },
         });
         const idle = Math.sin((frame + i * 40) / 55) * 5;
+        // Alternate arc directions so the shots cross paths on the way in.
+        const dir = i % 2 === 0 ? -1 : 1;
+        const arcX = (1 - s) * 520 * dir;
+        const arcY = (1 - s) * 220 - Math.sin(s * Math.PI) * 60;
         return (
           <div
             key={i}
             style={{
               position: "absolute",
               zIndex: l.z,
-              transform: `translate(${l.x}px, ${l.y + (1 - s) * 160 + idle}px) rotate(${l.rot * s}deg) scale(${l.scale * (0.88 + s * 0.12)})`,
-              opacity: interpolate(s, [0, 0.35, 1], [0, 1, 1]),
+              transform: `translate(${l.x + arcX}px, ${l.y + arcY + idle}px) rotate(${l.rot * s + (1 - s) * 12 * dir}deg) scale(${l.scale * (0.86 + s * 0.14)})`,
+              opacity: interpolate(s, [0, 0.3, 1], [0, 1, 1]),
+              filter: s < 0.6 ? `blur(${(1 - s) * 7}px)` : undefined,
             }}
           >
             <DeviceFrame
@@ -191,7 +210,9 @@ const Sequential: React.FC<{
 }> = ({ screenshots, theme, durationInFrames }) => {
   const frame = useCurrentFrame();
   const per = durationInFrames / screenshots.length;
-  const FADE = 10;
+  // Cap the crossfade below per/2 so [0, FADE, per - FADE, per] stays
+  // strictly monotonic even on very short beats.
+  const FADE = Math.min(10, per / 2.5);
 
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
@@ -209,6 +230,12 @@ const Sequential: React.FC<{
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
+        // Each beat slides in along its tilt direction instead of only fading.
+        const slideDir = i % 2 === 0 ? -1 : 1;
+        const slideIn = interpolate(local, [0, FADE + 4], [slideDir * 240, 0], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
         const drift = interpolate(local, [0, per], [12, -12], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
@@ -223,7 +250,8 @@ const Sequential: React.FC<{
             style={{
               position: "absolute",
               opacity,
-              transform: `scale(${push}) translateY(${drift}px)`,
+              transform: `scale(${push}) translate(${slideIn}px, ${drift}px)`,
+              filter: local < FADE ? `blur(${Math.max(0, (1 - local / FADE) * 6)}px)` : undefined,
             }}
           >
             <Reflected
