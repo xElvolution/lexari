@@ -1,0 +1,11 @@
+# /etc/caddy/Caddyfile — automatic HTTPS, one line of config.
+# Replace with your real domain (its DNS A record must point at this box).
+
+lexari.yourdomain.com {
+	reverse_proxy localhost:3000
+	# renders can take minutes; don't cut long polls / downloads
+	timeouts {
+		read_body 120s
+	}
+	encode gzip
+}

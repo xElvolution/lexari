@@ -1,0 +1,18 @@
+[Unit]
+Description=Lexari render worker (queue -> pipeline -> MP4 + receipt)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lexari
+WorkingDirectory=/opt/lexari/app
+ExecStart=/usr/bin/npm run worker
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+# Remotion renders in headless Chrome; give the worker headroom
+MemoryMax=24G
+
+[Install]
+WantedBy=multi-user.target

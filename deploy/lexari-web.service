@@ -1,0 +1,17 @@
+[Unit]
+Description=Lexari web (Next.js: landing, x402 API, MCP)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lexari
+WorkingDirectory=/opt/lexari/app
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+[Install]
+WantedBy=multi-user.target
