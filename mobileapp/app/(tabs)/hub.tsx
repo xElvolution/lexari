@@ -1,4 +1,5 @@
 /** Port of webapp/components/hub/HubPhone.tsx: balance, check-in, Mystery box / Level up, quests, Invite and Achievements rows with their sheets, Store. */
+import { useHideBalance } from "@/lib/privacy";
 import { useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Share, Text, View } from "react-native";
 import { router } from "expo-router";
@@ -8,7 +9,6 @@ import { ChatBg, MyBubble, bubbleInk } from "@/web/cosmetics";
 import Icon from "@/components/Icon";
 import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
-import { usePrefs } from "@/state/prefs";
 import { AgentTile, Card, Coin, F, GRAPE, Label, Pill, Segs, T, WSheet, useC } from "@/web/kit";
 import { primaryOf, useData, type HubState } from "@/web/data";
 import { ACHIEVEMENTS, MAX_LEVEL, PERKS, QUESTS, STORE_CATEGORIES, STORE_ITEMS, STREAK_PAY, countdown, nextReset, xpFor, type Period } from "@/web/hubData";
@@ -19,7 +19,7 @@ export default function Hub() {
   const k = useC();
   const { token } = useSession();
   const { me, hub, reload } = useData();
-  const { hideBalances, toggleBalances } = usePrefs();
+  const [hideBalances, setHide] = useHideBalance(); const toggleBalances = () => setHide(!hideBalances);
   const [sheet, setSheet] = useState<SheetId>(null);
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState("");

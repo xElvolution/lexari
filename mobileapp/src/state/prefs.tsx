@@ -11,6 +11,7 @@ type Prefs = Saved & {
   isDark: boolean;
   setTheme: (t: ThemeName) => void;
   toggleBalances: () => void;
+  setBalances: (hide: boolean) => void;
   setLock: (on: boolean) => void;
   setBio: (on: boolean) => void;
   setOnboarded: () => void;
@@ -52,6 +53,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       palette: resolved === "light" ? light : dark,
       setTheme: (theme) => patch({ theme }),
       toggleBalances: () => patch({ hideBalances: !saved.hideBalances }),
+      setBalances: (hideBalances) => patch({ hideBalances }),
       setLock: (lockOn) => patch({ lockOn }),
       setBio: (bioOn) => patch({ bioOn }),
       setOnboarded: () => patch({ onboarded: true }),

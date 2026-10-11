@@ -8,6 +8,7 @@ import { PrefsProvider, usePrefs } from "@/state/prefs";
 import { SessionProvider } from "@/state/session";
 import { LockGate } from "@/components/Gates";
 import StepUpSheet from "@/components/StepUpSheet";
+import { PrivacySync } from "@/lib/privacy";
 import Tour from "@/components/Tour";
 import { env } from "@/lib/env";
 import { DataProvider } from "@/web/data";
@@ -39,6 +40,7 @@ function Navigator() {
         </Stack>
         <Tour />
         <StepUpSheet />
+        <PrivacySync />
       </LockGate>
     </View>
   );
