@@ -8,8 +8,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { Easing, cancelAnimation, interpolate, runOnJS, useAnimatedStyle, useDerivedValue, useSharedValue, withDelay, withRepeat, withSequence, withSpring, withTiming, type SharedValue } from "react-native-reanimated";
-import Svg, { Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
+import Animated, { Easing, cancelAnimation, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withSpring, withTiming, type SharedValue } from "react-native-reanimated";
+import Svg, { Defs, Ellipse, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import AgentFace from "./AgentFace";
 import { Face } from "./ui";
@@ -65,7 +65,8 @@ function Spark({ i, n, burst, size }: { i: number; n: number; burst: SharedValue
  * It never covers or hides behind the face half-read: as it nears the face it fades out completely, and it is held
  * at least 16px inside the screen edge (lim = furthest a chip edge may sit from the stage centre).
  */
-function Chip({ i, n, label, spin, rx, ry, faceR, lim, fx, fy }: { i: number; n: number; label: string; spin: SharedValue<number>; rx: number; ry: number; faceR: number; lim: number; fx: SharedValue<number>; fy: SharedValue<number> }) {
+type FaceAt = { tx: SharedValue<number>; ty: SharedValue<number>; float: SharedValue<number>; sx: SharedValue<number>; sy: SharedValue<number>; x: SharedValue<number>; index: number; page: number };
+function Chip({ i, n, label, spin, rx, ry, faceR, lim, face }: { i: number; n: number; label: string; spin: SharedValue<number>; rx: number; ry: number; faceR: number; lim: number; face: FaceAt }) {
   const dx = useSharedValue(0), dy = useSharedValue(0), extra = useSharedValue(0), hw = useSharedValue(60);
   const pan = Gesture.Pan()
     .onChange((e) => { dx.value += e.changeX; dy.value += e.changeY; })
@@ -77,13 +78,16 @@ function Chip({ i, n, label, spin, rx, ry, faceR, lim, fx, fy }: { i: number; n:
     const a = spin.value + extra.value + (i / n) * Math.PI * 2;
     const z = Math.sin(a); // front of the orbit is lower and a touch bigger
     const k = 0.9 + (z + 1) * 0.05;
-    const w = hw.value * k, h = 15 * k;
+    const w = hw.value * k, h = 14 * k;
     const edge = Math.max(0, lim - w);
     const cx = Math.max(-edge, Math.min(edge, Math.cos(a) * rx + dx.value)), cy = z * ry + dy.value;
     // gap between the chip's box and the face disc (plus a band for the bob): 0 or less = touching, fully gone
-    const gx = Math.max(0, Math.abs(cx - fx.value) - w), gy = Math.max(0, Math.abs(cy - fy.value) - h); // fx/fy: where the face has been dragged
-    const gap = Math.hypot(gx, gy) - faceR;
-    const clear = Math.max(0, Math.min(1, (gap - 14) / 14)); // the face bobs ~10px, so fade out with room to spare
+    // where the face is right now, seen from this layer (read straight from the gesture values, so it never lags a frame):
+    // dragged by tx/ty, bobbing up to 10px, and this layer slides 15% with the swipe while the face doesn't
+    const fx = face.tx.value - (face.x.value - face.index * face.page) * 0.15, fy = face.ty.value - face.float.value * 10;
+    const gx = Math.max(0, Math.abs(cx - fx) - w), gy = Math.max(0, Math.abs(cy - fy) - h);
+    const gap = Math.hypot(gx, gy) - faceR * Math.max(face.sx.value, face.sy.value); // a tap squashes it wider
+    const clear = Math.max(0, Math.min(1, (gap - 20) / 20)); // fully gone well before it could touch the face
     return { opacity: clear * (0.75 + (z + 1) * 0.125), transform: [{ translateX: cx }, { translateY: cy }, { scale: k }] };
   });
   return (
@@ -154,8 +158,8 @@ export default function IntroAgent({ mode, x, index, width, page, height, active
 
   const tap = Gesture.Tap().onEnd(() => {
     // squash, then a soft, bouncy spring back (low stiffness, low damping = organic overshoot)
-    sx.value = withSequence(withTiming(1.24, { duration: 110, easing: Easing.out(Easing.quad) }), withSpring(1, { damping: 3.5, stiffness: 110, mass: 0.9 }));
-    sy.value = withSequence(withTiming(0.78, { duration: 110, easing: Easing.out(Easing.quad) }), withSpring(1, { damping: 3.5, stiffness: 110, mass: 0.9 }));
+    sx.value = withSequence(withTiming(1.18, { duration: 110, easing: Easing.out(Easing.quad) }), withSpring(1, { damping: 5, stiffness: 120, mass: 0.9 }));
+    sy.value = withSequence(withTiming(0.84, { duration: 110, easing: Easing.out(Easing.quad) }), withSpring(1, { damping: 5, stiffness: 120, mass: 0.9 }));
     burst.value = 0; burst.value = withTiming(1, { duration: 850, easing: Easing.out(Easing.cubic) });
     runOnJS(react)();
   });
@@ -178,15 +182,14 @@ export default function IntroAgent({ mode, x, index, width, page, height, active
   const body = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }, { translateY: ty.value + float.value * -10 }, { rotate: `${tx.value * 0.08}deg` }, { scaleX: sx.value }, { scaleY: sy.value }] }));
   // the shadow stays on the floor: follows x, shrinks and fades as the agent lifts (bob or drag up), stretches with speed
   const shadow = useAnimatedStyle(() => {
-    const lift = Math.max(0, Math.min(1, (float.value * 10 - ty.value) / 160));
-    return { opacity: 0.5 * (1 - lift * 0.75), transform: [{ translateX: tx.value }, { scaleX: (1 - lift * 0.5) * (1 + speed.value * 0.6) }, { scaleY: 1 - lift * 0.3 }] };
+    // idle bob lifts it ~10px (lift ≈ 0.1); a drag up of ~90px or more and the shadow is gone
+    const lift = Math.max(0, Math.min(1, (float.value * 10 - ty.value) / 90));
+    return { opacity: 0.55 * (1 - lift), transform: [{ translateX: tx.value }, { scaleX: (1 - lift * 0.6) * (1 + speed.value * 0.6) }, { scaleY: 1 - lift * 0.4 }] };
   });
   useEffect(() => { if (touched) hintOp.value = withTiming(0, { duration: 250, easing: Easing.out(Easing.quad) }); }, [touched, hintOp]);
   const hintSt = useAnimatedStyle(() => ({ opacity: hintOp.value * (0.45 + pulse.value * 0.55) }));
   const far = useParallax(x, index, page, 0.75), mid = useParallax(x, index, page, 0.4), near = useParallax(x, index, page, 0.15);
-  // where the face is, seen from the chip layer (it slides 15% with the swipe; the face bobs and can be dragged)
-  const faceX = useDerivedValue(() => tx.value - ((x.value - index * page) / page) * page * 0.15);
-  const faceY = useDerivedValue(() => ty.value - float.value * 10);
+  const faceAt: FaceAt = { tx, ty, float, sx, sy, x, index, page };
   const enter = useAnimatedStyle(() => {
     const d = Math.abs((x.value - index * page) / page);
     return { opacity: interpolate(d, [0, 0.8], [1, 0], "clamp"), transform: [{ scale: interpolate(d, [0, 1], [1, 0.7], "clamp") }] };
@@ -202,11 +205,13 @@ export default function IntroAgent({ mode, x, index, width, page, height, active
       </Animated.View>
       <Animated.View style={[{ alignItems: "center", justifyContent: "center", width, height: size * 2.2 }, enter]}>
         <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}><Glow size={size * 2.1} pulse={pulse} /></Animated.View>
-        <Animated.View pointerEvents="none" style={[{ position: "absolute", top: size * 1.1 + size * 0.5, width: size * 0.7, height: 14, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.6)" }, shadow]} />
+        <Animated.View testID="intro-shadow" pointerEvents="none" style={[{ position: "absolute", top: size * 1.1 + size * 0.47, width: size * 0.8, height: 18 }, shadow]}>
+          <Svg width="100%" height="100%" viewBox="0 0 100 18" preserveAspectRatio="none"><Defs><RadialGradient id="ish" cx="50%" cy="50%" rx="50%" ry="50%"><Stop offset="0" stopColor="#000" stopOpacity="0.85" /><Stop offset="0.6" stopColor="#000" stopOpacity="0.35" /><Stop offset="1" stopColor="#000" stopOpacity="0" /></RadialGradient></Defs><Ellipse cx="50" cy="9" rx="50" ry="9" fill="url(#ish)" /></Svg>
+        </Animated.View>
         {mode === "team" ? <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}>{TEAM.map((s, i) => <Mate key={s} i={i} slug={s} size={Math.round(size * 0.3)} R={R} active={active} lim={lim} />)}</Animated.View> : null}
-        {mode === "memory" ? <Animated.View style={[{ position: "absolute", alignItems: "center", justifyContent: "center", top: size * 1.1 + size * 0.04 }, near]}>{MEMS.map((m, i) => <Chip key={m} i={i} n={MEMS.length} label={m} spin={spin} rx={Math.max(faceR + 20, lim - 46)} ry={faceR + 44} faceR={faceR} lim={lim} fx={faceX} fy={faceY} />)}</Animated.View> : null}
+        {mode === "memory" ? <Animated.View style={[{ position: "absolute", zIndex: 0, alignItems: "center", justifyContent: "center", top: size * 1.1 + size * 0.04 }, near]}>{MEMS.map((m, i) => <Chip key={m} i={i} n={MEMS.length} label={m} spin={spin} rx={Math.max(faceR + 20, lim - 46)} ry={faceR + 44} faceR={faceR} lim={lim} face={faceAt} />)}</Animated.View> : null}
         <GestureDetector gesture={g}>
-          <Animated.View accessibilityRole="button" accessibilityLabel="Your agent. Tap or drag it." style={[{ width: size, height: size, alignItems: "center", justifyContent: "center", zIndex: 2 }, body]}>
+          <Animated.View accessibilityRole="button" accessibilityLabel="Your agent. Tap or drag it." style={[{ width: size, height: size, alignItems: "center", justifyContent: "center", zIndex: 10 }, body]}>
             <View testID="intro-face" pointerEvents="none" style={{ position: "absolute", left: size * 0.1, top: size * 0.14, width: size * 0.8, height: size * 0.8, borderRadius: size }} />
             <AgentFace size={size} animated state={face} gaze={gaze} />
             {mode === "think" ? [0, 1, 2].map((i) => <Thought key={i} i={i} size={size} />) : null}
