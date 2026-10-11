@@ -39,3 +39,25 @@ test("seed phrases are blocked and ordinary chat is not", async () => {
   const keys = await findSecrets("abandon ability able about above absent absorb abstract absurd abuse access accident");
   assert.equal(keys.some((f) => isBlockedKind(f.kind)), true);
 });
+
+test("memory vault matches the web's WebCrypto sealing", async () => {
+  const { deriveKeys, sealNote, openNote, toB64, fromB64, packKeys, unpackKeys } = await import("../src/lib/vaultCore.ts");
+  const sig = Uint8Array.from({ length: 64 }, (_, i) => (i * 7 + 3) & 255);
+  const keys = deriveKeys(sig);
+  const iv = Uint8Array.from({ length: 12 }, (_, i) => i + 1);
+  const sealed = sealNote(keys, "Calls you Ada", iv);
+  // the same thing through WebCrypto, exactly as webapp/lib/vault.ts does it
+  const s = globalThis.crypto.subtle, te = new TextEncoder();
+  const base = await s.importKey("raw", sig, "HKDF", false, ["deriveKey"]);
+  const p = (info: string) => ({ name: "HKDF", hash: "SHA-256", salt: te.encode("lexari"), info: te.encode(info) });
+  const enc = await s.deriveKey(p("memory-enc"), base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  const mac = await s.deriveKey(p("memory-mac"), base, { name: "HMAC", hash: "SHA-256", length: 256 }, false, ["sign"]);
+  const ct = new Uint8Array(await s.encrypt({ name: "AES-GCM", iv }, enc, te.encode("Calls you Ada")));
+  const h = Array.from(new Uint8Array(await s.sign("HMAC", mac, te.encode("calls you ada"))), (x) => x.toString(16).padStart(2, "0")).join("");
+  assert.equal(sealed.ciphertext, Buffer.from(ct).toString("base64"));
+  assert.equal(sealed.iv, toB64(iv));
+  assert.equal(sealed.contentHash, h);
+  assert.equal(openNote(keys, sealed.ciphertext, sealed.iv), "Calls you Ada");
+  assert.deepEqual(fromB64(toB64(Uint8Array.from([1, 2, 3, 4, 250]))), Uint8Array.from([1, 2, 3, 4, 250]));
+  assert.deepEqual(unpackKeys(packKeys(keys)), keys);
+});

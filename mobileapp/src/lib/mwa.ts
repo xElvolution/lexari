@@ -39,6 +39,11 @@ export async function authorizeWallet(): Promise<WalletSession> {
 
 /** Sign the exact server nonce message. The signature is base64, which /api/auth/verify expects. */
 export async function signMessage(address: string, message: string): Promise<string> {
+  return (await signMessages(address, [message]))[0];
+}
+
+/** Several messages in one wallet prompt (sign-in signs the nonce and the memory key together). Base64 signatures. */
+export async function signMessages(address: string, messages: string[]): Promise<string[]> {
   const auth = await loadAuthToken();
   return transact(async (wallet) => {
     const chain = chainId(env.cluster);
@@ -48,14 +53,14 @@ export async function signMessage(address: string, message: string): Promise<str
     await saveAuthToken(session.auth_token);
     const account = session.accounts[0];
     if (!account) throw new Error("The wallet did not share an account.");
-    const signed = await wallet.signMessages({
-      addresses: [account.address],
-      payloads: [new TextEncoder().encode(message)],
-    });
-    const sig = signed[0];
-    if (!sig || sig.length !== 64) throw new Error("The wallet did not return a signature.");
     if (toBase58(account.address) !== address) throw new Error("Signed with a different account.");
-    return Buffer.from(sig).toString("base64");
+    const signed = await wallet.signMessages({
+      addresses: messages.map(() => account.address),
+      payloads: messages.map((m) => new TextEncoder().encode(m)),
+    });
+    if (signed.length < messages.length || signed.some((sig) => !sig || sig.length < 64)) throw new Error("The wallet did not return a signature.");
+    // some wallets hand back the signed message (signature + message); the signature is always the first 64 bytes
+    return signed.slice(0, messages.length).map((sig) => Buffer.from(sig.slice(0, 64)).toString("base64"));
   });
 }
 

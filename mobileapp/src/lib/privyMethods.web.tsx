@@ -3,6 +3,7 @@ import { useLogin, useLoginWithEmail, usePrivy } from "@privy-io/react-auth";
 import { useCreateWallet, useSignMessage, useWallets } from "@privy-io/react-auth/solana";
 import { nonceFor, signInWithServer } from "@/lib/authFlow";
 import type { SavedSession } from "@/lib/session";
+import { KEY_MESSAGE, rememberKeys } from "@/lib/vault";
 import type { Methods } from "./privyMethods.native";
 
 export type { Methods };
@@ -41,7 +42,12 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
     });
     const signature = toBase64(signed.signature);
     const token = await getAccessToken();
-    await onSessionRef.current(await signInWithServer({ wallet: wallet.address, message, signature, privyToken: token || undefined, email }));
+    const session = await signInWithServer({ wallet: wallet.address, message, signature, privyToken: token || undefined, email });
+    try {
+      const k = await signMessage({ message: new TextEncoder().encode(KEY_MESSAGE), wallet, options: { uiOptions: { showWalletUIs: false } } });
+      await rememberKeys(wallet.address, toBase64(k.signature));
+    } catch { /* memories stay sealed until next sign-in */ }
+    await onSessionRef.current(session);
   };
 
   const { login } = useLogin({

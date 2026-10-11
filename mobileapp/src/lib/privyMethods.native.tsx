@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useEmbeddedSolanaWallet, useLoginWithEmail, useLoginWithOAuth, usePrivy } from "@privy-io/expo";
 import { nonceFor, signInWithServer } from "@/lib/authFlow";
 import type { SavedSession } from "@/lib/session";
+import { KEY_MESSAGE, rememberKeys } from "@/lib/vault";
 
 export type Methods = { google: () => Promise<void>; sendCode: (email: string) => Promise<void>; verify: (email: string, code: string) => Promise<void> };
 
@@ -46,7 +47,10 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
     const message = await nonceFor(wallet.address);
     const signed = await provider.request({ method: "signMessage", params: { message } });
     const token = await privyRef.current.getAccessToken();
-    await onSessionRef.current(await signInWithServer({ wallet: wallet.address, message, signature: signed.signature, privyToken: token || undefined, email }));
+    const session = await signInWithServer({ wallet: wallet.address, message, signature: signed.signature, privyToken: token || undefined, email });
+    // the memory key, from the same embedded wallet (no prompt), so memories open on this phone like on the web
+    try { const k = await provider.request({ method: "signMessage", params: { message: KEY_MESSAGE } }); await rememberKeys(wallet.address, k.signature); } catch { /* memories stay sealed until next sign-in */ }
+    await onSessionRef.current(session);
   };
   return {
     google: async () => { await oauth.login({ provider: "google" }); await finish(); },

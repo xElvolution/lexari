@@ -256,7 +256,7 @@ export default function Badge({ name, setName, look, width = 250, windowH = 118,
               <View style={{ marginTop: 12, height: windowH, borderRadius: 18, backgroundColor: "#0a0a0a", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                 <Carpet />
                 {obj ? <BgArt id={obj.bg} /> : null}
-                {face}
+                <View>{face}</View>
                 <Lbl s={9} c="rgba(255,255,255,0.7)" style={{ position: "absolute", left: 12, top: 12 }}>{B.company}</Lbl>
                 <View style={{ position: "absolute", right: 12, top: 12, borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 8, paddingVertical: 4 }}><Lbl s={9} c="#fff">● online</Lbl></View>
               </View>
