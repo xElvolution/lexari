@@ -163,7 +163,7 @@ function Gate({ s }: { s: State }) {
       <div className="relative w-full max-w-[460px] rounded-[32px] bg-card p-7 text-center shadow-[0_14px_0_#5b2bff] ring-1 ring-line sm:p-9">
         <div className="bob mx-auto grid h-24 w-24 place-items-center rounded-[26px] bg-[#0a0a0a]"><Face size={80} track /></div>
         <h1 className="display mt-6 text-[40px] text-ink sm:text-[48px]">{signedIn ? "Almost there." : "Your agent is waiting."}</h1>
-        <p className="mt-3 text-[16px] text-ink/75">{loadError || (signedIn ? "You are signed in. Name your agent and it clocks in." : "Sign in with Google, email, or a Solana wallet like Phantom, Solflare or Backpack.")}</p>
+        <p className="mt-3 text-[16px] text-ink/75">{loadError || (signedIn ? "You are signed in. Name your agent and it clocks in." : "Sign in with Google or email.")}</p>
         <div className="mt-7 grid gap-3">
           {signedIn ? <Link href="/onboarding" className="btn btn-brand">Name your agent →</Link> : <Link href="/signin" className="btn btn-brand">Sign in →</Link>}
         </div>
