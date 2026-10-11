@@ -33,7 +33,7 @@ export default function HireDetail() {
   if (!person) return <Screen><Title>Unknown specialist</Title></Screen>;
   return (
     <Screen>
-      <Face color={person.color} />
+      <Face slug={person.slug} size={72} animated />
       <Title>{person.name}</Title>
       <Muted>{person.job}. {person.quip}</Muted>
       <Text style={{ marginTop: 10, fontSize: 12, color: badge.tone === "real" ? "#f5c542" : grape }}>{badge.label}</Text>

@@ -33,3 +33,24 @@ eas build -p android --profile production
 ## Still needs the operator
 
 Privy Android client id, FCM (`google-services.json` as an EAS file secret), and a phone. The server changes for Bearer sessions and Expo push are in this repo and need a normal `deploy.sh` before a phone can sign in. This folder does not run that deploy.
+
+## Preview and first-run flow
+
+Launch order: animated splash → 3 onboarding screens (first launch only) → sign-in (Google, email, wallet) →
+optional Fingerprint/Face ID + 6-digit PIN → Hub. App lock asks on open and after 15s in the background;
+5 wrong PINs lock it for 30s, doubling each time. Change or turn it off in Settings.
+
+The app targets **devnet only** for now (mainnet is paused).
+
+```bash
+cd mobileapp
+npm install
+npx expo start --web             # browser preview (no biometrics on web; PIN path works)
+npx expo start --android         # dev build on a device/emulator (needs expo-dev-client build)
+npx expo export --platform android   # bundle check
+eas build -p android --profile preview   # installable APK (needs an EAS account/project)
+```
+
+Needed in the build env (never commit them): `EXPO_PUBLIC_PRIVY_APP_ID`, `EXPO_PUBLIC_PRIVY_CLIENT_ID`
+(Privy app client for Android), optional `EXPO_PUBLIC_API_URL` (defaults to https://app.lexari.ai), `EAS_PROJECT_ID`.
+Without Privy the Google/email buttons still show and explain politely; details go to the console only.

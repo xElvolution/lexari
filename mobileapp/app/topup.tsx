@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import QRCode from "react-native-qrcode-svg";
 import * as Device from "expo-device";
@@ -12,6 +12,7 @@ import { isSolanaMobile } from "@/lib/device";
 import { networkBadge } from "@/lib/network";
 import { COINS } from "@/content/roster";
 import { grape } from "@/theme/colors";
+import { NetworkBanner } from "@/components/NetworkPill";
 
 export default function Topup() {
   const params = useLocalSearchParams<{ coin?: string; hire?: string }>();
@@ -36,18 +37,19 @@ export default function Topup() {
   return (
     <Screen>
       <Title>{params.hire ? `Pay ${params.hire} in ${coin}` : "Top up"}</Title>
-      <Text style={{ color: badge.tone === "real" ? "#f5c542" : palette.brand, fontSize: 12 }}>{badge.label}</Text>
+      <View style={{ marginTop: 6 }}><NetworkBanner /></View>
       <Muted>{seeker ? "SKR is first on this Seeker." : "Solana coins pay from your wallet. The server credits them once."}</Muted>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
         {ordered.map((c) => (
-          <Pressable key={c.id} onPress={() => load(c.id)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: coin === c.id ? grape : palette.tint }}>
-            <Text style={{ color: coin === c.id ? "#fff" : c.color, fontSize: 13, fontWeight: "700" }}>{c.id}</Text>
+          <Pressable key={c.id} onPress={() => load(c.id)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 6, paddingRight: 12, height: 36, borderRadius: 18, backgroundColor: coin === c.id ? grape : palette.tint }}>
+            <Image source={c.logo} style={{ width: 24, height: 24, borderRadius: 12 }} />
+            <Text style={{ color: coin === c.id ? "#fff" : palette.ink, fontSize: 13, fontWeight: "700" }}>{c.id}</Text>
           </Pressable>
         ))}
       </View>
       {info?.address ? (
         <View style={{ marginTop: 18, gap: 8 }}>
-          <QRCode value={info.address} size={168} />
+          <View style={{ alignSelf: "flex-start", padding: 12, borderRadius: 18, backgroundColor: "#fff" }}><QRCode value={info.address} size={168} /></View>
           <Muted>{info.address}</Muted>
           {info.tag ? <Muted>Tag {info.tag}</Muted> : null}
         </View>
