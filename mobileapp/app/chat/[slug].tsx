@@ -13,7 +13,7 @@ import { MailSheet, TasksSheet } from "@/web/MailTasks";
 import { api, msgId, streamChat, type ChatEvent } from "@/lib/api";
 import { cutSecrets, findSecrets, isBlockedKind, SECRET_NAME_RE, toSecretName } from "@/lib/secretScan";
 import { useSession } from "@/state/session";
-import { useData, nameOf } from "@/web/data";
+import { useData, nameOf, withHello } from "@/web/data";
 import { AgentTile, F, GRAPE, Label, T, ringOf, useC } from "@/web/kit";
 import Svg, { Path } from "react-native-svg";
 import { ActionCardView, EmailCardView, FileCards, MeetCard, SecretCardView, SendCard, Shots, TakeoverCardView, TaskCard, TxReceipt,
@@ -129,8 +129,8 @@ export default function Chat() {
   const msgs = useMemo(() => {
     const base = ((chat?.messages ?? []) as unknown as M[]);
     const ids = new Set(base.map((m) => m.id));
-    return [...base, ...local.filter((m) => !ids.has(m.id))].map((m) => (patches[m.id] ? { ...m, ...patches[m.id] } : m));
-  }, [chat, local, patches]);
+    return withHello(me, id, [...base, ...local.filter((m) => !ids.has(m.id))].map((m) => (patches[m.id] ? { ...m, ...patches[m.id] } : m)));
+  }, [chat, local, patches, me, id]);
   const [mood, setMood] = useState<Mood>("idle");
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState(prompt || "");

@@ -6,6 +6,7 @@ import * as Clipboard from "expo-clipboard";
 import Icon from "@/components/Icon";
 import { SecurityRows } from "@/components/SecurityRows";
 import { api } from "@/lib/api";
+import { disablePush, enablePush, pushOnHere, pushPermission, type Perm } from "@/lib/push";
 import { useSession } from "@/state/session";
 import { usePrefs } from "@/state/prefs";
 import { AgentTile, F, GRAPE, Label, Pill, T, WSheet, ringOf, short, useC } from "@/web/kit";
@@ -197,6 +198,38 @@ const NOTIFS: [string, string, string][] = [
   ["digest", "Weekly email digest", "A short summary of what your team did."],
   ["product", "Product news", "New features and agents. Rarely."],
 ];
+function DevicePush() {
+  const k = useC();
+  const { token } = useSession();
+  const [on, setOn] = useState<boolean | null>(null);
+  const [perm, setPerm] = useState<Perm>("default");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  useEffect(() => { void pushOnHere().then(setOn); void pushPermission().then(setPerm); }, []);
+  const flip = async (v: boolean) => {
+    if (!token) return;
+    setBusy(true);
+    try {
+      if (v) { const r = await enablePush(token); setOn(r.ok); setNote(r.ok ? "Notifications are on for this phone." : r.why || "Couldn't turn on notifications"); }
+      else { await disablePush(token); setOn(false); setNote("Notifications are off for this phone"); }
+      setPerm(await pushPermission());
+    } finally { setBusy(false); }
+  };
+  const desc = perm === "unsupported" ? "This device can't show notifications."
+    : perm === "denied" ? "Blocked for Lexari. Allow notifications in your phone's settings, then come back."
+    : "Get replies, quest rewards, your daily box and payment updates even when Lexari is closed.";
+  return (
+    <Group title="This device">
+      <Row last title="Push notifications" desc={desc}>
+        {perm === "unsupported" || perm === "denied"
+          ? <T f="semi" s={12} c={k.ink45}>Off</T>
+          : <View style={{ opacity: busy ? 0.6 : 1 }} pointerEvents={busy ? "none" : "auto"}><Toggle on={!!on} set={(v) => void flip(v)} /></View>}
+        {note ? <T s={12.5} c={k.brandInk}>{note}</T> : null}
+      </Row>
+    </Group>
+  );
+}
+
 function Notifs() {
   const { me } = useData();
   const patch = usePatch();
@@ -204,7 +237,7 @@ function Notifs() {
   const set = (key: string, v: boolean) => patch({ prefs: { notif: { ...n, [key]: v } } });
   return (
     <>
-      <Group title="This device"><Row last title="Push notifications" desc="Get replies, calls and payment updates even when Lexari is closed."><Small label="Set up" onPress={() => router.push("/settings/notifications")} /></Row></Group>
+      <DevicePush />
       <Group title="Push and in-app">{NOTIFS.slice(0, 5).map(([key, t, d], i) => <Row key={key} last={i === 4} title={t} desc={d}><Toggle on={!!n[key]} set={(v) => set(key, v)} /></Row>)}</Group>
       <Group title="Email">{NOTIFS.slice(5).map(([key, t, d], i) => <Row key={key} last={i === 1} title={t} desc={d}><Toggle on={!!n[key]} set={(v) => set(key, v)} /></Row>)}</Group>
     </>

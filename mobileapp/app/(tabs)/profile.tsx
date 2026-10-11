@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
 import { usePrefs } from "@/state/prefs";
 import { AgentTile, F, GRAPE, Grad, Label, Pill, T, WSheet, short, useC } from "@/web/kit";
-import { initialsOf, useData, youName } from "@/web/data";
+import { useData, youName } from "@/web/data";
 
 function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
   const k = useC();
@@ -57,7 +57,7 @@ export default function Profile() {
         </View>
         <View style={{ paddingHorizontal: 18, paddingBottom: 14 }}>
           <View style={{ marginTop: -46, width: 92, height: 92, borderRadius: 46, backgroundColor: k.ink, borderWidth: 5, borderColor: k.card, alignItems: "center", justifyContent: "center" }}>
-            <T f="bold" s={20} c={k.bg}>{initialsOf(me)}</T>
+            <T f="bold" s={20} c={k.bg}>{youName(me).split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "Y"}</T>
             <View style={{ position: "absolute", right: -4, bottom: -2, width: 28, height: 28, borderRadius: 14, backgroundColor: GRAPE, borderWidth: 2, borderColor: k.card, alignItems: "center", justifyContent: "center" }}><Icon name="camera" size={12} color="#fff" /></View>
           </View>
           <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>

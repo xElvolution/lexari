@@ -8,7 +8,7 @@ import { TourTarget } from "@/components/Tour";
 import { AgentTile, F, Label, Pill, T, WSheet, ringOf, useC } from "@/web/kit";
 import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
-import { nameOf, primaryOf, useData, type Chat, type Me, type Msg } from "@/web/data";
+import { nameOf, primaryOf, useData, withHello, type Chat, type Me, type Msg } from "@/web/data";
 
 function shortTime(ms: number, now: number) {
   if (!ms) return "";
@@ -40,9 +40,9 @@ export default function Agents() {
   const agents = (me?.agents ?? []).slice().sort((a, b) => (a.slug === primary ? -1 : b.slug === primary ? 1 : (a.createdAt ?? 0) - (b.createdAt ?? 0)));
   const list = q.trim() ? agents.filter((a) => `${a.name} ${a.role}`.toLowerCase().includes(q.trim().toLowerCase())) : agents;
   const chats = me?.chats ?? [];
-  const lastOf = (c?: Chat) => c?.messages?.[c.messages.length - 1];
+  const lastOf = (c?: Chat, slug = "") => { const m = withHello(me, slug, c?.messages ?? []); return m[m.length - 1]; };
   const convos = [
-    ...agents.map((a) => { const c = chats.find((x) => x.slug === a.slug); return { id: a.slug, group: false, name: a.name, members: [a.slug], last: lastOf(c), at: lastOf(c)?.at ?? 0 }; }),
+    ...agents.map((a) => { const c = chats.find((x) => x.slug === a.slug); return { id: a.slug, group: false, name: a.name, members: [a.slug], last: lastOf(c, a.slug), at: lastOf(c, a.slug)?.at ?? 0 }; }),
     ...chats.filter((c) => c.kind === "group").map((c) => ({ id: c.slug, group: true, name: c.title, members: c.members, last: lastOf(c), at: lastOf(c)?.at ?? c.createdAt ?? 0 })),
   ].sort((a, b) => (a.id === "home" && !a.last ? -1 : 0) || b.at - a.at);
   const look = (slug: string) => me?.agents.find((a) => a.slug === slug)?.look;

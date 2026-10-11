@@ -10,7 +10,7 @@ export type Me = {
   user: { wallet?: string; referralCode?: string; method?: string; email?: string | null; createdAt?: number };
   profile: { name?: string; username?: string; avatar?: string };
   plan: { id: string; name: string; seats: number };
-  prefs?: { defaultAgent?: string; hideBalance?: boolean; language?: string; voice?: string };
+  prefs?: { defaultAgent?: string; hideBalance?: boolean; language?: string; voice?: string; tourDone?: boolean };
   agents: Agent[]; chats: Chat[]; jobs?: { id: string; assignee?: string; title?: string; prompt: string; status: string; output?: string; startedAt: number; finishedAt?: number }[];
   memories?: { id: string; agent?: string; tag?: string; source?: string; at: number }[]; hires?: { slug: string }[];
   lockOn?: boolean; biometric?: boolean;
@@ -40,7 +40,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
 }
 export const useData = () => useContext(Ctx);
 
+/** webapp/lib/store.ts hello(): the home agent's first line, put at the top of its thread so a new chat never opens empty. */
+export function withHello<T extends { id: string; at: number }>(me: Me | null, slug: string, msgs: T[]): T[] {
+  const home = me?.agents.find((a) => a.slug === "home");
+  if (slug !== "home" || !home || msgs.some((m) => m.id === "hello")) return msgs;
+  const you = String((home.meta as { you?: string } | undefined)?.you || "");
+  const at = Math.min(Number(new Date(me?.user.createdAt as unknown as string)) || Date.now(), ...msgs.map((m) => m.at - 1));
+  return [{ id: "hello", from: "home", at, text: `Hi${you ? ` ${you}` : ""}, I'm ${home.name}. Ask me anything.` } as unknown as T, ...msgs];
+}
 export const primaryOf = (me: Me | null) => me?.prefs?.defaultAgent || "home";
 export const nameOf = (me: Me | null, slug: string) => me?.agents.find((a) => a.slug === slug)?.name || slug;
 export const youName = (me: Me | null) => me?.profile?.name || (me?.agents.find((a) => a.slug === "home")?.meta?.you as string | undefined) || "You";
-export const initialsOf = (me: Me | null) => { const n = youName(me); return n === "You" ? "Y" : n.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase(); };
+/** AppShell initials(): the profile name, else the sign-in label (email or short wallet address). */
+export const initialsOf = (me: Me | null) => {
+  const n = me?.profile?.name?.trim();
+  if (n && n !== "You") return n.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const w = me?.user.wallet, label = me?.user.email || (w ? `${w.slice(0, 4)}…${w.slice(-4)}` : "");
+  return me?.user.method === "wallet" ? (label || "W").replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() : (label || "You").split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase();
+};
