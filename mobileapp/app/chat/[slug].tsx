@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import Icon from "@/components/Icon";
+import { TourTarget } from "@/components/Tour";
 import { ModelSheet } from "@/web/ModelSheet";
 import { MailSheet, TasksSheet } from "@/web/MailTasks";
 import { api, msgId, streamChat, type ChatEvent } from "@/lib/api";
@@ -317,6 +318,7 @@ export default function Chat() {
           </ScrollView>
         ) : null}
         {rec === null ? <GuardPanel items={caught} setItems={setCaught} onSwap={(n, put) => setText((t) => t.split(`[secret ${n}]`).join(put).replace(/[ \t]{2,}/g, " "))} /> : null}
+        <TourTarget id="composer">
         <View style={{ borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: rec !== null ? GRAPE : k.line }}>
           {file && rec === null ? (
             <View style={{ flexDirection: "row", paddingHorizontal: 12, paddingTop: 12 }}>
@@ -346,6 +348,7 @@ export default function Chat() {
             </View>
           )}
         </View>
+        </TourTarget>
       </View>
       {!group ? <MailSheet open={panel === "mail"} onClose={() => setPanel(null)} agent={id} name={name} onAsk={(t) => void send(t)} onUnread={setUnread} /> : null}
       {taskAgent ? <TasksSheet open={panel === "tasks"} onClose={() => setPanel(null)} agent={id} name={name} tasks={tasks} now={now} onDesktop={desk} onChange={(t, tid) => setTasks((x) => (t ? x.map((y) => (y.id === tid ? t : y)) : x.filter((y) => y.id !== tid)))} /> : null}

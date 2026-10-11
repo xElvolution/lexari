@@ -103,7 +103,7 @@ export default function Onboarding() {
   const { width, height } = useWindowDimensions();
   const params = useLocalSearchParams<{ name?: string }>();
   const { token, wallet } = useSession();
-  const { securityAsked } = usePrefs();
+  const { securityAsked, startTour } = usePrefs();
   const { me, reload } = useData();
   const [step, setStep] = useState(0);
   const [name, setName] = useState(() => cleanName(params.name || ""));
@@ -137,7 +137,7 @@ export default function Onboarding() {
   const bg = look && typeof look === "object" ? look.bg : undefined;
   const toggleKnow = (t: string) => setKnows((l) => (l.includes(t) ? l.filter((x) => x !== t) : [...l, t].slice(0, 8)));
   const addCustom = () => { const t = custom.trim(); if (t && !knows.includes(t)) setKnows((l) => [...l, t].slice(0, 8)); setCustom(""); };
-  const after = () => router.replace(securityAsked ? "/(tabs)/agents" : "/security-setup");
+  const after = () => { startTour(); router.replace(securityAsked ? "/(tabs)/agents" : "/security-setup"); };
 
   const meet = async () => {
     if (saving || !token) return;
