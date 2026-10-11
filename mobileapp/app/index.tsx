@@ -7,6 +7,7 @@ import { useSession } from "@/state/session";
 import { usePrefs } from "@/state/prefs";
 import { T } from "@/web/kit";
 import { BRAND_BG, BrandBg, LexariMark } from "@/components/BrandBg";
+import { hasHomeAgent } from "@/lib/route";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 const WORD = "lexari".split("");
@@ -36,8 +37,15 @@ export default function Splash() {
 
   useEffect(() => {
     if (!played || !ready || !loaded) return;
-    const next = !onboarded ? "/welcome" : !token ? "/(auth)/sign-in" : !securityAsked ? "/security-setup" : "/(tabs)/agents";
-    Animated.timing(out, { toValue: 0, duration: 320, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => router.replace(next));
+    let off = false;
+    void (async () => {
+      // like the web: a signed-in account with no home agent yet goes to onboarding first
+      const home = token ? await hasHomeAgent(token) : null;
+      if (off) return;
+      const next = !onboarded && !token ? "/welcome" : !token ? "/(auth)/sign-in" : home === false ? "/onboarding" : !securityAsked ? "/security-setup" : "/(tabs)/agents";
+      Animated.timing(out, { toValue: 0, duration: 320, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => router.replace(next));
+    })();
+    return () => { off = true; };
   }, [played, ready, loaded, onboarded, token, securityAsked, out]);
 
   // the mark starts centred alone, then moves left to make room for the word

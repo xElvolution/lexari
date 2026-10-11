@@ -23,6 +23,7 @@ import { env } from "@/lib/env";
 import { nonceFor, signInWithServer } from "@/lib/authFlow";
 import { setUserAgent } from "@/lib/api";
 import { nextAfterSignIn } from "@/lib/route";
+import { KEY_MESSAGE, rememberKeys } from "@/lib/vault";
 import type { SavedSession } from "@/lib/session";
 import { isSolanaMobile, userAgent } from "@/lib/device";
 import { Btn, F, GRAPE, PopIn, Rise, useC } from "@/web/kit";
@@ -207,10 +208,11 @@ function WalletSheet({ wallet, onClose, onSession }: { wallet: WalletRow; onClos
   const sign = async () => {
     setPhase("signing"); setErr("");
     try {
-      const { signMessage } = await import("@/lib/mwa");
+      const { signMessages } = await import("@/lib/mwa");
       const message = await nonceFor(address);
-      const signature = await signMessage(address, message);
+      const [signature, keySig] = await signMessages(address, [message, KEY_MESSAGE]);
       const session = await signInWithServer({ wallet: address, message, signature });
+      await rememberKeys(address, keySig).catch(() => null);
       setDone(true);
       await onSession(session);
     } catch (e) {

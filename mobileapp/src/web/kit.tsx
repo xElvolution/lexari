@@ -200,8 +200,8 @@ export function Grad({ stops, angle = 120, radial }: { stops: [string, number][]
  * The web `.btn` family (shared/styles/theme.css): pill, bold, 56px (sm 40/44px), with the solid 6px drop for brand/white
  * and 5px grape drop for ink. Pressing scales to .97 like `.btn:active`.
  */
-export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRight, disabled, style, full, children, drop: dropIn }: {
-  drop?: number; label?: string; onPress?: () => void; kind?: "brand" | "white" | "line" | "ghost" | "ink"; h?: number; fs?: number; icon?: string; iconRight?: string;
+export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRight, disabled, style, full, children, drop: dropIn, a11y }: {
+  a11y?: string; drop?: number; label?: string; onPress?: () => void; kind?: "brand" | "white" | "line" | "ghost" | "ink"; h?: number; fs?: number; icon?: string; iconRight?: string;
   disabled?: boolean; style?: ViewStyle; full?: boolean; children?: ReactNode;
 }) {
   const k = useC();
@@ -211,12 +211,12 @@ export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRigh
   const fg = kind === "brand" ? "#fff" : kind === "white" ? "#0a0a0a" : kind === "ink" ? k.bg : k.ink;
   const size = fs ?? (h >= 52 ? 16 : 14);
   return (
-    <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={label} onPress={() => { tap(); onPress?.(); }}
+    <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={a11y ?? label} onPress={() => { tap(); onPress?.(); }}
       style={({ pressed }) => [{ alignSelf: full ? "stretch" : "flex-start", height: h + drop, opacity: disabled ? 0.55 : 1, transform: [{ scale: pressed && !disabled ? 0.97 : 1 }] }, style]}>
       {drop ? <View style={{ position: "absolute", left: 0, right: 0, top: drop, height: h, borderRadius: 999, backgroundColor: dropC }} /> : null}
       <View style={{ height: h, borderRadius: 999, backgroundColor: bg, borderWidth: kind === "line" ? 2 : 0, borderColor: k.ink, paddingHorizontal: h >= 52 ? 25.6 : 18.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8.8 }}>
         {icon ? <Icon name={icon} size={size + 2} color={fg} /> : null}
-        {children ?? <Text style={{ fontFamily: F.bold, fontSize: size, color: fg }}>{label}</Text>}
+        {children ?? (label ? <Text style={{ fontFamily: F.bold, fontSize: size, color: fg }}>{label}</Text> : null)}
         {iconRight ? <Icon name={iconRight} size={size + 2} color={fg} /> : null}
       </View>
     </Pressable>
