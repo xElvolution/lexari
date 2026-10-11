@@ -17,9 +17,11 @@ import type { FaceState } from "./avatar";
 import { F } from "@/web/kit";
 
 export type IntroMode = "memory" | "think" | "team";
-type P = { mode: IntroMode; x: SharedValue<number>; index: number; width: number; height: number; active: boolean };
+/** width: the stage (page minus its 20px gutters); page: the full page width the scroll x moves in */
+type P = { mode: IntroMode; x: SharedValue<number>; index: number; width: number; page: number; height: number; active: boolean };
 
-const MEMS = ["Style · one page", "Tools · tables", "Team · Maya", "Habit · Fridays", "You · Lagos"];
+// short on purpose: the orbit has to clear the face and the screen edge, so each chip is a word or two
+const MEMS = ["One page", "Tables", "Maya", "Fridays", "Lagos"];
 const TEAM = ["scout", "quill", "tally", "frame", "patch"] as const;
 
 /** depth: how far this layer slides while you swipe between pages (0 = pinned to the page) */
@@ -49,18 +51,22 @@ function Mote({ i, w, h }: { i: number; w: number; h: number }) {
 }
 
 /** One spark of the tap burst. */
-function Spark({ i, n, burst }: { i: number; n: number; burst: SharedValue<number> }) {
+function Spark({ i, n, burst, size }: { i: number; n: number; burst: SharedValue<number>; size: number }) {
   const a = (i / n) * Math.PI * 2 + (i % 2) * 0.2;
   const st = useAnimatedStyle(() => {
     const t = burst.value; const r = 60 + t * (70 + (i % 3) * 18);
     return { opacity: t > 0 && t < 1 ? 1 - t : 0, transform: [{ translateX: Math.cos(a) * r }, { translateY: Math.sin(a) * r }, { scale: 1 - t * 0.6 }, { rotate: `${t * 180}deg` }] };
   });
-  return <Animated.View pointerEvents="none" style={[{ position: "absolute", width: 10, height: 10 }, st]}><Svg width={10} height={10} viewBox="0 0 10 10"><Path d="M5 0 Q6 4 10 5 Q6 6 5 10 Q4 6 0 5 Q4 4 5 0Z" fill={i % 3 === 0 ? "#ffd84d" : i % 3 === 1 ? "#c9b8ff" : "#fff"} /></Svg></Animated.View>;
+  return <Animated.View pointerEvents="none" style={[{ position: "absolute", left: size / 2 - 5, top: size / 2 - 5, width: 10, height: 10 }, st]}><Svg width={10} height={10} viewBox="0 0 10 10"><Path d="M5 0 Q6 4 10 5 Q6 6 5 10 Q4 6 0 5 Q4 4 5 0Z" fill={i % 3 === 0 ? "#ffd84d" : i % 3 === 1 ? "#c9b8ff" : "#fff"} /></Svg></Animated.View>;
 }
 
-/** A memory chip riding an orbit; drag to flick it, it swings back into its lane. */
-function Chip({ i, n, label, spin, R }: { i: number; n: number; label: string; spin: SharedValue<number>; R: number }) {
-  const dx = useSharedValue(0), dy = useSharedValue(0), extra = useSharedValue(0);
+/**
+ * A memory chip riding an elliptical orbit around the face; drag to flick it, it swings back into its lane.
+ * It never covers or hides behind the face half-read: as it nears the face it fades out completely, and it is held
+ * at least 16px inside the screen edge (lim = furthest a chip edge may sit from the stage centre).
+ */
+function Chip({ i, n, label, spin, rx, ry, faceR, lim, fx, fy }: { i: number; n: number; label: string; spin: SharedValue<number>; rx: number; ry: number; faceR: number; lim: number; fx: SharedValue<number>; fy: SharedValue<number> }) {
+  const dx = useSharedValue(0), dy = useSharedValue(0), extra = useSharedValue(0), hw = useSharedValue(60);
   const pan = Gesture.Pan()
     .onChange((e) => { dx.value += e.changeX; dy.value += e.changeY; })
     .onEnd((e) => {
@@ -69,13 +75,21 @@ function Chip({ i, n, label, spin, R }: { i: number; n: number; label: string; s
     });
   const st = useAnimatedStyle(() => {
     const a = spin.value + extra.value + (i / n) * Math.PI * 2;
-    const z = Math.sin(a); // front of the orbit is lower and bigger
-    return { zIndex: z > 0 ? 3 : 1, opacity: 0.55 + (z + 1) * 0.225, transform: [{ translateX: Math.cos(a) * R + dx.value }, { translateY: z * R * 0.38 + dy.value }, { scale: 0.78 + (z + 1) * 0.14 }] };
+    const z = Math.sin(a); // front of the orbit is lower and a touch bigger
+    const k = 0.9 + (z + 1) * 0.05;
+    const w = hw.value * k, h = 15 * k;
+    const edge = Math.max(0, lim - w);
+    const cx = Math.max(-edge, Math.min(edge, Math.cos(a) * rx + dx.value)), cy = z * ry + dy.value;
+    // gap between the chip's box and the face disc (plus a band for the bob): 0 or less = touching, fully gone
+    const gx = Math.max(0, Math.abs(cx - fx.value) - w), gy = Math.max(0, Math.abs(cy - fy.value) - h); // fx/fy: where the face has been dragged
+    const gap = Math.hypot(gx, gy) - faceR;
+    const clear = Math.max(0, Math.min(1, (gap - 14) / 14)); // the face bobs ~10px, so fade out with room to spare
+    return { opacity: clear * (0.75 + (z + 1) * 0.125), transform: [{ translateX: cx }, { translateY: cy }, { scale: k }] };
   });
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={[{ position: "absolute", width: 170, left: -85, top: -15, alignItems: "center" }, st]}>
-       <View style={{ borderRadius: 999, backgroundColor: "rgba(20,14,40,0.82)", borderWidth: 1, borderColor: "rgba(201,184,255,0.35)", paddingHorizontal: 12, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <Animated.View testID="intro-chip" style={[{ position: "absolute", width: 170, left: -85, top: -15, alignItems: "center" }, st]}>
+       <View onLayout={(e) => { hw.value = e.nativeEvent.layout.width / 2; }} style={{ borderRadius: 999, backgroundColor: "rgba(20,14,40,0.82)", borderWidth: 1, borderColor: "rgba(201,184,255,0.35)", paddingHorizontal: 12, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 6 }}>
         <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: ["#d9ccff", "#a78bfa", "#93c5fd", "#e9d5ff", "#7dd3fc"][i % 5] }} />
         <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 0.4, textTransform: "uppercase", color: "#fff" }} numberOfLines={1}>{label}</Text>
        </View>
@@ -91,11 +105,11 @@ function Thought({ i, size }: { i: number; size: number }) {
   const pos = [[-0.42, -0.62], [0.05, -0.8], [0.46, -0.6]][i];
   const st = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ translateX: pos[0] * size }, { translateY: pos[1] * size - p.value * 10 }, { scale: p.value }, { rotate: `${p.value * 90}deg` }] }));
   const s = 18 + (i % 2) * 8;
-  return <Animated.View pointerEvents="none" style={[{ position: "absolute", width: s, height: s }, st]}><Svg width={s} height={s} viewBox="0 0 10 10"><Path d="M5 0 Q6 4 10 5 Q6 6 5 10 Q4 6 0 5 Q4 4 5 0Z" fill={i === 1 ? "#ffd84d" : "#c9b8ff"} /></Svg></Animated.View>;
+  return <Animated.View pointerEvents="none" style={[{ position: "absolute", left: size / 2 - s / 2, top: size / 2 - s / 2, width: s, height: s }, st]}><Svg width={s} height={s} viewBox="0 0 10 10"><Path d="M5 0 Q6 4 10 5 Q6 6 5 10 Q4 6 0 5 Q4 4 5 0Z" fill={i === 1 ? "#ffd84d" : "#c9b8ff"} /></Svg></Animated.View>;
 }
 
-/** A teammate that springs in around the agent and keeps bobbing. */
-function Mate({ i, slug, size, R, active }: { i: number; slug: string; size: number; R: number; active: boolean }) {
+/** A teammate that springs in around the agent and keeps bobbing (the spring overshoots in scale, never toward the edge). */
+function Mate({ i, slug, size, R, active, lim }: { i: number; slug: string; size: number; R: number; active: boolean; lim: number }) {
   const p = useSharedValue(0), bob = useSharedValue(0);
   useEffect(() => {
     p.value = 0;
@@ -103,15 +117,15 @@ function Mate({ i, slug, size, R, active }: { i: number; slug: string; size: num
     bob.value = withRepeat(withSequence(withTiming(1, { duration: 1300 + i * 120, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 1300 + i * 120, easing: Easing.inOut(Easing.sin) })), -1);
   }, [active, p, bob, i]);
   const ang = [-2.6, -2.0, -1.57, -1.14, -0.54][i];
-  const st = useAnimatedStyle(() => ({ opacity: Math.min(1, p.value * 2), transform: [{ translateX: Math.cos(ang) * R * p.value }, { translateY: Math.sin(ang) * R * 0.92 * p.value + bob.value * -6 + R * 0.12 }, { scale: p.value }, { rotate: `${(1 - p.value) * -40 + (i % 2 ? 6 : -6)}deg` }] }));
+  const st = useAnimatedStyle(() => ({ opacity: Math.min(1, p.value * 2), transform: [{ translateX: Math.max(-(lim - (size + 12) / 2), Math.min(lim - (size + 12) / 2, Math.cos(ang) * R)) * Math.min(1, p.value) }, { translateY: Math.sin(ang) * R * 0.92 * p.value + bob.value * -6 + R * 0.12 }, { scale: p.value }, { rotate: `${(1 - p.value) * -40 + (i % 2 ? 6 : -6)}deg` }] }));
   return (
-    <Animated.View pointerEvents="none" style={[{ position: "absolute", width: size + 12, height: size + 12, borderRadius: (size + 12) * 0.32, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center" }, st]}>
+    <Animated.View testID="intro-mate" pointerEvents="none" style={[{ position: "absolute", left: -(size + 12) / 2, top: -(size + 12) / 2, width: size + 12, height: size + 12, borderRadius: (size + 12) * 0.32, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center" }, st]}>
       <Face slug={slug} size={size} />
     </Animated.View>
   );
 }
 
-export default function IntroAgent({ mode, x, index, width, height, active }: P) {
+export default function IntroAgent({ mode, x, index, width, page, height, active }: P) {
   const size = Math.min(width * 0.46, height * 0.42, 190);
   const pulse = useSharedValue(0), spin = useSharedValue(0), burst = useSharedValue(0);
   const tx = useSharedValue(0), ty = useSharedValue(0), sx = useSharedValue(1), sy = useSharedValue(1), float = useSharedValue(0);
@@ -163,12 +177,14 @@ export default function IntroAgent({ mode, x, index, width, height, active }: P)
   const shadow = useAnimatedStyle(() => ({ opacity: 0.45 - float.value * 0.15, transform: [{ translateX: tx.value * 0.6 }, { scaleX: 1 - float.value * 0.12 }] }));
   const hint = useDerivedValue(() => (touched ? 0 : 0.45 + pulse.value * 0.55));
   const hintSt = useAnimatedStyle(() => ({ opacity: withTiming(hint.value, { duration: 300 }) }));
-  const far = useParallax(x, index, width, 0.75), mid = useParallax(x, index, width, 0.4), near = useParallax(x, index, width, 0.15);
+  const far = useParallax(x, index, page, 0.75), mid = useParallax(x, index, page, 0.4), near = useParallax(x, index, page, 0.15);
   const enter = useAnimatedStyle(() => {
-    const d = Math.abs((x.value - index * width) / width);
+    const d = Math.abs((x.value - index * page) / page);
     return { opacity: interpolate(d, [0, 0.8], [1, 0], "clamp"), transform: [{ scale: interpolate(d, [0, 1], [1, 0.7], "clamp") }] };
   });
   const R = Math.min(width * 0.4, size * 1.05);
+  const faceR = size * 0.4; // the face disc (r 38 of 100) plus its outline
+  const lim = width / 2 + 20 - 17; // the stage is inset 20px; keep everything 16px (plus a pixel for rounding) clear of the screen edge
 
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -178,13 +194,14 @@ export default function IntroAgent({ mode, x, index, width, height, active }: P)
       <Animated.View style={[{ alignItems: "center", justifyContent: "center", width, height: size * 2.2 }, enter]}>
         <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}><Glow size={size * 2.1} pulse={pulse} /></Animated.View>
         <Animated.View pointerEvents="none" style={[{ position: "absolute", top: size * 1.1 + size * 0.5, width: size * 0.7, height: 14, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.6)" }, shadow]} />
-        {mode === "team" ? <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}>{TEAM.map((s, i) => <Mate key={s} i={i} slug={s} size={Math.round(size * 0.3)} R={R} active={active} />)}</Animated.View> : null}
-        {mode === "memory" ? <Animated.View style={[{ position: "absolute", alignItems: "center", justifyContent: "center", top: size * 1.1 }, near]}>{MEMS.map((m, i) => <Chip key={m} i={i} n={MEMS.length} label={m} spin={spin} R={Math.min(R, (width - 130) / 2)} />)}</Animated.View> : null}
+        {mode === "team" ? <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}>{TEAM.map((s, i) => <Mate key={s} i={i} slug={s} size={Math.round(size * 0.3)} R={R} active={active} lim={lim} />)}</Animated.View> : null}
+        {mode === "memory" ? <Animated.View style={[{ position: "absolute", alignItems: "center", justifyContent: "center", top: size * 1.1 + size * 0.04 }, near]}>{MEMS.map((m, i) => <Chip key={m} i={i} n={MEMS.length} label={m} spin={spin} rx={Math.max(faceR + 20, lim - 46)} ry={faceR + 44} faceR={faceR} lim={lim} fx={tx} fy={ty} />)}</Animated.View> : null}
         <GestureDetector gesture={g}>
           <Animated.View accessibilityRole="button" accessibilityLabel="Your agent. Tap or drag it." style={[{ width: size, height: size, alignItems: "center", justifyContent: "center", zIndex: 2 }, body]}>
+            <View testID="intro-face" pointerEvents="none" style={{ position: "absolute", left: size * 0.1, top: size * 0.14, width: size * 0.8, height: size * 0.8, borderRadius: size }} />
             <AgentFace size={size} animated state={face} gaze={gaze} />
             {mode === "think" ? [0, 1, 2].map((i) => <Thought key={i} i={i} size={size} />) : null}
-            {Array.from({ length: 12 }).map((_, i) => <Spark key={i} i={i} n={12} burst={burst} />)}
+            {Array.from({ length: 12 }).map((_, i) => <Spark key={i} i={i} n={12} burst={burst} size={size} />)}
           </Animated.View>
         </GestureDetector>
       </Animated.View>
