@@ -1,5 +1,5 @@
 /** Port of webapp/app/(app)/marketplace/page.tsx at phone width: search, category chips, Agent of the week hero, Trending now, Top charts, New & notable, Editors' picks, Browse categories. */
-import { useMemo, useRef, useState } from "react";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import Icon from "@/components/Icon";
@@ -7,19 +7,23 @@ import { PALETTE } from "@/components/avatar";
 import { ROSTER, STORE_CATS, compact, storeMeta, type Specialist, type StoreCat } from "@/content/roster";
 import { AgentTile, F, Grad, Label, T, useC } from "@/web/kit";
 import { useData } from "@/web/data";
+import { useHire } from "@/web/hire";
 
 const FEATURED = ["scout", "frame", "atlas"];
 const byHires = [...ROSTER].sort((a, b) => storeMeta(b).hires - storeMeta(a).hires);
 const open = (slug: string) => router.push(`/marketplace/${slug}`);
+const HireCtx = createContext<(slug: string) => void>(() => {});
 
 function HireBtn({ a, lg }: { a: Specialist; lg?: boolean }) {
   const k = useC();
+  const onHire = useContext(HireCtx);
   const { me } = useData();
   const hired = !!me?.agents.some((x) => x.slug === a.slug);
+  const again = !hired && !!me?.hires?.some((h) => h.slug === a.slug);
   const h = lg ? 48 : 32;
   return (
-    <Pressable onPress={() => (hired ? router.push(`/chat/${a.slug}`) : open(a.slug))} style={{ height: h, paddingHorizontal: lg ? 24 : 16, borderRadius: h / 2, alignItems: "center", justifyContent: "center", backgroundColor: hired ? k.tint : "#5b2bff" }}>
-      <T f="bold" s={lg ? 16 : 13} c={hired ? k.brandInk : "#fff"}>{hired ? "Open" : a.free ? "Hire · Free" : "Hire · $1"}</T>
+    <Pressable onPress={() => (hired ? router.push(`/chat/${a.slug}`) : onHire(a.slug))} style={{ height: h, paddingHorizontal: lg ? 24 : 16, borderRadius: h / 2, alignItems: "center", justifyContent: "center", backgroundColor: hired ? k.tint : "#5b2bff" }}>
+      <T f="bold" s={lg ? 16 : 13} c={hired ? k.brandInk : "#fff"}>{hired ? "Open" : a.free || again ? "Hire · Free" : "Hire · $1"}</T>
     </Pressable>
   );
 }
@@ -142,6 +146,7 @@ export default function Marketplace() {
   const [tab, setTab] = useState<(typeof CHART_TABS)[number]["id"]>("hired");
   const scroll = useRef<ScrollView>(null);
   const { me } = useData();
+  const hire = useHire();
   const mine = new Set((me?.agents ?? []).map((a) => a.slug));
   const card = Math.max(176, Math.round(width * 0.44));
   const filtered = useMemo(() => { const t = q.trim().toLowerCase(); return ROSTER.filter((a) => (cat === "All" || storeMeta(a).cat === cat) && (!t || `${a.name} ${a.job} ${a.cat} ${a.back} ${storeMeta(a).maker}`.toLowerCase().includes(t))); }, [q, cat]);
@@ -154,6 +159,8 @@ export default function Marketplace() {
     { title: "Ship your launch week", body: "Quill writes the post, Frame makes the cards, Pulse schedules it all. You just say go.", who: ["quill", "frame", "pulse"], tag: "Collection" },
   ];
   return (
+    <HireCtx.Provider value={hire.start}>
+    <View style={{ flex: 1 }}>
     <ScrollView ref={scroll} contentContainerStyle={{ padding: 16, paddingTop: 18, paddingBottom: 40 }}>
       <Label>Marketplace</Label>
       <T f="display" s={23} style={{ marginTop: 10, letterSpacing: -1.1 }}>Find your next hire.</T>
@@ -229,6 +236,9 @@ export default function Marketplace() {
         </>
       )}
     </ScrollView>
+    {hire.node}
+    </View>
+    </HireCtx.Provider>
   );
 }
 

@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: mainnet ? "ai.lexari.app" : "ai.lexari.app.testnet",
     versionCode: 1,
-    adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundImage: "./assets/adaptive-bg.png", backgroundColor: "#14072e" },
+    adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#5b2bff" },
     permissions: ["RECORD_AUDIO", "POST_NOTIFICATIONS", "USE_BIOMETRIC", "USE_FINGERPRINT", "INTERNET", "VIBRATE"],
     intentFilters: [
       { action: "VIEW", autoVerify: false, data: [{ scheme: "lexari" }], category: ["BROWSABLE", "DEFAULT"] },

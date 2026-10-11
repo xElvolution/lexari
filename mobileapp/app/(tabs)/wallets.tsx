@@ -17,6 +17,28 @@ import { AgentTile, F, GRAPE, Label, Pill, Segs, T, WSheet, ringOf, short, useC 
 import { primaryOf, useData, type Wallet } from "@/web/data";
 
 const usd = (micros: number) => `$${(Math.max(0, micros) / 1e6).toFixed(2)}`;
+type PayCard = { agent: string; last4: string; limit: number; spent: number; frozen: boolean; test?: boolean };
+
+function PayCardFace({ name, card, home }: { name: string; card: PayCard | null; home?: boolean }) {
+  const num = card ? `•••• •••• •••• ${card.last4}` : "•••• •••• •••• ••••";
+  return (
+    <View style={{ alignSelf: "stretch", aspectRatio: 1.586, borderRadius: 20, overflow: "hidden", padding: 18, backgroundColor: home ? "#5b2bff" : "#14111c" }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <T f="display" s={20} c="#fff">lexari</T>
+        <View style={{ borderRadius: 999, backgroundColor: card?.test ? "#ffd84d" : "rgba(255,255,255,0.15)", paddingHorizontal: 8, paddingVertical: 3 }}>
+          <Label s={8} c={card?.test ? "#0a0a0a" : "#fff"}>{card ? (card.frozen ? "Frozen" : card.test ? "Virtual · test" : "Virtual") : "Preview"}</Label>
+        </View>
+      </View>
+      <View style={{ marginTop: 16, width: 36, height: 26, borderRadius: 6, backgroundColor: "#d9ccff" }} />
+      <T s={18} c="rgba(255,255,255,0.9)" style={{ marginTop: 14, letterSpacing: 1, fontFamily: F.mono }}>{num}</T>
+      <View style={{ marginTop: "auto", flexDirection: "row", justifyContent: "space-between" }}>
+        <View><Label s={8} c="rgba(255,255,255,0.6)">Card holder</Label><T f="semi" s={13} c="#fff">{name.toUpperCase()}</T></View>
+        <View><Label s={8} c="rgba(255,255,255,0.6)">Valid thru</Label><T s={13} c="rgba(255,255,255,0.85)">••/••</T></View>
+        <View><Label s={8} c="rgba(255,255,255,0.6)">CVV</Label><T s={13} c="rgba(255,255,255,0.85)">•••</T></View>
+      </View>
+    </View>
+  );
+}
 const day = (ms: number) => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
 export default function Wallets() {
@@ -31,6 +53,13 @@ export default function Wallets() {
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [cards, setCards] = useState<PayCard[] | null>(null);
+  const loadCards = async () => {
+    if (!token) return;
+    try { const r = await api<{ cards: PayCard[] }>("/api/cards", {}, token); setCards(r.cards || []); }
+    catch { setCards([]); }
+  };
+  useEffect(() => { loadCards().catch(() => {}); }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
   const primary = primaryOf(me);
   const say = (t: string) => { setNote(t); setTimeout(() => setNote(""), 2800); };
   const back = async (slug: string, name: string) => {
@@ -44,8 +73,8 @@ export default function Wallets() {
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, paddingBottom: 32 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} tintColor={k.ink} />}>
         <Label>Money</Label>
-        <T f="display" s={20.5} style={{ marginTop: 10, letterSpacing: -1.1 }}>Wallet.</T>
-        <T s={15} c={k.ink75} style={{ marginTop: 8, lineHeight: 21 }}>Your Lexari balance, and the wallets your agents hold.</T>
+        <T f="display" s={20.5} style={{ marginTop: 10, letterSpacing: -1.1 }}>{tab === "cards" ? "Cards." : "Wallet."}</T>
+        <T s={15} c={k.ink75} style={{ marginTop: 8, lineHeight: 21 }}>{tab === "cards" ? "A card lets an agent pay for tools and compute inside a limit you set. Each agent gets its own." : "Your Lexari balance, and the wallets your agents hold."}</T>
         <Segs style={{ marginTop: 16, alignSelf: "flex-start", width: 220 }} on={tab} set={setTab} items={[{ k: "wallet", label: "Wallet", icon: "wallet" }, { k: "cards", label: "Cards", icon: "idcard" }]} />
 
         {tab === "wallet" ? (
@@ -108,15 +137,33 @@ export default function Wallets() {
             <T s={12} c={k.ink45} style={{ marginTop: 16, lineHeight: 17 }}>Test funds on Solana devnet, not real money. Base and Ethereum wallets are coming later.</T>
           </>
         ) : (
-          <View style={{ marginTop: 16 }}>
-            <T s={13.5} c={k.ink60} style={{ lineHeight: 19 }}>A card lets an agent pay for tools and compute inside a limit you set. Each agent gets its own.</T>
-            {(me?.agents ?? []).map((a) => (
-              <View key={a.slug} style={{ marginTop: 12, borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
-                <AgentTile slug={a.slug} look={a.look} size={40} ring={ringOf(a.slug, a.kind, primary)} />
-                <View style={{ flex: 1 }}><T f="bold" s={15}>{a.name}</T><T s={12.5} c={k.ink60}>No card yet</T></View>
-                <Pill kind="ghost" h={34} fs={13} label="Get a card" onPress={() => Linking.openURL("https://app.lexari.ai/wallets?tab=cards")} />
-              </View>
-            ))}
+          <View style={{ marginTop: 16, gap: 14 }}>
+            {(me?.agents ?? []).filter((a) => a.slug === "home" || a.kind === "custom" || a.slug.startsWith("c-")).map((a) => {
+              const card = cards?.find((c) => c.agent === a.slug) ?? null;
+              const pct = card ? Math.min(100, Math.round((card.spent / Math.max(1, card.limit)) * 100)) : 0;
+              return (
+                <View key={a.slug} style={{ borderRadius: 24, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, padding: 16, alignItems: "center", gap: 12 }}>
+                  <PayCardFace name={a.name} card={card} home={a.slug === "home"} />
+                  {card ? (
+                    <>
+                      <View style={{ alignSelf: "stretch" }}>
+                        <View style={{ height: 4, borderRadius: 2, backgroundColor: "rgba(127,127,127,0.18)", overflow: "hidden" }}><View style={{ width: `${pct}%`, height: 4, backgroundColor: GRAPE }} /></View>
+                        <T f="semi" s={11.5} c={k.ink60} style={{ marginTop: 6, textAlign: "right" }}>{`${pct}% used`}</T>
+                      </View>
+                      <T s={13} c={k.ink60}>{card.frozen ? "Frozen" : `Ending ${card.last4} · $${card.limit} a month`}</T>
+                    </>
+                  ) : (
+                    <Pill label={busy === `card:${a.slug}` ? "Paying…" : "Get a card · $2"} icon="plus" h={40} onPress={async () => {
+                      if (!token) return; setBusy(`card:${a.slug}`);
+                      try { await api("/api/cards", { method: "POST", body: JSON.stringify({ agent: a.slug, pay: "balance", limit: 250 }) }, token); say(`${a.name}'s card is ready`); await loadCards(); await reload(); }
+                      catch (e) { say(e instanceof Error ? e.message : "The card couldn't be issued."); }
+                      finally { setBusy(""); }
+                    }} />
+                  )}
+                </View>
+              );
+            })}
+            {cards === null ? <T s={13.5} c={k.ink60}>Loading cards…</T> : null}
           </View>
         )}
       </ScrollView>
