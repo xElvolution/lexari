@@ -6,6 +6,7 @@
 import { useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlatformMethods } from "@/lib/privyMethods";
 import * as Haptics from "expo-haptics";
@@ -25,6 +26,18 @@ const SOON = "This sign-in option is being switched on. Please try another way f
 function said(error: unknown, fallback: string) {
   if (error instanceof TypeError && /failed to fetch/i.test(error.message)) return "Couldn't reach Lexari. The sign-in server did not answer.";
   return error instanceof Error && error.message.length < 120 ? error.message : fallback;
+}
+
+/** Google's four-colour G. */
+function GoogleG({ size = 20 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 48 48">
+      <Path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <Path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <Path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <Path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </Svg>
+  );
 }
 
 function CodeBoxes({ value, onChange }: { value: string; onChange: (next: string) => void }) {
@@ -128,7 +141,6 @@ function SignInView({ methods }: { methods: Methods }) {
   const [busy, setBusy] = useState<"" | "google" | "email">("");
   const [msg, setMsg] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
-  const [emailMode, setEmailMode] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
@@ -162,7 +174,7 @@ function SignInView({ methods }: { methods: Methods }) {
     finally { setBusy(""); }
   };
 
-  const closeAuth = () => { if (busy) return; setAuthOpen(false); setEmailMode(false); setSent(false); setCode(""); setEmailMsg(""); };
+  const closeAuth = () => { if (busy) return; setAuthOpen(false); setSent(false); setCode(""); setEmailMsg(""); };
   const field = { height: 46, borderRadius: 14, borderWidth: 2, borderColor: k.line, backgroundColor: k.alt, color: k.ink, paddingHorizontal: 14.4, fontSize: 15, fontFamily: F.sans };
 
   return (
@@ -200,14 +212,14 @@ function SignInView({ methods }: { methods: Methods }) {
         <View style={{ maxWidth: 440, width: "100%", alignSelf: "center" }}>
           <Rise delay={360}><Text accessibilityRole="header" style={{ fontFamily: F.display, fontSize: 22, letterSpacing: -0.99, lineHeight: 21, color: k.ink }}>Welcome in.</Text></Rise>
           <Rise delay={430}><Text style={{ marginTop: 8, fontFamily: F.sans, fontSize: 15, lineHeight: 22, color: k.ink75 }}>Pick how you want to sign in. No new password to remember.</Text></Rise>
-          <Rise delay={500} style={{ marginTop: 24 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Continue with Google or email" disabled={!!busy} onPress={() => { tap(); setMsg(""); setAuthOpen(true); }} style={({ pressed }) => ({ height: 66, transform: [{ translateY: pressed ? 2 : 0 }] })}>
-              <View style={{ position: "absolute", left: 0, right: 0, top: 6, height: 60, borderRadius: 22, backgroundColor: GRAPE }} />
-              <View style={{ height: 60, borderRadius: 22, backgroundColor: k.ink, flexDirection: "row", alignItems: "center", gap: 12, padding: 8, paddingRight: 20 }}>
-                <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: k.bg, alignItems: "center", justifyContent: "center" }}><Icon name="google" size={20} color={k.ink} /></View>
-                <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 15.5, color: k.bg }}>Continue with Google or email</Text>
-                <Icon name="arrow" size={20} color={k.bg} />
-              </View>
+          <Rise delay={500} style={{ marginTop: 24, gap: 10 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" disabled={!!busy} onPress={() => { tap(); void google(); }}
+              style={({ pressed }) => ({ height: 50, borderRadius: 999, backgroundColor: "#fff", borderWidth: 1, borderColor: k.line, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 20, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+              <GoogleG size={18} /><Text style={{ fontFamily: F.bold, fontSize: 15, color: "#0a0a0a" }}>Continue with Google</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="Continue with email" disabled={!!busy} onPress={() => { tap(); setMsg(""); setEmailMsg(""); setAuthOpen(true); }}
+              style={({ pressed }) => ({ height: 50, borderRadius: 999, backgroundColor: k.card, borderWidth: 2, borderColor: pressed ? GRAPE : k.line, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 20, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+              <Icon name="mail" size={18} color={k.ink} /><Text style={{ fontFamily: F.bold, fontSize: 15, color: k.ink }}>Continue with email</Text>
             </Pressable>
           </Rise>
           {msg ? <Text accessibilityLiveRegion="polite" style={{ marginTop: 12, fontFamily: F.sans, fontSize: 13, color: "#e5484d" }}>{msg}</Text> : null}
@@ -224,30 +236,22 @@ function SignInView({ methods }: { methods: Methods }) {
             <View style={{ position: "absolute", left: 0, right: 0, top: 14, bottom: -14, borderRadius: 22, backgroundColor: GRAPE }} />
             <View style={{ borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, padding: 18, paddingTop: 22, gap: 14 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                <Text style={{ flex: 1, fontFamily: F.display, fontSize: 22, letterSpacing: -1, color: k.ink }}>{sent ? "Check your inbox" : emailMode ? "Continue with email" : "Welcome in."}</Text>
+                <Text style={{ flex: 1, fontFamily: F.display, fontSize: 22, letterSpacing: -1, color: k.ink }}>{sent ? "Check your inbox" : "Continue with email"}</Text>
                 <Pressable accessibilityLabel="Close" onPress={closeAuth} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="x" size={16} color={k.ink} /></Pressable>
               </View>
-              <Text style={{ fontFamily: F.sans, fontSize: 14.5, lineHeight: 21, color: k.ink75 }}>{sent ? `We sent a 6-digit code to ${email.trim()}.` : emailMode ? "We'll email you a one-time code. No password needed." : "Pick how you want to sign in. No new password to remember."}</Text>
-              {!emailMode ? (
-                <>
-                  <Btn full kind="white" h={46} fs={15} drop={4} disabled={!!busy} onPress={() => void google()} style={{ borderRadius: 999 }}>
-                    <Icon name="google" size={18} color="#0a0a0a" /><Text style={{ fontFamily: F.bold, fontSize: 15, color: "#0a0a0a" }}>Continue with Google</Text>
-                  </Btn>
-                  <Btn full kind="line" h={46} fs={15} icon="mail" label="Continue with email" onPress={() => { setEmailMsg(""); setEmailMode(true); }} />
-                </>
-              ) : (
+              <Text style={{ fontFamily: F.sans, fontSize: 14.5, lineHeight: 21, color: k.ink75 }}>{sent ? `We sent a 6-digit code to ${email.trim()}.` : "We'll email you a one-time code. No password needed."}</Text>
+              {(
                 <>
                   {sent
                     ? <CodeBoxes value={code} onChange={setCode} />
                     : <TextInput value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={k.ink45} style={field} autoFocus onSubmitEditing={() => void emailStep()} returnKeyType="send" />}
                   {emailMsg ? <Text accessibilityLiveRegion="polite" style={{ fontFamily: F.sans, fontSize: 13, color: "#e5484d" }}>{emailMsg}</Text> : null}
                   <Btn full kind="brand" h={46} fs={15} drop={4} disabled={busy === "email"} label={busy === "email" ? "Please wait…" : sent ? "Verify and sign in" : "Send code"} onPress={() => void emailStep()} />
-                  <Pressable onPress={() => { if (sent) { setSent(false); setCode(""); } else setEmailMode(false); setEmailMsg(""); }} hitSlop={8}>
+                  <Pressable onPress={() => { if (sent) { setSent(false); setCode(""); setEmailMsg(""); } else closeAuth(); }} hitSlop={8}>
                     <Text style={{ color: k.brandInk, textAlign: "center", fontFamily: F.semi, fontSize: 13 }}>{sent ? "Use a different email" : "Back"}</Text>
                   </Pressable>
                 </>
               )}
-              {emailMsg && !emailMode ? <Text style={{ fontFamily: F.sans, fontSize: 13, color: "#e5484d" }}>{emailMsg}</Text> : null}
             </View>
           </View>
         </KeyboardAvoidingView>
