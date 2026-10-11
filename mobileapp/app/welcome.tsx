@@ -11,9 +11,9 @@ import { COINS } from "@/content/roster";
 import { grape } from "@/theme/colors";
 
 const PAGES = [
-  { title: "Your AI team,\nwith a real ID", body: "Hire AI employees that each carry a verified on-chain identity on Solana. You always know who did the work." },
-  { title: "They work\nfor you", body: "Chat, take calls, sit in meetings, build apps and watch markets. Hand off the task and get on with your day." },
-  { title: "Your wallet,\nyour rules", body: "Top up in SKR, USDC or SOL. Set budgets for each agent, and approve every payment with a tap and your fingerprint." },
+  { title: "Meet your\npersonalized AI agent", body: "An agent that is only yours, with a name, a face and an ID card. It shows up every day and gets to know how you like things done." },
+  { title: "Its own computer,\na memory that lasts", body: "It works on a real computer with a browser, a terminal and files, and it remembers what matters. It never forgets you when the app closes." },
+  { title: "Hire more\nas you grow", body: "Bring in specialists from the marketplace when the job gets bigger than one desk. You approve every payment from your wallet." },
 ];
 
 function Chip({ icon, label, style }: { icon: React.ReactNode; label: string; style: object }) {

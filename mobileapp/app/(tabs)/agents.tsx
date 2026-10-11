@@ -32,7 +32,7 @@ export default function Agents() {
 
   return (
     <Screen>
-      <Header title="Agents" sub="Your AI team" pill right={<IconButton label="Hire an agent" onPress={() => router.push("/(tabs)/marketplace")}><Plus color={palette.ink} size={18} /></IconButton>} />
+      <Header title="Agents" sub="Your agent and your hires" pill right={<IconButton label="Hire an agent" onPress={() => router.push("/(tabs)/marketplace")}><Plus color={palette.ink} size={18} /></IconButton>} />
       <ScrollView contentContainerStyle={{ paddingBottom: 28 }} refreshControl={<RefreshControl tintColor={grape} refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
         <View style={{ gap: 8, marginTop: 6 }}>
           {list.map((a) => {
