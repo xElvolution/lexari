@@ -6,6 +6,7 @@ type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tab
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeOutUp } from "react-native-reanimated";
 import Icon from "@/components/Icon";
+import { TourTarget } from "@/components/Tour";
 import { tap } from "@/components/ui";
 import { F, GRAPE, TopBar, useC } from "@/web/kit";
 import { initialsOf, useData } from "@/web/data";
@@ -38,7 +39,7 @@ function PhoneNav({ state, navigation }: BottomTabBarProps) {
         {items.map((it) => {
           const on = it.name === current;
           return (
-            <Pressable key={it.name} accessibilityRole="button" accessibilityLabel={it.label} onPress={() => {
+            <TourTarget key={it.name} id={`nav-${it.name}`} style={{ flex: 1 }}><Pressable accessibilityRole="button" accessibilityLabel={it.label} onPress={() => {
               tap();
               if (it.name === "more") setMore(true);
               else if (it.name === "close") setMore(false);
@@ -48,7 +49,7 @@ function PhoneNav({ state, navigation }: BottomTabBarProps) {
                 <Icon name={it.icon} size={21} color={on ? "#fff" : k.ink75} />
               </View>
               <Text style={{ fontFamily: F.bold, fontSize: 11, color: on ? k.ink : k.ink60 }}>{it.label}</Text>
-            </Pressable>
+            </Pressable></TourTarget>
           );
         })}
       </Animated.View>

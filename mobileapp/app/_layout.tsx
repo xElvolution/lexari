@@ -7,6 +7,7 @@ import { PrivyRoot } from "@/lib/privyRoot";
 import { PrefsProvider, usePrefs } from "@/state/prefs";
 import { SessionProvider } from "@/state/session";
 import { LockGate } from "@/components/Gates";
+import Tour from "@/components/Tour";
 import { env } from "@/lib/env";
 import { DataProvider } from "@/web/data";
 import { useFonts } from "expo-font";
@@ -29,6 +30,7 @@ function Navigator() {
           <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
           <Stack.Screen name="chat/[slug]" options={{ animation: "slide_from_right" }} />
         </Stack>
+        <Tour />
       </LockGate>
     </View>
   );

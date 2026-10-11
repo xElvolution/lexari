@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Linking, Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import Icon from "@/components/Icon";
+import { TourTarget } from "@/components/Tour";
 import { AgentTile, F, Label, Pill, T, WSheet, ringOf, useC } from "@/web/kit";
 import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
@@ -51,10 +52,12 @@ export default function Agents() {
       <View style={{ flexDirection: "row", alignItems: "flex-start", borderBottomWidth: 1, borderBottomColor: k.line, paddingHorizontal: 12, paddingVertical: 10 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 4 }}>
           {list.map((a) => (
-            <Pressable key={a.slug} onPress={() => router.push(`/chat/${a.slug}`)} style={{ width: 70, alignItems: "center", gap: 6, paddingTop: 6 }}>
-              <View style={{ padding: 3 }}><AgentTile slug={a.slug} look={a.look} size={50} ring={ringOf(a.slug, a.kind, primary)} /></View>
-              <T f="semi" s={12.5} c={k.ink60} lines={1}>{a.name}</T>
-            </Pressable>
+            <TourTarget key={a.slug} id={`tile-${a.slug}`}>
+              <Pressable onPress={() => router.push(`/chat/${a.slug}`)} style={{ width: 70, alignItems: "center", gap: 6, paddingTop: 6 }}>
+                <View style={{ padding: 3 }}><AgentTile slug={a.slug} look={a.look} size={50} ring={ringOf(a.slug, a.kind, primary)} /></View>
+                <T f="semi" s={12.5} c={k.ink60} lines={1}>{a.name}</T>
+              </Pressable>
+            </TourTarget>
           ))}
           {q && !list.length ? <T s={14} c={k.ink60} style={{ alignSelf: "center", paddingHorizontal: 12 }}>{`No agent matches “${q}”.`}</T> : null}
         </ScrollView>

@@ -4,7 +4,7 @@ import * as Store from "@/lib/storage";
 import { dark, light, type Palette } from "@/theme/colors";
 
 type ThemeName = "light" | "dark" | "system";
-type Saved = { theme: ThemeName; hideBalances: boolean; lockOn: boolean; bioOn: boolean; onboarded: boolean; securityAsked: boolean };
+type Saved = { theme: ThemeName; hideBalances: boolean; lockOn: boolean; bioOn: boolean; onboarded: boolean; securityAsked: boolean; tourOn: boolean; tourStep: number; tourDone: boolean };
 type Prefs = Saved & {
   loaded: boolean;
   palette: Palette;
@@ -15,11 +15,15 @@ type Prefs = Saved & {
   setBio: (on: boolean) => void;
   setOnboarded: () => void;
   setSecurityAsked: () => void;
+  /** the coach-mark tour (webapp store tour: { on, step, done }) */
+  startTour: () => void;
+  setTourStep: (n: number) => void;
+  endTour: () => void;
 };
 
 const Ctx = createContext<Prefs | null>(null);
 const KEY = "lexari.prefs.v1";
-const DEFAULTS: Saved = { theme: "dark", hideBalances: false, lockOn: false, bioOn: false, onboarded: false, securityAsked: false };
+const DEFAULTS: Saved = { theme: "dark", hideBalances: false, lockOn: false, bioOn: false, onboarded: false, securityAsked: false, tourOn: false, tourStep: 0, tourDone: false };
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
   const [saved, setSaved] = useState<Saved>(DEFAULTS);
@@ -52,6 +56,9 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setBio: (bioOn) => patch({ bioOn }),
       setOnboarded: () => patch({ onboarded: true }),
       setSecurityAsked: () => patch({ securityAsked: true }),
+      startTour: () => { if (!saved.tourDone) patch({ tourOn: true, tourStep: 0 }); },
+      setTourStep: (tourStep) => patch({ tourStep }),
+      endTour: () => patch({ tourOn: false, tourDone: true }),
     };
   }, [saved, system, loaded]);
 
