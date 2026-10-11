@@ -10,6 +10,13 @@ import { LockGate } from "@/components/Gates";
 import Tour from "@/components/Tour";
 import { env } from "@/lib/env";
 import { DataProvider } from "@/web/data";
+import Constants from "expo-constants";
+import * as Device from "expo-device";
+import { setUserAgent } from "@/lib/api";
+import { userAgent } from "@/lib/device";
+
+// every API call names the app and the phone (the server spots Seeker and Saga from it)
+setUserAgent(userAgent(Constants.expoConfig?.version || "1.0.0", Device.modelName || "Android"));
 import { useFonts } from "expo-font";
 import { Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
 import { BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque";

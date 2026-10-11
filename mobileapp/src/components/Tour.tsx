@@ -7,6 +7,7 @@ import { Platform, Pressable, Text, View, useWindowDimensions } from "react-nati
 import { router, usePathname } from "expo-router";
 import Animated, { Easing, FadeIn, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import Icon from "./Icon";
+import { api } from "@/lib/api";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
 import { nameOf, primaryOf, useData } from "@/web/data";
@@ -59,9 +60,13 @@ function TapHand({ color }: { color: string }) {
 }
 
 export default function Tour() {
-  const { tourOn } = usePrefs();
+  const { tourOn, tourDone, startTour } = usePrefs();
   const { token } = useSession();
   const { me } = useData();
+  // same rule as the web store: the tour is on for anyone with a home agent who has not finished it (prefs.tourDone, any device)
+  const serverDone = me ? !!me.prefs?.tourDone : true;
+  const hasHome = !!me?.agents.some((a) => a.slug === "home");
+  useEffect(() => { if (token && hasHome && !serverDone && !tourDone && !tourOn) startTour(); }, [token, hasHome, serverDone, tourDone, tourOn]); // eslint-disable-line react-hooks/exhaustive-deps
   const path = usePathname();
   // only inside the app itself, never over sign-in, onboarding, security setup or the lock
   const inApp = /^\/(agents|brain|marketplace|team|wallets|settings|profile|hub|chat)(\/|$)/.test(path);
@@ -71,7 +76,9 @@ export default function Tour() {
 
 function TourInner() {
   const k = useC();
-  const { tourStep, setTourStep, endTour } = usePrefs();
+  const { tourStep, setTourStep, endTour: endLocal } = usePrefs();
+  const { token } = useSession();
+  const endTour = () => { endLocal(); if (token) void api("/api/me", { method: "PATCH", body: JSON.stringify({ prefs: { tourDone: true } }) }, token).catch(() => {}); };
   const { me } = useData();
   const path = usePathname();
   const vp = useWindowDimensions();
