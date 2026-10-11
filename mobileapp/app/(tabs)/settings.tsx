@@ -1,6 +1,6 @@
 /** Port of webapp/app/(app)/settings/page.tsx at phone width: the section list first, then one section with a back button. */
 import { useEffect, useState, type ReactNode } from "react";
-import { Linking, Pressable, ScrollView, Switch, TextInput, View } from "react-native";
+import { Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import Icon from "@/components/Icon";
@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 import { disablePush, enablePush, pushOnHere, pushPermission, type Perm } from "@/lib/push";
 import { useSession } from "@/state/session";
 import { usePrefs } from "@/state/prefs";
-import { AgentTile, F, GRAPE, Label, Pill, T, WSheet, ringOf, short, useC } from "@/web/kit";
+import { AgentTile, F, GRAPE, Label, Pill, T, WSheet, ringOf, short, useC, WToggle } from "@/web/kit";
 import { primaryOf, useData } from "@/web/data";
 import { UpgradeSheet } from "@/web/Plans";
 import { SECRET_NAME_RE, findSecrets, isBlockedKind, toSecretName } from "@/lib/secretScan";
@@ -31,20 +31,21 @@ const SECTIONS = [
 ] as const;
 type Sec = (typeof SECTIONS)[number]["id"];
 
-function Group({ title, children }: { title?: string; children: ReactNode }) {
+/** web: section.mt-6 > h3.label.mb-1 (9.5px, ink/50) + rounded-[22px] bg-card px-5 ring-1 ring-line, rows divided by a line */
+function Group({ title, children, pad = 20 }: { title?: string; children: ReactNode; pad?: number }) {
   const k = useC();
   return (
-    <View style={{ marginTop: 22 }}>
-      {title ? <Label s={9.5} c={k.ink45} style={{ marginBottom: 6 }}>{title}</Label> : null}
-      <View style={{ borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, paddingHorizontal: 16 }}>{children}</View>
+    <View style={{ marginTop: 18 }}>
+      {title ? <Label s={9.5} c={k.dark ? "rgba(255,255,255,0.5)" : "rgba(10,10,10,0.5)"} style={{ lineHeight: 17, marginBottom: 4 }}>{title}</Label> : null}
+      <View style={{ borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, paddingHorizontal: pad - 1 }}>{children}</View>
     </View>
   );
 }
 function Row({ title, desc, children, danger, last }: { title: string; desc?: string; children?: ReactNode; danger?: boolean; last?: boolean }) {
   const k = useC();
   return (
-    <View style={{ paddingVertical: 14, gap: 10, borderBottomWidth: last ? 0 : 1, borderBottomColor: k.line }}>
-      <View><T f="semi" s={15} c={danger ? "#e5484d" : k.ink}>{title}</T>{desc ? <T s={13.5} c={k.ink60} style={{ marginTop: 2, lineHeight: 18 }}>{desc}</T> : null}</View>
+    <View style={{ paddingVertical: 16, gap: 10, borderBottomWidth: last ? 0 : 1, borderBottomColor: k.line }}>
+      <View><T f="semi" s={15} c={danger ? "#e5484d" : k.ink} style={{ lineHeight: 21.75 }}>{title}</T>{desc ? <T s={13.5} c={k.ink60} style={{ marginTop: 2, lineHeight: 18.56 }}>{desc}</T> : null}</View>
       {children ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" }}>{children}</View> : null}
     </View>
   );
@@ -53,9 +54,8 @@ function Small({ label, icon, onPress }: { label: string; icon?: string; onPress
   const k = useC();
   return <Pressable onPress={onPress} style={{ height: 40, borderRadius: 20, backgroundColor: k.tint, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 8 }}>{icon ? <Icon name={icon} size={15} color={k.ink} /> : null}<T f="semi" s={14}>{label}</T></Pressable>;
 }
-function Toggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
-  const k = useC();
-  return <Switch value={on} onValueChange={set} trackColor={{ true: GRAPE, false: k.tint }} thumbColor="#fff" />;
+function Toggle({ on, set, label = "Switch" }: { on: boolean; set: (v: boolean) => void; label?: string }) {
+  return <WToggle on={on} onChange={set} label={label} />;
 }
 function Select({ value, options, onChange }: { value: string; options: [string, string][]; onChange: (v: string) => void }) {
   const k = useC();
@@ -93,7 +93,7 @@ function General() {
             ); })}
           </View>
         </Row>
-        <Row last title="Animations" desc="Smooth motion across the app. Turn off for a calmer screen."><Toggle on={p.motion !== false} set={(v) => patch({ prefs: { motion: v } })} /></Row>
+        <Row last title="Animations" desc="Smooth motion across the app. Turn off for a calmer screen."><Toggle label="Animations" on={p.motion !== false} set={(v) => patch({ prefs: { motion: v } })} /></Row>
       </Group>
       <Group title="Language and voice">
         <Row title="Language" desc="Used for the app and your agents' replies."><Select value={String(p.language ?? "English")} options={["English", "Français", "Español", "Português", "Deutsch", "Yorùbá", "Hausa", "Igbo"].map((x) => [x, x])} onChange={(v) => patch({ prefs: { language: v } })} /></Row>
@@ -137,7 +137,7 @@ function Personal() {
         </View>
       </Group>
       <Group title="Memory">
-        <Row title="Memory" desc="Let agents remember useful things about you between chats."><Toggle on={(me?.prefs as Record<string, unknown> | undefined)?.memory !== false} set={(v) => patch({ prefs: { memory: v } })} /></Row>
+        <Row title="Memory" desc="Let agents remember useful things about you between chats."><Toggle label="Memory" on={(me?.prefs as Record<string, unknown> | undefined)?.memory !== false} set={(v) => patch({ prefs: { memory: v } })} /></Row>
         <Row last title="Manage memory" desc={`${me?.memories?.length ?? 0} things remembered. See, edit or forget any of them.`}><Small label="Open brain" onPress={() => router.navigate("/(tabs)/brain")} /></Row>
       </Group>
     </>
@@ -223,7 +223,7 @@ function DevicePush() {
       <Row last title="Push notifications" desc={desc}>
         {perm === "unsupported" || perm === "denied"
           ? <T f="semi" s={12} c={k.ink45}>Off</T>
-          : <View style={{ opacity: busy ? 0.6 : 1 }} pointerEvents={busy ? "none" : "auto"}><Toggle on={!!on} set={(v) => void flip(v)} /></View>}
+          : <View style={{ opacity: busy ? 0.6 : 1 }} pointerEvents={busy ? "none" : "auto"}><Toggle label="Push notifications" on={!!on} set={(v) => void flip(v)} /></View>}
         {note ? <T s={12.5} c={k.brandInk}>{note}</T> : null}
       </Row>
     </Group>
@@ -238,8 +238,8 @@ function Notifs() {
   return (
     <>
       <DevicePush />
-      <Group title="Push and in-app">{NOTIFS.slice(0, 5).map(([key, t, d], i) => <Row key={key} last={i === 4} title={t} desc={d}><Toggle on={!!n[key]} set={(v) => set(key, v)} /></Row>)}</Group>
-      <Group title="Email">{NOTIFS.slice(5).map(([key, t, d], i) => <Row key={key} last={i === 1} title={t} desc={d}><Toggle on={!!n[key]} set={(v) => set(key, v)} /></Row>)}</Group>
+      <Group title="Push and in-app">{NOTIFS.slice(0, 5).map(([key, t, d], i) => <Row key={key} last={i === 4} title={t} desc={d}><Toggle label={t} on={!!n[key]} set={(v) => set(key, v)} /></Row>)}</Group>
+      <Group title="Email">{NOTIFS.slice(5).map(([key, t, d], i) => <Row key={key} last={i === 1} title={t} desc={d}><Toggle label={t} on={!!n[key]} set={(v) => set(key, v)} /></Row>)}</Group>
     </>
   );
 }
@@ -252,8 +252,8 @@ function Data() {
   return (
     <>
       <Group title="History">
-        <Row title="Save chat history" desc="Keep your chats so you can come back to them."><Toggle on={p.history !== false} set={(v) => patch({ prefs: { history: v } })} /></Row>
-        <Row last title="Help improve Lexari" desc="Share anonymous usage to make agents better. Off by default."><Toggle on={!!p.improve} set={(v) => patch({ prefs: { improve: v } })} /></Row>
+        <Row title="Save chat history" desc="Keep your chats so you can come back to them."><Toggle label="Save chat history" on={p.history !== false} set={(v) => patch({ prefs: { history: v } })} /></Row>
+        <Row last title="Help improve Lexari" desc="Share anonymous usage to make agents better. Off by default."><Toggle label="Help improve Lexari" on={!!p.improve} set={(v) => patch({ prefs: { improve: v } })} /></Row>
       </Group>
       <Group title="Your data">
         <Row title="Export data" desc="Download your account, agents, chats, memories and hires as a JSON file."><Small icon="download" label="Export" onPress={() => Linking.openURL("https://app.lexari.ai/settings#data")} /></Row>
@@ -448,12 +448,12 @@ export default function Settings() {
     </ScrollView>
   );
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 12, paddingBottom: 32 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 16.5, paddingBottom: 32 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Pressable accessibilityLabel="All settings" onPress={() => setSec(null)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" }}><Icon name="back" size={19} color={k.ink} /></Pressable>
-        <T f="display" s={21} style={{ letterSpacing: -0.9 }}>{cur.label}</T>
+        <T f="display" s={22} style={{ letterSpacing: -0.99, lineHeight: 20.9 }}>{cur.label}</T>
       </View>
-      <View style={{ marginTop: -8 }}>{body[cur.id]}</View>
+      <View style={{ marginTop: 1.5 }}>{body[cur.id]}</View>
     </ScrollView>
   );
 }

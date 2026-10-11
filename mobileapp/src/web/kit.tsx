@@ -252,3 +252,20 @@ export function PopIn({ children, delay = 0, ms = 800, rotate = -20, style }: { 
   const st = useAnimatedStyle(() => ({ opacity: Math.min(1, p.value * 3), transform: [{ scale: Math.max(0, p.value) }, { rotate: `${(1 - p.value) * rotate}deg` }] }));
   return <Animated.View style={[st, style as ViewStyle]}>{children}</Animated.View>;
 }
+
+/** The web's settings switch (h-7 w-12 that lays out at 44x28): grape when on, ink/20 when off, a white 20px knob with a soft shadow. */
+export function WToggle({ on, onChange, label, disabled }: { on: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
+  const k = useC();
+  const t = useSharedValue(on ? 1 : 0);
+  useEffect(() => { t.value = withTiming(on ? 1 : 0, { duration: 150, easing: Easing.out(Easing.quad) }); }, [on, t]);
+  const knob = useAnimatedStyle(() => ({ transform: [{ translateX: t.value * 20 }] }));
+  const fill = useAnimatedStyle(() => ({ opacity: t.value }));
+  return (
+    <Pressable accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: on, disabled }} disabled={disabled} hitSlop={6}
+      onPress={() => { tap(); onChange(!on); }}
+      style={{ width: 44, height: 28, borderRadius: 14, overflow: "hidden", backgroundColor: k.dark ? "rgba(255,255,255,0.2)" : "rgba(10,10,10,0.2)", opacity: disabled ? 0.5 : 1 }}>
+      <Animated.View style={[{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, backgroundColor: GRAPE }, fill]} />
+      <Animated.View style={[{ position: "absolute", left: 4, top: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#fff", shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 2 }, knob]} />
+    </Pressable>
+  );
+}
