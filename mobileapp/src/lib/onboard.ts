@@ -25,7 +25,7 @@ export const cleanName = (s: string) => s.replace(/[^\p{L}\p{N} ._-]/gu, "").sli
 
 export type HomeAgent = { name: string; look: unknown; you: string; role: string; tone: ToneId };
 
-async function memoryKeys(wallet?: string) {
+export async function memoryKeys(wallet?: string) {
   const have = await savedKeys(wallet);
   if (have || !wallet || Platform.OS !== "android") return have;
   // a wallet sign-in from before keys were taken at sign-in: ask the wallet once, like the web does
