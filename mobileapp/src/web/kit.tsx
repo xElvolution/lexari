@@ -14,7 +14,7 @@ import { NotifyBell } from "@/components/Notifications";
 
 export const GRAPE = "#5b2bff", GRAPE_SOFT = "#8f6bff", GOLD = "#f5c542", SILVER = "#c4c8d2", ONLINE = "#22c55e", IDLE = "#8a8797";
 export const F = {
-  sans: "Figtree_500Medium", reg: "Figtree_400Regular", semi: "Figtree_600SemiBold", bold: "Figtree_700Bold", xbold: "Figtree_800ExtraBold",
+  sans: "Figtree_400Regular", reg: "Figtree_400Regular", med: "Figtree_500Medium", semi: "Figtree_600SemiBold", bold: "Figtree_700Bold", xbold: "Figtree_800ExtraBold",
   display: "BricolageGrotesque_800ExtraBold", mono: "MartianMono_400Regular", monoB: "MartianMono_500Medium",
 };
 
