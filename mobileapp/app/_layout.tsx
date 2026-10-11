@@ -20,7 +20,7 @@ import { userAgent } from "@/lib/device";
 // every API call names the app and the phone (the server spots Seeker and Saga from it)
 setUserAgent(userAgent(Constants.expoConfig?.version || "1.0.0", Device.modelName || "Android"));
 import { useFonts } from "expo-font";
-import { Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
+import { Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
 import { MartianMono_400Regular, MartianMono_500Medium } from "@expo-google-fonts/martian-mono";
 
 function Navigator() {
@@ -48,7 +48,7 @@ function Navigator() {
 
 export default function Root() {
   // display type is the web's Bricolage Grotesque: 96pt ExtraBold at width 88 ("wdth" 88 in webapp CSS), instanced from the variable font
-  const [fonts] = useFonts({ Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold, BricolageGrotesque_800ExtraBold: require("../assets/fonts/BricolageGrotesque-ExtraBold-wdth88.ttf"), MartianMono_400Regular, MartianMono_500Medium });
+  const [fonts] = useFonts({ Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold, BricolageGrotesque_800ExtraBold: require("../assets/fonts/BricolageGrotesque-ExtraBold-wdth88.ttf"), MartianMono_400Regular, MartianMono_500Medium });
   const nav = fonts ? <Navigator /> : <View style={{ flex: 1, backgroundColor: "#000" }} />;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#000" }}>
