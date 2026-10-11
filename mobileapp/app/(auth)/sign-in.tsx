@@ -154,7 +154,7 @@ function SignInView({ methods, onSession }: { methods: Methods; onSession: (s: S
           </View>
           <LogoMark size={44} />
           <Text style={{ color: "#fff", fontSize: 30, fontWeight: "700", letterSpacing: -1, marginTop: 16, textAlign: "center" }}>Welcome to Lexari</Text>
-          <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 21, marginTop: 8, textAlign: "center", maxWidth: 300 }}>Sign in to meet your AI team. It takes less than a minute.</Text>
+          <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 21, marginTop: 8, textAlign: "center", maxWidth: 300 }}>Sign in to meet your personalized AI agent. It takes less than a minute.</Text>
         </View>
         <View style={{ gap: 10 }}>
           <AuthButton light icon={<GoogleG />} label="Continue with Google" busy={busy === "google"} onPress={() => run("google", methods.google)} />

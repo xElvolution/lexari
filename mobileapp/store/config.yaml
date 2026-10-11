@@ -14,4 +14,4 @@ app:
 release:
   # Fill after `eas build -p android --profile preview` or production.
   apk: ""
-  notes: "AI employees with a wallet. SKR payments, not staking."
+  notes: "Your personalized AI agent, with its own computer and memory. SKR payments, not staking."

@@ -71,7 +71,7 @@ export default function Splash() {
         </View>
         <Animated.View style={[{ alignItems: "center", marginTop: 26 }, wordSt]}>
           <Text style={{ color: "#fff", fontSize: 38, fontWeight: "700", letterSpacing: -1.6 }}>lexari</Text>
-          <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 6, letterSpacing: 0.2 }}>AI employees that work for you</Text>
+          <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 6, letterSpacing: 0.2 }}>Meet your first personalized AI agent</Text>
         </Animated.View>
       </Animated.View>
     </View>
