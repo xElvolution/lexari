@@ -1,4 +1,5 @@
 /** Port of the web /agents phone view: AgentStrip (tiles with rings, Add, Search) + ConvoList (Chats, Messages, New group chat). */
+import { UpgradeSheet } from "@/web/Plans";
 import { useState } from "react";
 import { Linking, Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
 import { router } from "expo-router";
@@ -30,6 +31,7 @@ export default function Agents() {
   const [q, setQ] = useState("");
   const [search, setSearch] = useState(false);
   const [add, setAdd] = useState(false);
+  const full = (me?.agents ?? []).filter((a) => !(a.meta as { free?: boolean } | undefined)?.free).length >= (me?.plan.seats ?? 1);
   const [group, setGroup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const now = Date.now();
@@ -105,7 +107,8 @@ export default function Agents() {
         </View>
       </ScrollView>
 
-      <WSheet open={add} title="Add an agent." onClose={() => setAdd(false)}>
+      <UpgradeSheet open={add && full} mode="seats" onClose={() => setAdd(false)} />
+      <WSheet open={add && !full} title="Add an agent." onClose={() => setAdd(false)}>
         <T s={13.5} c={k.ink60}>Make your own from scratch, or hire a specialist someone else built.</T>
         {[
           { icon: "plus", title: "Create an agent", body: "Name it, tell it what to do, pick its face and personality.", cta: "Start building", go: () => Linking.openURL("https://app.lexari.ai/agents?add=create") },

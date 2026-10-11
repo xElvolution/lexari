@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Share, Text, View } from "react-native";
 import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
+import Svg, { Path } from "react-native-svg";
+import { ChatBg, MyBubble, bubbleInk } from "@/web/cosmetics";
 import Icon from "@/components/Icon";
 import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
@@ -119,7 +121,7 @@ export default function Hub() {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
               {list.map((a) => (
                 <View key={a.id} style={{ width: "48.6%", flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderRadius: 14, backgroundColor: k.tint, opacity: a.got ? 1 : 0.6 }}>
-                  <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: a.got ? GRAPE : "transparent", borderWidth: a.got ? 0 : 1.5, borderStyle: "dashed", borderColor: k.ink45 }}><Icon name={a.icon} size={16} color={a.got ? "#fff" : k.ink45} /></View>
+                  <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}><Svg width={40} height={40} viewBox="0 0 40 40" style={{ position: "absolute" }}><Path d="M20 2.5 35.2 11.25v17.5L20 37.5 4.8 28.75v-17.5z" fill={a.got ? GRAPE : "none"} stroke={a.got ? "#8f6bff" : k.ink45} strokeWidth={1.5} strokeDasharray={a.got ? undefined : "3 3"} strokeLinejoin="round" /></Svg><Icon name={a.icon} size={16} color={a.got ? "#fff" : k.ink45} /></View>
                   <View style={{ flex: 1 }}><T f="bold" s={13.5} c={a.got ? k.ink : k.ink60}>{a.title}</T><T s={12} c={k.ink60}>{a.body}</T></View>
                 </View>
               ))}
@@ -237,10 +239,14 @@ function TrainSheet({ open, onClose, hub, coins, busy, onTrain }: { open: boolea
             <View style={{ position: "absolute", top: -60, width: 300, height: 300, borderRadius: 150, backgroundColor: "#6a3dff", opacity: 0.6 }} />
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#ffd84d", alignItems: "center", justifyContent: "center" }}><Icon name="send" size={15} stroke={3} color="#3514b0" /></View>
-              <Text style={{ fontFamily: F.display, fontSize: 30, color: "#fff", letterSpacing: -1.2 }}>{`Level ${lv.level}`}</Text>
+              <Text style={{ fontFamily: F.display, fontSize: 22, color: "#fff", letterSpacing: -0.8 }}>{`Level ${lv.level}`}</Text>
             </View>
-            <View style={{ marginTop: 12, width: 124, height: 124, borderRadius: 62, backgroundColor: "#0a0a0a", borderWidth: 4, borderColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center" }}>
-              <AgentTile slug={a.slug} look={a.look} size={104} dot={false} />
+            <Svg pointerEvents="none" width={400} height={400} style={{ position: "absolute", top: -60 }} viewBox="0 0 400 400">{Array.from({ length: 24 }, (_, i) => { const t = (i / 24) * Math.PI * 2; return <Path key={i} d={`M200 200 L${200 + 260 * Math.cos(t - 0.05)} ${200 + 260 * Math.sin(t - 0.05)} L${200 + 260 * Math.cos(t + 0.05)} ${200 + 260 * Math.sin(t + 0.05)}Z`} fill="#fff" opacity={0.05} />; })}</Svg>
+            <View style={{ marginTop: 12, width: 110, height: 110 }}>
+              <View style={{ width: 110, height: 110, borderRadius: 55, backgroundColor: "#0a0a0a", borderWidth: 3, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <AgentTile slug={a.slug} look={a.look} size={104} dot={false} radius={52} />
+              </View>
+              <View style={{ position: "absolute", right: -8, bottom: 8, width: 26, height: 26, borderRadius: 7, backgroundColor: "#f5c542", borderWidth: 2, borderColor: "#3514b0", alignItems: "center", justifyContent: "center", transform: [{ rotate: "45deg" }] }}><View style={{ transform: [{ rotate: "-45deg" }] }}><T f="xbold" s={11} c="#3514b0">{String(lv.level)}</T></View></View>
             </View>
             <T f="bold" s={16} c="#fff" style={{ marginTop: 8 }}>{a.name}</T>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10, alignSelf: "stretch" }}>
@@ -270,16 +276,37 @@ function TrainSheet({ open, onClose, hub, coins, busy, onTrain }: { open: boolea
   );
 }
 
+/** The referral orbit (hub/referral.tsx Orbit at zoom .72): dashed ring, your agent in a grape tile, a slot per friend. */
+function Orbit({ n, slots, look }: { n: number; slots: number; look?: unknown }) {
+  const W = 209, r = W * 0.36;
+  return (
+    <View style={{ width: W, height: W, marginTop: -4 }}>
+      <View style={{ position: "absolute", left: W * 0.14, top: W * 0.14, right: W * 0.14, bottom: W * 0.14, borderRadius: W, borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.2)" }} />
+      <View style={{ position: "absolute", left: W * 0.3, top: W * 0.3, width: W * 0.4, height: W * 0.4, borderRadius: W, backgroundColor: "rgba(91,43,255,0.25)" }} />
+      <View style={{ position: "absolute", left: W / 2 - 37, top: W / 2 - 37, width: 75, height: 75, borderRadius: 22, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center", shadowColor: GRAPE, shadowOpacity: 0.9, shadowRadius: 20, shadowOffset: { width: 0, height: 10 } }}>
+        <AgentTile slug="home" look={look} size={62} dot={false} mood={n ? "happy" : "idle"} radius={18} />
+      </View>
+      {Array.from({ length: slots }, (_, i) => { const a = (i / slots) * Math.PI * 2 - Math.PI / 2; return (
+        <View key={i} style={{ position: "absolute", left: W / 2 + r * Math.cos(a) - 19, top: W / 2 + r * Math.sin(a) - 19, width: 38, height: 38, borderRadius: 19, borderWidth: 2, borderStyle: "dashed", borderColor: i < n ? "#fff" : "rgba(255,255,255,0.3)", backgroundColor: i < n ? "#fff" : "transparent", alignItems: "center", justifyContent: "center" }}>
+          {i < n ? <Icon name="user" size={14} color="#0a0a0a" /> : <Icon name="plus" size={13} color="rgba(255,255,255,0.45)" />}
+        </View>
+      ); })}
+    </View>
+  );
+}
+
 function InviteSheet({ open, onClose, hub, code, busy, onClaim }: { open: boolean; onClose: () => void; hub: HubState | null; code: string; busy: string; onClaim: (i: number) => void }) {
   const k = useC();
+  const { me } = useData(); const look = me?.agents.find((a) => a.slug === "home")?.look;
   const link = `https://app.lexari.ai/signin?ref=${code}`;
   const msg = `I've got my own AI agent on Lexari. Join with my code ${code} and we both get coins.`;
   const n = friends(hub); const next = nextTier(hub);
   const [copied, setCopied] = useState(false);
   return (
     <WSheet open={open} title="Invite friends" onClose={onClose}>
-      <View style={{ borderRadius: 22, backgroundColor: "#0a0a0a", padding: 18, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+      <View style={{ borderRadius: 22, backgroundColor: "#0a0a0a", paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
         <View style={{ position: "absolute", left: -60, top: 20, width: 200, height: 200, borderRadius: 100, backgroundColor: "rgba(91,43,255,0.35)" }} />
+        <Orbit n={n} slots={Math.min(10, Math.max(n + 1, next?.friends ?? n, 4))} look={look} />
         <Label s={9} c="#c9b8ff">Invite friends</Label>
         <Text style={{ fontFamily: F.display, fontSize: 30, color: "#fff", letterSpacing: -1.3, marginTop: 4 }}>Fill your orbit.</Text>
         <T s={13} c="rgba(255,255,255,0.7)" style={{ textAlign: "center", marginTop: 8, lineHeight: 18 }}>{`Friends who join with your code start with 50 coins. You collect a bonus at each milestone. ${n} joined${next ? ` · ${next.friends - n} more for +${next.reward}` : ""}.`}</T>
@@ -308,12 +335,6 @@ function InviteSheet({ open, onClose, hub, code, busy, onClaim }: { open: boolea
 }
 const TIER_TITLES = ["First friend", "Small crew", "Full desk", "Founding circle"];
 
-const SWATCH: Record<string, string[]> = {
-  "bg-aurora": ["#2a1470", "#0f3a3a"], "bg-grid": ["#14112a", "#2a2350"], "bg-sunset": ["#5a2430", "#3514b0"], "bg-stars": ["#0b0920", "#3514b0"], "bg-lavender": ["#3b3260", "#2a2350"],
-  "bg-dots": ["#1d1731", "#3a2a80"], "bg-pinstripe": ["#1d1731", "#2b2450"], "bg-ripple": ["#1a1640", "#3b2a90"], "bg-deepsea": ["#06213a", "#0b3d5c"], "bg-velvet": ["#3a0b30", "#5b2bff"],
-  "bubble-glass": ["rgba(255,255,255,0.18)", "rgba(255,255,255,0.08)"], "bubble-neon": ["#00e5ff", "#5b2bff"], "bubble-candy": ["#ff6b9a", "#ffb86b"], "bubble-outline": ["transparent", "transparent"], "bubble-midnight": ["#0a0a2a", "#1d1731"],
-  "bubble-lilac": ["#c9b8ff", "#8f6bff"], "bubble-mint": ["#7ef0c4", "#1fbf6a"], "bubble-sunset": ["#ff7a59", "#ff4d94"], "bubble-gold": ["#ffd84d", "#b8960f"],
-};
 function StoreSheet({ open, onClose, hub, coins, onBuy, onWear }: { open: boolean; onClose: () => void; hub: HubState | null; coins: number; onBuy: (id: string, name: string) => void; onWear: (kind: string, id: string | null) => void }) {
   const k = useC();
   const cos = ((hub as { cosmetics?: { owned?: string[]; bg?: string; bubble?: string } } | null)?.cosmetics) ?? {};
@@ -321,12 +342,19 @@ function StoreSheet({ open, onClose, hub, coins, onBuy, onWear }: { open: boolea
   const [full, setFull] = useState<"bg" | "bubble" | null>(null);
   const cat = full ? STORE_CATEGORIES.find((c) => c.kind === full) : null;
   const card = (it: (typeof STORE_ITEMS)[number], small: boolean) => {
-    const have = owned.has(it.id); const on = (cos as Record<string, unknown>)[it.kind] === it.id; const sw = SWATCH[it.id] ?? [k.tint, k.card];
+    const have = owned.has(it.id); const on = (cos as Record<string, unknown>)[it.kind] === it.id; 
     return (
       <View key={it.id} style={{ width: small ? 80 : "48.5%", borderRadius: small ? 16 : 18, padding: small ? 6 : 8, backgroundColor: k.tint, borderWidth: on ? 2 : 1, borderColor: on ? GRAPE : k.line }}>
-        <View style={{ height: small ? 58 : 96, borderRadius: 12, backgroundColor: sw[1], overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
-          <View style={{ position: "absolute", left: -10, top: -10, width: 60, height: 60, borderRadius: 30, backgroundColor: sw[0], opacity: 0.9 }} />
-          {it.kind === "bubble" ? <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: sw[0], borderWidth: it.id === "bubble-outline" ? 1.5 : 0, borderColor: GRAPE }}><T f="bold" s={10} c="#fff">Hi!</T></View> : null}
+        <View style={{ height: small ? 64 : 88, borderRadius: small ? 12 : 14, backgroundColor: k.bg, borderWidth: 1, borderColor: k.line, overflow: "hidden" }}>
+          {it.kind === "bg" ? <>
+            <ChatBg id={it.id} w={small ? 68 : 190} h={small ? 64 : 88} />
+            {small ? <><View style={{ position: "absolute", left: 6, top: 8, width: 36, height: 12, borderRadius: 6, borderBottomLeftRadius: 2, backgroundColor: k.card, borderWidth: 1, borderColor: k.line }} /><View style={{ position: "absolute", right: 6, bottom: 8, width: 28, height: 12, borderRadius: 6, borderBottomRightRadius: 2, backgroundColor: GRAPE }} /></>
+              : <><View style={{ position: "absolute", left: 8, top: 10, borderRadius: 12, borderBottomLeftRadius: 6, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, paddingHorizontal: 10, paddingVertical: 4 }}><T s={10.5}>Morning! Ready?</T></View><View style={{ position: "absolute", right: 8, bottom: 10, borderRadius: 12, borderBottomRightRadius: 6, backgroundColor: GRAPE, paddingHorizontal: 10, paddingVertical: 4 }}><T s={10.5} c="#fff">{"Let's go"}</T></View></>}
+          </> : (
+            <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "center", gap: small ? 4 : 6, paddingHorizontal: small ? 6 : 10 }}>
+              {(small ? ["Hi!", "Nice"] : ["This is my style", "Looks good?"]).map((t) => <MyBubble key={t} id={it.id} style={{ borderRadius: small ? 10 : 14, borderBottomRightRadius: small ? 3 : 6, paddingHorizontal: small ? 8 : 12, paddingVertical: small ? 2 : 6 }}><T f="semi" s={small ? 9.5 : 11.5} c={bubbleInk(it.id)}>{t}</T></MyBubble>)}
+            </View>
+          )}
         </View>
         <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 6 }}><T f="bold" s={small ? 12 : 13.5} lines={1}>{it.name}</T></View>
         {!have ? <Pressable disabled={coins < it.price} onPress={() => onBuy(it.id, it.name)} style={{ marginTop: 6, height: small ? 32 : 36, borderRadius: 18, backgroundColor: coins < it.price ? (k.dark ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.15)") : GRAPE, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}><Coin size={11} /><T f="bold" s={12} c={coins < it.price ? k.ink45 : "#fff"}>{String(it.price)}</T></Pressable>
@@ -336,8 +364,7 @@ function StoreSheet({ open, onClose, hub, coins, onBuy, onWear }: { open: boolea
     );
   };
   return (
-    <WSheet open={open} title={cat ? cat.title : "Store"} onClose={() => { setFull(null); onClose(); }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start", backgroundColor: k.tint, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><Coin size={13} /><T f="bold" s={12.5}>{coins.toLocaleString("en-US")}</T></View>
+    <WSheet open={open} title={cat ? cat.title : "Store"} onClose={() => { setFull(null); onClose(); }} right={<View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: k.tint, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><Coin size={13} /><T f="bold" s={12.5}>{coins.toLocaleString("en-US")}</T></View>}>
       {cat ? (
         <View>
           <Pressable onPress={() => setFull(null)} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8 }}><Icon name="back" size={16} color={k.ink} /><T f="bold" s={13}>Back</T></Pressable>
