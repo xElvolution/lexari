@@ -39,3 +39,24 @@ export const COINS: { id: string; name: string; color: string; logo: number }[] 
 export function specialist(slug: string | undefined): Specialist | undefined {
   return ROSTER.find((r) => r.slug === slug);
 }
+
+/* ---------- marketplace store listing, same as webapp/content/appData.ts storeMeta ---------- */
+export const STORE_CATS = [
+  { id: "Research", icon: "search", from: ["Research"] },
+  { id: "Writing", icon: "edit", from: ["Writing"] },
+  { id: "Finance", icon: "wallet", from: ["Data", "Onchain"] },
+  { id: "Design", icon: "spark", from: ["Design"] },
+  { id: "Dev", icon: "terminal", from: ["Code"] },
+  { id: "Marketing", icon: "chat", from: ["Social", "Community"] },
+  { id: "Video", icon: "play", from: ["Video"] },
+  { id: "Planning", icon: "list", from: ["Planning"] },
+] as const;
+export type StoreCat = (typeof STORE_CATS)[number]["id"];
+const MAKERS = ["Lexari Labs", "Northwind AI", "Kite & Co", "Mosaic Studio", "Basalt Works", "Oyo Digital"];
+export const compact = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(n >= 1e4 ? 0 : 1)}k` : String(n));
+export function storeMeta(sp: Specialist) {
+  const i = ROSTER.indexOf(sp);
+  const cat = (STORE_CATS.find((c) => (c.from as readonly string[]).includes(sp.cat))?.id ?? "Research") as StoreCat;
+  const hires = sp.jobs * 7 + 400 + i * 131;
+  return { maker: i < 4 ? "Lexari Labs" : MAKERS[i % MAKERS.length], cat, hires, free: i % 3 !== 1, isNew: i >= 8, rising: ((i * 7) % 12) + (sp.reviews / sp.jobs) * 10 };
+}
