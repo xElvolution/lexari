@@ -19,7 +19,6 @@ import { userAgent } from "@/lib/device";
 setUserAgent(userAgent(Constants.expoConfig?.version || "1.0.0", Device.modelName || "Android"));
 import { useFonts } from "expo-font";
 import { Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
-import { BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque";
 import { MartianMono_400Regular, MartianMono_500Medium } from "@expo-google-fonts/martian-mono";
 
 function Navigator() {
@@ -44,7 +43,8 @@ function Navigator() {
 }
 
 export default function Root() {
-  const [fonts] = useFonts({ Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold, BricolageGrotesque_800ExtraBold, MartianMono_400Regular, MartianMono_500Medium });
+  // display type is the web's Bricolage Grotesque: 96pt ExtraBold at width 88 ("wdth" 88 in webapp CSS), instanced from the variable font
+  const [fonts] = useFonts({ Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold, BricolageGrotesque_800ExtraBold: require("../assets/fonts/BricolageGrotesque-ExtraBold-wdth88.ttf"), MartianMono_400Regular, MartianMono_500Medium });
   const nav = fonts ? <Navigator /> : <View style={{ flex: 1, backgroundColor: "#000" }} />;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#000" }}>
