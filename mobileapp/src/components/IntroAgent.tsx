@@ -54,10 +54,10 @@ function Mote({ i, w, h }: { i: number; w: number; h: number }) {
 function Spark({ i, n, burst, size }: { i: number; n: number; burst: SharedValue<number>; size: number }) {
   const a = (i / n) * Math.PI * 2 + (i % 2) * 0.2;
   const st = useAnimatedStyle(() => {
-    const t = burst.value; const r = 60 + t * (70 + (i % 3) * 18);
-    return { opacity: t > 0 && t < 1 ? 1 - t : 0, transform: [{ translateX: Math.cos(a) * r }, { translateY: Math.sin(a) * r }, { scale: 1 - t * 0.6 }, { rotate: `${t * 180}deg` }] };
+    const t = burst.value; const r = size * 0.32 + t * (size * 0.45 + (i % 3) * 18);
+    return { opacity: t > 0 && t < 1 ? Math.min(1, (1 - t) * 1.6) : 0, transform: [{ translateX: Math.cos(a) * r }, { translateY: Math.sin(a) * r }, { scale: 1.2 - t * 0.7 }, { rotate: `${t * 180}deg` }] };
   });
-  return <Animated.View pointerEvents="none" style={[{ position: "absolute", left: size / 2 - 5, top: size / 2 - 5, width: 10, height: 10 }, st]}><Svg width={10} height={10} viewBox="0 0 10 10"><Path d="M5 0 Q6 4 10 5 Q6 6 5 10 Q4 6 0 5 Q4 4 5 0Z" fill={i % 3 === 0 ? "#ffd84d" : i % 3 === 1 ? "#c9b8ff" : "#fff"} /></Svg></Animated.View>;
+  return <Animated.View pointerEvents="none" style={[{ position: "absolute", left: size / 2 - 8, top: size / 2 - 8, width: 16, height: 16, zIndex: 5 }, st]}><Svg width={16} height={16} viewBox="0 0 10 10"><Path d="M5 0 Q6 4 10 5 Q6 6 5 10 Q4 6 0 5 Q4 4 5 0Z" fill={i % 3 === 0 ? "#ffd84d" : i % 3 === 1 ? "#c9b8ff" : "#fff"} /></Svg></Animated.View>;
 }
 
 /**
@@ -128,6 +128,7 @@ function Mate({ i, slug, size, R, active, lim }: { i: number; slug: string; size
 export default function IntroAgent({ mode, x, index, width, page, height, active }: P) {
   const size = Math.min(width * 0.46, height * 0.42, 190);
   const pulse = useSharedValue(0), spin = useSharedValue(0), burst = useSharedValue(0);
+  const speed = useSharedValue(0), hintOp = useSharedValue(1);
   const tx = useSharedValue(0), ty = useSharedValue(0), sx = useSharedValue(1), sy = useSharedValue(1), float = useSharedValue(0);
   const [face, setFace] = useState<FaceState>(mode === "think" ? "thinking" : "idle");
   const [gaze, setGaze] = useState<{ x: number; y: number } | null>(null);
@@ -152,15 +153,16 @@ export default function IntroAgent({ mode, x, index, width, page, height, active
   const lastLook = useSharedValue(0);
 
   const tap = Gesture.Tap().onEnd(() => {
-    sx.value = withSequence(withTiming(1.22, { duration: 90 }), withSpring(1, { damping: 5, stiffness: 260 }));
-    sy.value = withSequence(withTiming(0.8, { duration: 90 }), withSpring(1, { damping: 5, stiffness: 260 }));
-    burst.value = 0; burst.value = withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) });
+    // squash, then a soft, bouncy spring back (low stiffness, low damping = organic overshoot)
+    sx.value = withSequence(withTiming(1.24, { duration: 110, easing: Easing.out(Easing.quad) }), withSpring(1, { damping: 3.5, stiffness: 110, mass: 0.9 }));
+    sy.value = withSequence(withTiming(0.78, { duration: 110, easing: Easing.out(Easing.quad) }), withSpring(1, { damping: 3.5, stiffness: 110, mass: 0.9 }));
+    burst.value = 0; burst.value = withTiming(1, { duration: 850, easing: Easing.out(Easing.cubic) });
     runOnJS(react)();
   });
   const drag = Gesture.Pan().minDistance(4)
     .onStart(() => { runOnJS(react)(); })
     .onChange((e) => {
-      tx.value += e.changeX; ty.value += e.changeY;
+      tx.value += e.changeX; ty.value += e.changeY; speed.value = Math.min(1, Math.abs(e.velocityX) / 2500);
       const k = Math.min(0.12, Math.hypot(e.velocityX, e.velocityY) / 12000); // stretch along the motion
       sx.value = 1 + k; sy.value = 1 - k * 0.8;
       const now = Date.now(); if (now - lastLook.value > 50) { lastLook.value = now; runOnJS(look)(e.translationX / 60, e.translationY / 60); }
@@ -168,16 +170,23 @@ export default function IntroAgent({ mode, x, index, width, page, height, active
     .onEnd((e) => {
       tx.value = withSpring(0, { velocity: e.velocityX, damping: 10, stiffness: 120 });
       ty.value = withSpring(0, { velocity: e.velocityY, damping: 10, stiffness: 120 });
-      sx.value = withSpring(1, { damping: 6 }); sy.value = withSpring(1, { damping: 6 });
+      sx.value = withSpring(1, { damping: 6 }); sy.value = withSpring(1, { damping: 6 }); speed.value = withTiming(0, { duration: 300 });
       runOnJS(letGo)();
     });
   const g = Gesture.Exclusive(drag, tap);
 
   const body = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }, { translateY: ty.value + float.value * -10 }, { rotate: `${tx.value * 0.08}deg` }, { scaleX: sx.value }, { scaleY: sy.value }] }));
-  const shadow = useAnimatedStyle(() => ({ opacity: 0.45 - float.value * 0.15, transform: [{ translateX: tx.value * 0.6 }, { scaleX: 1 - float.value * 0.12 }] }));
-  const hint = useDerivedValue(() => (touched ? 0 : 0.45 + pulse.value * 0.55));
-  const hintSt = useAnimatedStyle(() => ({ opacity: withTiming(hint.value, { duration: 300 }) }));
+  // the shadow stays on the floor: follows x, shrinks and fades as the agent lifts (bob or drag up), stretches with speed
+  const shadow = useAnimatedStyle(() => {
+    const lift = Math.max(0, Math.min(1, (float.value * 10 - ty.value) / 160));
+    return { opacity: 0.5 * (1 - lift * 0.75), transform: [{ translateX: tx.value }, { scaleX: (1 - lift * 0.5) * (1 + speed.value * 0.6) }, { scaleY: 1 - lift * 0.3 }] };
+  });
+  useEffect(() => { if (touched) hintOp.value = withTiming(0, { duration: 250, easing: Easing.out(Easing.quad) }); }, [touched, hintOp]);
+  const hintSt = useAnimatedStyle(() => ({ opacity: hintOp.value * (0.45 + pulse.value * 0.55) }));
   const far = useParallax(x, index, page, 0.75), mid = useParallax(x, index, page, 0.4), near = useParallax(x, index, page, 0.15);
+  // where the face is, seen from the chip layer (it slides 15% with the swipe; the face bobs and can be dragged)
+  const faceX = useDerivedValue(() => tx.value - ((x.value - index * page) / page) * page * 0.15);
+  const faceY = useDerivedValue(() => ty.value - float.value * 10);
   const enter = useAnimatedStyle(() => {
     const d = Math.abs((x.value - index * page) / page);
     return { opacity: interpolate(d, [0, 0.8], [1, 0], "clamp"), transform: [{ scale: interpolate(d, [0, 1], [1, 0.7], "clamp") }] };
@@ -195,7 +204,7 @@ export default function IntroAgent({ mode, x, index, width, page, height, active
         <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}><Glow size={size * 2.1} pulse={pulse} /></Animated.View>
         <Animated.View pointerEvents="none" style={[{ position: "absolute", top: size * 1.1 + size * 0.5, width: size * 0.7, height: 14, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.6)" }, shadow]} />
         {mode === "team" ? <Animated.View pointerEvents="none" style={[{ position: "absolute", alignItems: "center", justifyContent: "center" }, mid]}>{TEAM.map((s, i) => <Mate key={s} i={i} slug={s} size={Math.round(size * 0.3)} R={R} active={active} lim={lim} />)}</Animated.View> : null}
-        {mode === "memory" ? <Animated.View style={[{ position: "absolute", alignItems: "center", justifyContent: "center", top: size * 1.1 + size * 0.04 }, near]}>{MEMS.map((m, i) => <Chip key={m} i={i} n={MEMS.length} label={m} spin={spin} rx={Math.max(faceR + 20, lim - 46)} ry={faceR + 44} faceR={faceR} lim={lim} fx={tx} fy={ty} />)}</Animated.View> : null}
+        {mode === "memory" ? <Animated.View style={[{ position: "absolute", alignItems: "center", justifyContent: "center", top: size * 1.1 + size * 0.04 }, near]}>{MEMS.map((m, i) => <Chip key={m} i={i} n={MEMS.length} label={m} spin={spin} rx={Math.max(faceR + 20, lim - 46)} ry={faceR + 44} faceR={faceR} lim={lim} fx={faceX} fy={faceY} />)}</Animated.View> : null}
         <GestureDetector gesture={g}>
           <Animated.View accessibilityRole="button" accessibilityLabel="Your agent. Tap or drag it." style={[{ width: size, height: size, alignItems: "center", justifyContent: "center", zIndex: 2 }, body]}>
             <View testID="intro-face" pointerEvents="none" style={{ position: "absolute", left: size * 0.1, top: size * 0.14, width: size * 0.8, height: size * 0.8, borderRadius: size }} />
