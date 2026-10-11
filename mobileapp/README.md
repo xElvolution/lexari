@@ -28,7 +28,9 @@ eas build -p android --profile preview
 eas build -p android --profile production
 ```
 
-`development` talks to https://app.lexari.ai on devnet until testnet.lexari.ai exists. `preview` points at https://testnet.lexari.ai. `production` is mainnet on https://app.lexari.ai.
+`development` and `preview` talk to https://app.lexari.ai on devnet. `production` is mainnet on https://app.lexari.ai.
+
+The Privy app id is public and sits in each `eas.json` profile. The Privy client id for Android goes in EAS env as `EXPO_PUBLIC_PRIVY_CLIENT_ID` (`eas env:create --name EXPO_PUBLIC_PRIVY_CLIENT_ID --environment preview`), not in git.
 
 ## Still needs the operator
 
