@@ -2,7 +2,7 @@
  * the finale face row (landing/components/Finale.tsx), the desk brief screen (Desk.tsx) and a roster card (Roster.tsx). Same faces, colours and words. */
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, PanResponder, Pressable, TextInput, View } from "react-native";
-import Svg, { Circle, Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import AgentFace from "./AgentFace";
 import type { ColorKey } from "./avatar";
 import { F, GRAPE, Label, T } from "@/web/kit";
@@ -314,4 +314,76 @@ export function LandingLogo({ scale = 1 }: { scale?: number }) {
       <T f="display" s={23 * scale} c="#fff" style={{ letterSpacing: -1 * scale }}>lexari</T>
     </View>
   );
+}
+
+/** The ID card that flips on tap (rotateY 180°) to its back: logo, details, barcode. Tap again to flip back. */
+export function FlipIdCard({ name, width = 250, faceSize = 104 }: { name: string; width?: number; faceSize?: number }) {
+  const v = useRef(new Animated.Value(0)).current;
+  const [back, setBack] = useState(false);
+  const flip = () => { const to = back ? 0 : 1; setBack(!back); Animated.spring(v, { toValue: to, friction: 7, tension: 40, useNativeDriver: true }).start(); };
+  const front = v.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] });
+  const rear = v.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] });
+  const shown = name || "Your agent";
+  const face: object = { width, borderRadius: 26, backgroundColor: "#fff", padding: 12, backfaceVisibility: "hidden", shadowColor: "#140050", shadowOpacity: 0.55, shadowRadius: 30, shadowOffset: { width: 0, height: 24 }, elevation: 12 };
+  return (
+    <Pressable onPress={flip} accessibilityLabel={back ? "Flip the card back" : "Flip the card"}>
+      <Animated.View style={[face, { transform: [{ perspective: 1000 }, { rotateY: front }] }]}>
+        <View style={{ alignSelf: "center", marginBottom: 8, width: 64, height: 10, borderRadius: 5, backgroundColor: "rgba(0,0,0,0.1)" }} />
+        <View style={{ borderRadius: 18, backgroundColor: GRAPE, paddingHorizontal: 16, paddingVertical: 10, alignItems: "center" }}>
+          <T f="display" s={24} c="#fff" style={{ lineHeight: 26 }}>HELLO</T>
+          <Label s={9.5} c="rgba(255,255,255,0.8)" style={{ marginTop: 4 }}>my name is</Label>
+        </View>
+        <View style={{ marginTop: 10, height: 112, borderRadius: 18, backgroundColor: "#0a0a0a", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <AgentFace size={faceSize} animated />
+          <Label s={9} c="rgba(255,255,255,0.7)" style={{ position: "absolute", left: 12, top: 12 }}>{BADGE.company}</Label>
+          <View style={{ position: "absolute", right: 12, top: 10, borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={9} c="#fff">● online</Label></View>
+        </View>
+        <View style={{ paddingHorizontal: 6, paddingTop: 10 }}>
+          <T f="display" s={34} c="#0a0a0a" lines={1} style={{ lineHeight: 36, letterSpacing: -1.4 }}>{shown}</T>
+          <Label s={9.5} c="rgba(0,0,0,0.6)" style={{ marginTop: 6 }}>{`${BADGE.role} · ${BADGE.seat} · ${BADGE.since}`}</Label>
+          <View style={{ marginTop: 10 }}><Barcode text={name} w={width - 36} /></View>
+        </View>
+      </Animated.View>
+      <Animated.View style={[face, { position: "absolute", left: 0, top: 0, bottom: 0, padding: 0, overflow: "hidden", transform: [{ perspective: 1000 }, { rotateY: rear }] }]}>
+        <View style={{ alignSelf: "center", marginTop: 12, width: 64, height: 10, borderRadius: 5, backgroundColor: "rgba(0,0,0,0.1)" }} />
+        <View style={{ marginTop: 12, height: 44, backgroundColor: "#0a0a0a" }} />
+        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Svg width={22} height={22} viewBox="0 0 64 64"><Rect width={64} height={64} rx={15} fill={GRAPE} /><Ellipse cx={22} cy={26} rx={6} ry={8.5} fill="#fff" /><Ellipse cx={42} cy={26} rx={6} ry={8.5} fill="#fff" /><Path d="M20 41 Q32 51.5 44 41" fill="none" stroke="#fff" strokeWidth={5.5} strokeLinecap="round" /></Svg>
+              <T f="display" s={18} c="#0a0a0a" style={{ letterSpacing: -0.6 }}>lexari</T>
+            </View>
+            <View style={{ borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={8.5} c="#fff">{BACK.kind}</Label></View>
+          </View>
+          <Label s={8.5} c="rgba(0,0,0,0.5)" style={{ marginTop: 12 }}>{BACK.holder}</Label>
+          <T f="display" s={26} c="#0a0a0a" lines={1} style={{ lineHeight: 30, flexShrink: 0, minHeight: 30 }}>{shown}</T>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 6, rowGap: 8, flexShrink: 0 }}>
+            {[...BACK.fields, [BACK.issuedLabel, "Day one"] as [string, string]].map(([k, val]) => <View key={k} style={{ width: "50%", paddingRight: 6 }}><Label s={8.5} c="rgba(0,0,0,0.5)">{k}</Label><T f="semi" s={12} c="#0a0a0a" style={{ lineHeight: 15 }}>{val}</T></View>)}
+          </View>
+          <View style={{ marginTop: "auto", flexDirection: "row", alignItems: "flex-end", gap: 10 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 6, borderWidth: 1, borderColor: "rgba(0,0,0,0.1)", padding: 4 }}><Code text={shown} /></View>
+            <View style={{ flex: 1 }}>
+              <View style={{ borderBottomWidth: 2, borderBottomColor: "rgba(0,0,0,0.7)", paddingBottom: 2 }}><T f="display" s={18} c={GRAPE} style={{ fontStyle: "italic" }} lines={1}>{shown}</T></View>
+              <Label s={8} c="rgba(0,0,0,0.5)" style={{ marginTop: 4 }}>{BACK.sign}</Label>
+            </View>
+          </View>
+          <T s={9.5} c="rgba(0,0,0,0.55)" style={{ marginTop: 10, lineHeight: 13 }}>{BACK.fine}</T>
+        </View>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+const BACK = {
+  kind: "Agent ID", holder: "Card holder",
+  fields: [["Role", "Home agent"], ["Access", "Owner · Seat 01"], ["Computer", "Its own, always on"], ["Memory", "Remembers you"], ["Team", "Can hire more"]] as [string, string][],
+  issuedLabel: "Issued", sign: "Agent signature",
+  fine: "Property of Lexari. If found, please return to Lexari. Not valid for real doors.",
+};
+/** A small square code (like the landing badge back), seeded by the name. */
+function Code({ text }: { text: string }) {
+  const n = 11; let h = 2166136261; for (const ch of text || "lexari") h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const cells: [number, number][] = [];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { h = Math.imul(h ^ (x * 31 + y), 16777619); const fin = (x < 3 && y < 3) || (x > 7 && y < 3) || (x < 3 && y > 7); if (fin ? !(x % 10 === 1 && y % 10 === 1) && (x % 10 !== 1 || y % 10 !== 1) : (h >>> 28) & 1) cells.push([x, y]); }
+  return <Svg width="100%" height="100%" viewBox={`0 0 ${n} ${n}`}>{cells.map(([x, y]) => <Rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#0a0a0a" />)}</Svg>;
 }

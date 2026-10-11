@@ -9,7 +9,8 @@ import Constants from "expo-constants";
 import Svg, { Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { Mail, ShieldCheck, Wallet } from "lucide-react-native";
 import { Button, Face, Sheet, T, tap } from "@/components/ui";
-import { BADGE, HeroBadge, HeroTitle, LandingBg, LandingLogo } from "@/components/Landing";
+import { BADGE, FlipIdCard, LandingLogo } from "@/components/Landing";
+import { BRAND_BG, BrandBg } from "@/components/BrandBg";
 import { LogoMark } from "@/components/Logo";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
@@ -92,7 +93,7 @@ function SignInView({ methods, onSession }: { methods: Methods; onSession: (s: S
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const params = useLocalSearchParams<{ name?: string }>();
-  const [badgeName, setBadgeName] = useState(params.name || BADGE.defaultName);
+  const [badgeName] = useState(params.name || BADGE.defaultName);
   const [busy, setBusy] = useState<"" | "google" | "wallet" | "email">("");
   const [msg, setMsg] = useState("");
   const [emailOpen, setEmailOpen] = useState(false);
@@ -138,23 +139,21 @@ function SignInView({ methods, onSession }: { methods: Methods; onSession: (s: S
   const input = { height: 50, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "#0b0915", color: "#fff", paddingHorizontal: 14, fontSize: 15 };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <LandingBg width={width} height={height} grape />
+    <View style={{ flex: 1, backgroundColor: BRAND_BG }}>
+      <BrandBg width={width} height={height} cy="42%" />
       <View style={{ flex: 1, paddingTop: insets.top + 14, paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}>
         <LandingLogo />
-        <View style={{ marginTop: 22 }}><HeroTitle s={36} /></View>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-start", overflow: "hidden" }}>
-          <View style={{ transform: [{ scale: 0.6 }], marginTop: -110 }}><HeroBadge name={badgeName} setName={setBadgeName} /></View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <FlipIdCard name={badgeName} width={Math.min(250, width - 100)} />
+          <Text style={[T.small, { color: "rgba(255,255,255,0.45)", marginTop: 12 }]}>Tap the card to flip it</Text>
         </View>
         <View style={{ gap: 10 }}>
           <AuthButton light icon={<GoogleG />} label="Continue with Google" busy={busy === "google"} onPress={() => run("google", methods.google)} />
           <AuthButton icon={<Mail color="#fff" size={18} />} label="Continue with email" onPress={() => { setEmailMsg(""); setEmailOpen(true); }} />
-          <AuthButton
-            icon={seeker ? <Wallet color="#14F1D9" size={18} /> : <View style={{ flexDirection: "row" }}><Image source={require("../../assets/wallets/phantom.png")} style={{ width: 20, height: 20, borderRadius: 6 }} /><Image source={require("../../assets/wallets/solflare.png")} style={{ width: 20, height: 20, borderRadius: 6, marginLeft: -5 }} /></View>}
-            label={seeker ? "Continue with Seed Vault" : "Connect wallet"}
-            busy={busy === "wallet"}
-            onPress={withWallet}
-          />
+          <Pressable onPress={withWallet} disabled={busy === "wallet"} style={{ alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 8, height: 38, paddingHorizontal: 14, borderRadius: 19, borderWidth: 1, borderColor: "rgba(255,255,255,0.14)" }}>
+            {seeker ? <Wallet color="#14F1D9" size={15} /> : <View style={{ flexDirection: "row" }}><Image source={require("../../assets/wallets/phantom.png")} style={{ width: 16, height: 16, borderRadius: 5 }} /><Image source={require("../../assets/wallets/solflare.png")} style={{ width: 16, height: 16, borderRadius: 5, marginLeft: -4 }} /></View>}
+            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: "600" }}>{busy === "wallet" ? "Connecting…" : seeker ? "Continue with Seed Vault" : "Connect wallet"}</Text>
+          </Pressable>
           <View style={{ minHeight: 40, justifyContent: "center" }}>
             {msg ? <Text style={[T.small, { color: "#ffb4c0", textAlign: "center" }]}>{msg}</Text> : (
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
