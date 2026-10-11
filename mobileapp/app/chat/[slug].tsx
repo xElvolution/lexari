@@ -8,6 +8,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import Icon from "@/components/Icon";
 import { ModelSheet } from "@/web/ModelSheet";
+import { MailSheet, TasksSheet } from "@/web/MailTasks";
 import { api, msgId, streamChat, type ChatEvent } from "@/lib/api";
 import { cutSecrets, findSecrets, isBlockedKind, SECRET_NAME_RE, toSecretName } from "@/lib/secretScan";
 import { useSession } from "@/state/session";
@@ -134,6 +135,7 @@ export default function Chat() {
   const [text, setText] = useState(prompt || "");
   const [model, setModel] = useState("lamina");
   const [modelOpen, setModelOpen] = useState(false);
+  const [panel, setPanel] = useState<"mail" | "tasks" | null>(null);
   const [unread, setUnread] = useState(0);
   const [mailOn, setMailOn] = useState(false);
   const [tasks, setTasks] = useState<TaskView[]>([]);
@@ -155,7 +157,7 @@ export default function Chat() {
     api<{ models?: { default?: string; agents?: Record<string, string>; chats?: Record<string, string> } }>("/api/billing", {}, token)
       .then((b) => setModel(b.models?.chats?.[id] || (!group ? b.models?.agents?.[id] : undefined) || b.models?.default || "lamina")).catch(() => {});
     if (!group) api<{ mode?: string; unread?: number; box?: { unread?: number } }>(`/api/email/${encodeURIComponent(id)}`, {}, token)
-      .then((r) => { setMailOn(!!r.mode && r.mode !== "off"); setUnread(r.unread ?? r.box?.unread ?? 0); }).catch(() => {});
+      .then((r) => { { const md = r.mode ?? (r.box as { mode?: string } | undefined)?.mode; setMailOn(!!md && md !== "off"); }; setUnread(r.unread ?? r.box?.unread ?? 0); }).catch(() => {});
     if (taskAgent) api<{ tasks: TaskView[] }>(`/api/tasks?agent=${encodeURIComponent(taskAgent)}`, {}, token).then((r) => setTasks(r.tasks || [])).catch(() => {});
   }, [token, id, group, taskAgent]);
   const taskMap = useMemo(() => Object.fromEntries(tasks.map((t) => [t.id, t])), [tasks]);
@@ -236,8 +238,8 @@ export default function Chat() {
             <T s={12.5} c={typing ? k.brandInk : k.ink60} lines={1} style={typing ? { fontWeight: "600" } : undefined}>{sub}</T>
           </View>
         </Pressable>
-        {taskAgent && tasks.length ? <HeadBtn icon="jobs" label={`${name}'s tasks`} dot={tasks.some((t) => t.status === "running" || t.status === "waiting")} onPress={() => router.push(`/agents/${id}?tab=tasks`)} /> : null}
-        {!group && mailOn ? <HeadBtn icon="mail" label={`${name}'s email`} badge={unread} onPress={() => router.push(`/agents/${id}?tab=email`)} /> : null}
+        {taskAgent && tasks.length ? <HeadBtn icon="jobs" label={`${name}'s tasks`} dot={tasks.some((t) => t.status === "running" || t.status === "waiting")} onPress={() => setPanel("tasks")} /> : null}
+        {!group && mailOn ? <HeadBtn icon="mail" label={`${name}'s email`} badge={unread} onPress={() => setPanel("mail")} /> : null}
         <ModelChip id={model} onPress={() => setModelOpen(true)} />
       </View>
 
@@ -345,6 +347,8 @@ export default function Chat() {
           )}
         </View>
       </View>
+      {!group ? <MailSheet open={panel === "mail"} onClose={() => setPanel(null)} agent={id} name={name} onAsk={(t) => void send(t)} onUnread={setUnread} /> : null}
+      {taskAgent ? <TasksSheet open={panel === "tasks"} onClose={() => setPanel(null)} agent={id} name={name} tasks={tasks} now={now} onDesktop={desk} onChange={(t, tid) => setTasks((x) => (t ? x.map((y) => (y.id === tid ? t : y)) : x.filter((y) => y.id !== tid)))} /> : null}
       <ModelSheet open={modelOpen} onClose={() => setModelOpen(false)} convo={id} agent={group ? null : id} agentName={name} group={!!group} onChange={setModel} />
     </KeyboardAvoidingView>
   );
