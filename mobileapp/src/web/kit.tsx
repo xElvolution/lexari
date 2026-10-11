@@ -69,8 +69,9 @@ export function Logo() {
   const k = useC();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-      <View style={{ width: 25, height: 25, borderRadius: 8, backgroundColor: k.ink, alignItems: "center", justifyContent: "center" }}><View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: k.bg }} /></View>
-      <Text style={{ fontFamily: F.display, fontSize: 23, letterSpacing: -1, color: k.ink }}>lexari</Text>
+      <View style={{ width: 25, height: 25, borderRadius: 9, backgroundColor: k.ink, alignItems: "center", justifyContent: "center" }}><View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: k.bg }} /></View>
+      {/* web header wordmark: text-[26px] display, which the phone type scale draws at 20px / 19px */}
+      <Text style={{ fontFamily: F.display, fontSize: 20, lineHeight: 19, letterSpacing: -0.9, color: k.ink }}>lexari</Text>
     </View>
   );
 }

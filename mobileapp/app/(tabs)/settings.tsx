@@ -436,12 +436,12 @@ export default function Settings() {
   const cur = SECTIONS.find((x) => x.id === sec);
   const body: Record<Sec, ReactNode> = { general: <General />, personal: <Personal />, agents: <AgentsSec />, models: <Models />, notifications: <Notifs />, data: <Data />, security: <Security />, accounts: <Accounts />, social: <Social />, integrations: <Integrations />, secrets: <Secrets />, billing: <Billing />, about: <About /> };
   if (!cur) return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, paddingBottom: 32 }}>
-      <T f="display" s={20.5} style={{ letterSpacing: -1.1 }}>Settings</T>
-      <View style={{ marginTop: 14 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 16, paddingBottom: 32 }}>
+      <T f="display" s={22} style={{ letterSpacing: -0.99, lineHeight: 20.9 }}>Settings</T>
+      <View style={{ marginTop: 16, gap: 2 }}>
         {SECTIONS.map((x) => (
           <Pressable key={x.id} onPress={() => setSec(x.id)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: pressed ? k.tint : "transparent" })}>
-            <Icon name={x.icon} size={18} color={k.ink75} /><T f="semi" s={15} c={k.ink75} style={{ flex: 1 }}>{x.label}</T><Icon name="right" size={16} color={k.ink45} />
+            <Icon name={x.icon} size={18} color={k.ink75} /><T f="semi" s={14.5} c={k.ink75} style={{ flex: 1, lineHeight: 21.75 }}>{x.label}</T><Icon name="right" size={16} color={k.ink45} />
           </Pressable>
         ))}
       </View>
