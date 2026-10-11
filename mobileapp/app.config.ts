@@ -5,18 +5,19 @@ const mainnet = profile === "production" || profile === "production-aab";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: mainnet ? "Lexari" : "Lexari Testnet",
+  name: "Lexari",
   slug: "lexari",
   scheme: "lexari",
   version: "1.0.0",
   orientation: "portrait",
   userInterfaceStyle: "automatic",
   icon: "./assets/icon.png",
+  web: { favicon: "./assets/favicon.png" },
   ios: { bundleIdentifier: mainnet ? "ai.lexari.app" : "ai.lexari.app.testnet", supportsTablet: false },
   android: {
     package: mainnet ? "ai.lexari.app" : "ai.lexari.app.testnet",
     versionCode: 1,
-    adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#5b2bff" },
+    adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundImage: "./assets/adaptive-bg.png", backgroundColor: "#14072e" },
     permissions: ["RECORD_AUDIO", "POST_NOTIFICATIONS", "USE_BIOMETRIC", "USE_FINGERPRINT", "INTERNET", "VIBRATE"],
     intentFilters: [
       { action: "VIEW", autoVerify: false, data: [{ scheme: "lexari" }], category: ["BROWSABLE", "DEFAULT"] },
@@ -30,7 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ["expo-local-authentication", { faceIDPermission: "Unlock Lexari." }],
     ["expo-audio", { microphonePermission: "Lexari uses the microphone for voice notes and calls with your agent." }],
     ["expo-speech-recognition", { microphonePermission: "Lexari uses the microphone for calls with your agent.", speechRecognitionPermission: "Lexari turns what you say on a call into text for your agent." }],
-    ["expo-splash-screen", { backgroundColor: "#000000", image: "./assets/splash-icon.png", imageWidth: 96 }],
+    ["expo-splash-screen", { backgroundColor: "#14072e", image: "./assets/splash-icon.png", imageWidth: 96 }],
   ],
   experiments: { typedRoutes: false },
   extra: {
