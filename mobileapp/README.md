@@ -30,11 +30,11 @@ eas build -p android --profile production
 
 `development` and `preview` talk to https://app.lexari.ai on devnet. `production` is mainnet on https://app.lexari.ai.
 
-The Privy app id is public and sits in each `eas.json` profile. The Privy client id for Android goes in EAS env as `EXPO_PUBLIC_PRIVY_CLIENT_ID` (`eas env:create --name EXPO_PUBLIC_PRIVY_CLIENT_ID --environment preview`), not in git.
+The Privy app id and app client id are public and sit in each `eas.json` profile (`EXPO_PUBLIC_PRIVY_APP_ID`, `EXPO_PUBLIC_PRIVY_CLIENT_ID`). The Privy dashboard allows the app identifiers `ai.lexari.app.testnet` and `ai.lexari.app` and the URL scheme `lexari`.
 
 ## Still needs the operator
 
-Privy Android client id, FCM (`google-services.json` as an EAS file secret), and a phone. The server changes for Bearer sessions and Expo push are in this repo and need a normal `deploy.sh` before a phone can sign in. This folder does not run that deploy.
+FCM (`google-services.json` as an EAS file secret), and a phone.
 
 ## Preview and first-run flow
 
@@ -53,6 +53,5 @@ npx expo export --platform android   # bundle check
 eas build -p android --profile preview   # installable APK (needs an EAS account/project)
 ```
 
-Needed in the build env (never commit them): `EXPO_PUBLIC_PRIVY_APP_ID`, `EXPO_PUBLIC_PRIVY_CLIENT_ID`
-(Privy app client for Android), optional `EXPO_PUBLIC_API_URL` (defaults to https://app.lexari.ai), `EAS_PROJECT_ID`.
+Set in `eas.json` per profile: `EXPO_PUBLIC_PRIVY_APP_ID`, `EXPO_PUBLIC_PRIVY_CLIENT_ID`. Optional in the build env: `EXPO_PUBLIC_API_URL` (defaults to https://app.lexari.ai), `EAS_PROJECT_ID`.
 Without Privy the Google/email buttons still show and explain politely; details go to the console only.
