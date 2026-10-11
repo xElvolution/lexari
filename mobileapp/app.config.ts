@@ -29,6 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ["expo-notifications", { color: "#5b2bff" }],
     ["expo-local-authentication", { faceIDPermission: "Unlock Lexari." }],
     ["expo-audio", { microphonePermission: "Lexari uses the microphone for voice notes and calls with your agent." }],
+    ["expo-speech-recognition", { microphonePermission: "Lexari uses the microphone for calls with your agent.", speechRecognitionPermission: "Lexari turns what you say on a call into text for your agent." }],
     ["expo-splash-screen", { backgroundColor: "#000000", image: "./assets/splash-icon.png", imageWidth: 96 }],
   ],
   experiments: { typedRoutes: false },
