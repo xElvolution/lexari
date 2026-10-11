@@ -8,7 +8,7 @@ import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Te
 import { PRIVACY, TERMS, type Block, type Doc } from "@/content/legal";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withTiming } from "react-native-reanimated";
 import { usePlatformMethods } from "@/lib/privyMethods";
 import * as Device from "expo-device";
 import * as Haptics from "expo-haptics";

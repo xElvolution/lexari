@@ -2,27 +2,20 @@
 import { Pressable, ScrollView, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FlipIdCard } from "@/components/Landing";
+import AgentIdCard, { agentIdNo } from "@/components/AgentIdCard";
 import Icon from "@/components/Icon";
 import { specialist } from "@/content/roster";
 import { AgentTile, GRAPE, Label, T, useC } from "@/web/kit";
 import { useSession } from "@/state/session";
 import { useData, youName } from "@/web/data";
 
-function idNo(id: string) {
-  let h = 2166136261;
-  for (const ch of `id-${id}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  h >>>= 0;
-  return `LX-${String(h % 10000).padStart(4, "0")}-${String((h >>> 14) % 1000).padStart(3, "0")}`;
-}
-const born = (ms?: number) => (ms ? new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Today");
 
 export default function AgentPage() {
   const { slug = "" } = useLocalSearchParams<{ slug: string }>();
   const k = useC();
   const insets = useSafeAreaInsets();
   const { token } = useSession();
-  const { me } = useData();
+  const { me, hub } = useData();
   const agent = me?.agents.find((a) => a.slug === slug);
   const sp = specialist(slug);
   const desk = Math.max(1, (me?.agents.findIndex((a) => a.slug === slug) ?? 0) + 1);
@@ -69,18 +62,11 @@ export default function AgentPage() {
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}>
           <View style={{ alignItems: "center", paddingTop: 18, paddingBottom: 8 }}>
-            <FlipIdCard
-              name={name}
-              slug={slug}
-              width={268}
-              faceSize={96}
-              role={role}
-              seat={`Desk ${String(desk).padStart(2, "0")}`}
-              since={`Born ${born(agent.createdAt)}`}
-              idNo={idNo(slug)}
-              kind={kind}
-              facts={[["Role", role], ["Desk", String(desk).padStart(2, "0")], ["Born", born(agent.createdAt)], [kind === "Hired" ? "Maker" : "Owner", maker], ["Memory", memory ? "On" : "Off"], ["ID", idNo(slug)]]}
-            />
+            <AgentIdCard info={{
+              id: slug, name, role, idNo: agentIdNo(slug), desk, born: agent.createdAt || Date.now(), maker, kind, chips, memory,
+              look: kind === "Hired" ? null : (agent.look as never), bg: agent.look && typeof agent.look === "object" ? (agent.look as { bg?: string }).bg : undefined,
+              level: hub?.levels?.find((l) => l.slug === slug)?.level,
+            }} />
             <T s={12} c={k.ink45} style={{ marginTop: 10 }}>Tap the card to flip it</T>
           </View>
           <View style={{ paddingHorizontal: 16, gap: 12 }}>
