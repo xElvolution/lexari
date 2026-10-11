@@ -81,7 +81,7 @@ export default function Agents() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} tintColor={k.ink} />}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8 }}>
-          <T f="display" s={27} style={{ letterSpacing: -1.3 }}>Chats</T>
+          <T f="display" s={24} style={{ letterSpacing: -1.1 }}>Chats</T>
           <Pressable accessibilityLabel="New group" onPress={() => setGroup(true)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" }}><Icon name="groupadd" size={20} color={k.ink75} /></Pressable>
         </View>
         <Label s={9} c={k.ink45} style={{ paddingHorizontal: 20, paddingBottom: 6, paddingTop: 8 }}>Messages</Label>

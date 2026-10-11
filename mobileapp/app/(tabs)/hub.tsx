@@ -43,7 +43,7 @@ export default function Hub() {
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 12, gap: 12, paddingBottom: 24 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} tintColor={k.ink} />}>
         <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
-          <View><Label s={9.5}>Hub</Label><T f="xbold" s={22} style={{ marginTop: 4, letterSpacing: -0.4 }}>Earn and level up</T></View>
+          <View><Label s={9.5}>Hub</Label><T f="xbold" s={20.5} style={{ marginTop: 4, letterSpacing: -0.4 }}>Earn and level up</T></View>
           <Pill kind="ghost" label="Store" icon="box" h={36} fs={13} onPress={() => setSheet("store")} />
         </View>
 

@@ -1,6 +1,6 @@
 /** Phone kit that mirrors app.lexari.ai at 390px: colours, type scale, top bar, agent tiles with rings, labels, pills. */
 import { useState, type ReactNode } from "react";
-import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { Modal, Pressable, ScrollView, Text, View, type TextStyle, type ViewStyle } from "react-native";
 import { router } from "expo-router";
 import Icon from "@/components/Icon";
@@ -120,7 +120,7 @@ export function Segs<K extends string>({ items, on, set, style }: { items: { k: 
       {items.map((it) => {
         const a = it.k === on;
         return (
-          <Pressable key={it.k} onPress={() => { tap(); set(it.k); }} style={{ flex: 1, height: 34, borderRadius: 999, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: a ? k.bg : "transparent", borderWidth: a ? 1 : 0, borderColor: k.line }}>
+          <Pressable key={it.k} onPress={() => { tap(); set(it.k); }} style={{ flex: 1, height: 34, borderRadius: 999, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: a ? k.card : "transparent", borderWidth: a ? 1 : 0, borderColor: k.line }}>
             {it.icon ? <Icon name={it.icon} size={15} color={a ? k.ink : k.ink60} /> : null}
             <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: a ? k.ink : k.ink60 }}>{it.label}</Text>
             {it.badge ? <View style={{ minWidth: 18, height: 18, borderRadius: 9, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><Text style={{ fontFamily: F.bold, fontSize: 10, color: "#fff" }}>{it.badge}</Text></View> : null}
@@ -163,6 +163,23 @@ export function Coin({ size = 14 }: { size?: number }) {
       <Circle cx="20" cy="19.5" r="17" fill={`url(#${u}a)`} />
       <Circle cx="20" cy="19.5" r="12.6" fill={`url(#${u}b)`} stroke="#d9ccff" strokeOpacity={0.55} strokeWidth={1.2} />
       <Path d="M20 11.5 L22.1 17.4 L28 19.5 L22.1 21.6 L20 27.5 L17.9 21.6 L12 19.5 L17.9 17.4 Z" fill="#fff" />
+    </Svg>
+  );
+}
+
+/** Absolute-fill gradient background (CSS linear-gradient / radial-gradient stand-in). */
+export function Grad({ stops, angle = 120, radial }: { stops: [string, number][]; angle?: number; radial?: { cx: string; cy: string; r: string; color: string; opacity?: number }[] }) {
+  const [id] = useState(() => `g${++coinN}`);
+  const rad = (angle - 90) * (Math.PI / 180);
+  const x1 = 0.5 - Math.cos(rad) / 2, y1 = 0.5 - Math.sin(rad) / 2, x2 = 0.5 + Math.cos(rad) / 2, y2 = 0.5 + Math.sin(rad) / 2;
+  return (
+    <Svg style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none">
+      <Defs>
+        <LinearGradient id={id} x1={x1} y1={y1} x2={x2} y2={y2}>{stops.map(([c, o], i) => <Stop key={i} offset={o} stopColor={c} />)}</LinearGradient>
+        {(radial ?? []).map((r, i) => <RadialGradient key={i} id={`${id}r${i}`} cx={r.cx} cy={r.cy} rx={r.r} ry={r.r} fx={r.cx} fy={r.cy}><Stop offset={0} stopColor={r.color} stopOpacity={r.opacity ?? 0.8} /><Stop offset={1} stopColor={r.color} stopOpacity={0} /></RadialGradient>)}
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
+      {(radial ?? []).map((_, i) => <Rect key={i} x="0" y="0" width="100%" height="100%" fill={`url(#${id}r${i})`} />)}
     </Svg>
   );
 }
