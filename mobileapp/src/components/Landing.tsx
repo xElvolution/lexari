@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, PanResponder, Pressable, TextInput, View } from "react-native";
 import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import AgentFace from "./AgentFace";
+import { Face } from "./ui";
 import type { ColorKey } from "./avatar";
 import { F, GRAPE, Label, T } from "@/web/kit";
 
@@ -316,8 +317,8 @@ export function LandingLogo({ scale = 1 }: { scale?: number }) {
   );
 }
 
-/** The ID card that flips on tap (rotateY 180°) to its back: logo, details, barcode. Tap again to flip back. */
-export function FlipIdCard({ name, width = 250, faceSize = 104 }: { name: string; width?: number; faceSize?: number }) {
+/** The ID card that flips on tap. Sign-in uses the sample badge. An agent's own card passes its real name, role and desk. */
+export function FlipIdCard({ name, width = 250, faceSize = 104, slug, role, seat, since, idNo, kind = "Agent ID", facts }: { name: string; width?: number; faceSize?: number; slug?: string; role?: string; seat?: string; since?: string; idNo?: string; kind?: string; facts?: [string, string][] }) {
   const v = useRef(new Animated.Value(0)).current;
   const [back, setBack] = useState(false);
   const flip = () => { const to = back ? 0 : 1; setBack(!back); Animated.spring(v, { toValue: to, friction: 7, tension: 40, useNativeDriver: true }).start(); };
@@ -334,14 +335,15 @@ export function FlipIdCard({ name, width = 250, faceSize = 104 }: { name: string
           <Label s={9.5} c="rgba(255,255,255,0.8)" style={{ marginTop: 4 }}>my name is</Label>
         </View>
         <View style={{ marginTop: 10, height: 112, borderRadius: 18, backgroundColor: "#0a0a0a", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-          <AgentFace size={faceSize} animated />
+          {slug ? <Face slug={slug === "home" ? undefined : slug} size={faceSize} animated /> : <AgentFace size={faceSize} animated />}
           <Label s={9} c="rgba(255,255,255,0.7)" style={{ position: "absolute", left: 12, top: 12 }}>{BADGE.company}</Label>
           <View style={{ position: "absolute", right: 12, top: 10, borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={9} c="#fff">● online</Label></View>
         </View>
         <View style={{ paddingHorizontal: 6, paddingTop: 10 }}>
           <T f="display" s={34} c="#0a0a0a" lines={1} style={{ lineHeight: 36, letterSpacing: -1.4 }}>{shown}</T>
-          <Label s={9.5} c="rgba(0,0,0,0.6)" style={{ marginTop: 6 }}>{`${BADGE.role} · ${BADGE.seat} · ${BADGE.since}`}</Label>
-          <View style={{ marginTop: 10 }}><Barcode text={name} w={width - 36} /></View>
+          <Label s={9.5} c="rgba(0,0,0,0.6)" style={{ marginTop: 6 }}>{`${role || BADGE.role} · ${seat || BADGE.seat} · ${since || BADGE.since}`}</Label>
+          {idNo ? <Label s={8} c="rgba(0,0,0,0.4)" style={{ marginTop: 4 }}>{idNo}</Label> : null}
+          <View style={{ marginTop: 10 }}><Barcode text={`${name}${idNo || ""}`} w={width - 36} /></View>
         </View>
       </Animated.View>
       <Animated.View style={[face, { position: "absolute", left: 0, top: 0, bottom: 0, padding: 0, overflow: "hidden", transform: [{ perspective: 1000 }, { rotateY: rear }] }]}>
@@ -353,12 +355,12 @@ export function FlipIdCard({ name, width = 250, faceSize = 104 }: { name: string
               <Svg width={22} height={22} viewBox="0 0 64 64"><Rect width={64} height={64} rx={15} fill={GRAPE} /><Ellipse cx={22} cy={26} rx={6} ry={8.5} fill="#fff" /><Ellipse cx={42} cy={26} rx={6} ry={8.5} fill="#fff" /><Path d="M20 41 Q32 51.5 44 41" fill="none" stroke="#fff" strokeWidth={5.5} strokeLinecap="round" /></Svg>
               <T f="display" s={18} c="#0a0a0a" style={{ letterSpacing: -0.6 }}>lexari</T>
             </View>
-            <View style={{ borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={8.5} c="#fff">{BACK.kind}</Label></View>
+            <View style={{ borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={8.5} c="#fff">{kind}</Label></View>
           </View>
           <Label s={8.5} c="rgba(0,0,0,0.5)" style={{ marginTop: 12 }}>{BACK.holder}</Label>
           <T f="display" s={26} c="#0a0a0a" lines={1} style={{ lineHeight: 30, flexShrink: 0, minHeight: 30 }}>{shown}</T>
           <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 6, rowGap: 8, flexShrink: 0 }}>
-            {[...BACK.fields, [BACK.issuedLabel, "Day one"] as [string, string]].map(([k, val]) => <View key={k} style={{ width: "50%", paddingRight: 6 }}><Label s={8.5} c="rgba(0,0,0,0.5)">{k}</Label><T f="semi" s={12} c="#0a0a0a" style={{ lineHeight: 15 }}>{val}</T></View>)}
+            {(facts ?? [...BACK.fields, [BACK.issuedLabel, "Day one"] as [string, string]]).map(([k, val]) => <View key={k} style={{ width: "50%", paddingRight: 6 }}><Label s={8.5} c="rgba(0,0,0,0.5)">{k}</Label><T f="semi" s={12} c="#0a0a0a" style={{ lineHeight: 15 }}>{val}</T></View>)}
           </View>
           <View style={{ marginTop: "auto", flexDirection: "row", alignItems: "flex-end", gap: 10 }}>
             <View style={{ width: 56, height: 56, borderRadius: 6, borderWidth: 1, borderColor: "rgba(0,0,0,0.1)", padding: 4 }}><Code text={shown} /></View>

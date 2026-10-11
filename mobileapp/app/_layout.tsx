@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { PrivyProvider } from "@privy-io/expo";
+import { PrivyRoot } from "@/lib/privyRoot";
 import { PrefsProvider, usePrefs } from "@/state/prefs";
 import { SessionProvider } from "@/state/session";
 import { LockGate } from "@/components/Gates";
@@ -43,7 +43,7 @@ export default function Root() {
         <PrefsProvider>
           <SessionProvider>
           <DataProvider>
-            {env.privyOn ? <PrivyProvider appId={env.privyAppId} clientId={env.privyClientId || undefined}>{nav}</PrivyProvider> : nav}
+            <PrivyRoot appId={env.privyAppId} clientId={env.privyClientId}>{nav}</PrivyRoot>
           </DataProvider>
           </SessionProvider>
         </PrefsProvider>
