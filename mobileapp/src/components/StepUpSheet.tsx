@@ -26,13 +26,13 @@ export function PhraseBadge({ phrase, loading = false }: { phrase?: string; load
   if (!phrase) return (
     <View testID="phrase-badge-none" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, borderRadius: 16, backgroundColor: k.tint, padding: 12 }}>
       <View style={{ marginTop: 2 }}><Icon name="info" size={16} color={k.ink60} /></View>
-      <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12.5, lineHeight: 17.2, color: k.ink60 }}>Add a security phrase in <Text style={{ fontFamily: F.semi, color: k.ink, textDecorationLine: "underline" }}>Settings &gt; Security</Text>. It shows here so you can tell a real Lexari screen from a fake one.</Text>
+      <Text style={{ flex: 1, fontFamily: F.reg, fontSize: 12.5, lineHeight: 17.2, color: k.ink60 }}>Add a security phrase in <Text style={{ fontFamily: F.semi, color: k.ink, textDecorationLine: "underline" }}>Settings &gt; Security</Text>. It shows here so you can tell a real Lexari screen from a fake one.</Text>
     </View>
   );
   return (
     <View testID="phrase-badge" style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, backgroundColor: "rgba(91,43,255,0.10)", borderWidth: 1, borderColor: "rgba(91,43,255,0.30)", padding: 12 }}>
       <Icon name="verified" size={16} color={GRAPE} />
-      <Text style={{ flex: 1, minWidth: 0, fontFamily: F.sans, fontSize: 12.5, lineHeight: 17.2, color: k.ink75 }}>Your security phrase: <Text style={{ fontFamily: F.bold, color: k.ink }}>{phrase}</Text></Text>
+      <Text style={{ flex: 1, minWidth: 0, fontFamily: F.reg, fontSize: 12.5, lineHeight: 17.2, color: k.ink75 }}>Your security phrase: <Text style={{ fontFamily: F.bold, color: k.ink }}>{phrase}</Text></Text>
     </View>
   );
 }
@@ -111,11 +111,11 @@ function Body({ what, privy, onDone }: { what: string; privy: { current: Signer 
         {info?.method === "pin" ? <View style={{ paddingVertical: 8 }}><PinPad title="Enter your PIN" sub="Only you know it. Lexari never asks for it in chat." error={err} errorKey={errKey} busy={busy} onDone={(pin) => void send({ pin })} /></View> : null}
         {info?.method === "wallet" ? (
           <View style={{ borderRadius: 16, backgroundColor: k.tint, padding: 16 }}>
-            <Text style={{ fontFamily: F.sans, fontSize: 13.5, lineHeight: 18.6, color: k.ink75 }}>Your wallet signs a short message. Nothing is sent and it costs nothing. <Text style={{ fontFamily: F.semi, color: k.ink }}>Tip:</Text> set an app PIN in Settings so this asks for your PIN instead.</Text>
+            <Text style={{ fontFamily: F.reg, fontSize: 13.5, lineHeight: 18.6, color: k.ink75 }}>Your wallet signs a short message. Nothing is sent and it costs nothing. <Text style={{ fontFamily: F.semi, color: k.ink }}>Tip:</Text> set an app PIN in Settings so this asks for your PIN instead.</Text>
           </View>
         ) : null}
         {err && info?.method !== "pin" ? <Text accessibilityRole="alert" style={{ fontFamily: F.semi, fontSize: 13, color: "#e5484d" }}>{err}</Text> : null}
-        <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.ink45 }}>This stays confirmed for 5 minutes on this device.</Text>
+        <Text style={{ fontFamily: F.reg, fontSize: 12, color: k.ink45 }}>This stays confirmed for 5 minutes on this device.</Text>
       </View>
     </WSheet>
   );

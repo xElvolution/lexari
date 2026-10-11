@@ -66,8 +66,8 @@ export function SecurityRows() {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 }}>
         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={17} color={k.brandInk} /></View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontFamily: F.semi, fontSize: 15, color: k.ink }}>App lock {on ? "· on" : "· off"}</Text>
-          <Text style={{ fontFamily: F.sans, fontSize: 13, lineHeight: 18, color: k.ink60 }}>{on ? "Lexari asks for your PIN when you open it and after 5 minutes away. It's also needed to view card details." : "Ask for a PIN when Lexari opens on this phone."}</Text>
+          <Text style={{ fontFamily: F.semi, fontSize: 14.5, lineHeight: 21.75, color: k.ink }}>App lock {on ? "· on" : "· off"}</Text>
+          <Text style={{ fontFamily: F.reg, fontSize: 13, lineHeight: 19.5, color: k.ink60 }}>{on ? "Lexari asks for your PIN when you open it and after 5 minutes away. It's also needed to view card details." : "Ask for a PIN when Lexari opens on this phone."}</Text>
         </View>
       </View>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingBottom: 12 }}>
@@ -81,7 +81,7 @@ export function SecurityRows() {
           <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="finger" size={17} color={k.brandInk} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={{ fontFamily: F.semi, fontSize: 15, color: k.ink }}>{bio.label}</Text>
-            <Text style={{ fontFamily: F.sans, fontSize: 13, color: k.ink60 }}>Open Lexari with {bio.label} on this phone. Your PIN still works.</Text>
+            <Text style={{ fontFamily: F.reg, fontSize: 13, lineHeight: 19.5, color: k.ink60 }}>Open Lexari with {bio.label} on this phone. Your PIN still works.</Text>
           </View>
           <WToggle on={bioOn} onChange={(v) => void toggleBio(v)} label={`Unlock with ${bio?.label || "biometrics"}`} />
         </View>

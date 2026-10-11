@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 import Icon from "@/components/Icon";
 import { SecurityRows } from "@/components/SecurityRows";
+import SecurityCenter from "@/components/SecurityCenter";
 import { api } from "@/lib/api";
 import { disablePush, enablePush, pushOnHere, pushPermission, type Perm } from "@/lib/push";
 import { useSession } from "@/state/session";
@@ -36,7 +37,7 @@ function Group({ title, children, pad = 20 }: { title?: string; children: ReactN
   const k = useC();
   return (
     <View style={{ marginTop: 18 }}>
-      {title ? <Label s={9.5} c={k.dark ? "rgba(255,255,255,0.5)" : "rgba(10,10,10,0.5)"} style={{ lineHeight: 17, marginBottom: 4 }}>{title}</Label> : null}
+      {title ? <Label s={11} c={k.dark ? "rgba(255,255,255,0.5)" : "rgba(10,10,10,0.5)"} style={{ lineHeight: 16.5, letterSpacing: 0.44, marginBottom: 4 }}>{title}</Label> : null}
       <View style={{ borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, paddingHorizontal: pad - 1 }}>{children}</View>
     </View>
   );
@@ -45,7 +46,7 @@ function Row({ title, desc, children, danger, last }: { title: string; desc?: st
   const k = useC();
   return (
     <View style={{ paddingVertical: 16, gap: 10, borderBottomWidth: last ? 0 : 1, borderBottomColor: k.line }}>
-      <View><T f="semi" s={15} c={danger ? "#e5484d" : k.ink} style={{ lineHeight: 21.75 }}>{title}</T>{desc ? <T s={13.5} c={k.ink60} style={{ marginTop: 2, lineHeight: 18.56 }}>{desc}</T> : null}</View>
+      <View><T f="semi" s={14.5} c={danger ? "#e5484d" : k.ink} style={{ lineHeight: 21.75 }}>{title}</T>{desc ? <T f="reg" s={13.5} c={k.ink60} style={{ marginTop: 2, lineHeight: 18.56 }}>{desc}</T> : null}</View>
       {children ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center" }}>{children}</View> : null}
     </View>
   );
@@ -268,11 +269,8 @@ function Data() {
 }
 
 function Security() {
-  const k = useC();
   const { me } = useData();
-  const { token, signOut } = useSession();
-  const [sec, setSec] = useState<{ settings?: { phrase?: string; dailySendCapUsd?: number }; sessions?: { id: string; device: string; network?: string; current?: boolean; lastSeenAt?: number }[] } | null>(null);
-  useEffect(() => { if (token) api<typeof sec>("/api/security", {}, token).then(setSec).catch(() => {}); }, [token]);
+  const { signOut } = useSession();
   const google = me?.user.method === "google";
   return (
     <>
@@ -280,13 +278,9 @@ function Security() {
         <Row title={google ? "Google or email" : "Wallet signature"} desc={google ? "Privy checks your Google account or a one-time email code. Your Lexari wallet is created and kept by Privy." : "You sign a one-time message with your wallet. Lexari never sees your keys."} />
         <Row last title="Session" desc="Sessions last up to 30 days on a device. See every device below and sign out the ones you don't know." />
       </Group>
-      <Group title="App lock"><View style={{ paddingVertical: 6 }}><SecurityRows /></View></Group>
-      <Group title="Safety phrase"><Row last title={sec?.settings?.phrase ? `“${sec.settings.phrase}”` : "Not set"} desc={`Shows on every real Lexari confirm card. Daily send cap $${sec?.settings?.dailySendCapUsd ?? "—"}.`} /></Group>
-      <Group title="Devices">
-        {(sec?.sessions ?? []).slice(0, 6).map((s, i, a) => <Row key={s.id} last={i === a.length - 1} title={s.device} desc={`${s.current ? "This device · " : ""}${s.network ?? ""}`} />)}
-      </Group>
+      <Group title="App lock"><SecurityRows /></Group>
+      <SecurityCenter />
       <Group title="This device"><Row last title="Sign out" desc="Ends this session."><Small icon="out" label="Sign out" onPress={() => signOut().then(() => router.replace("/(auth)/sign-in"))} /></Row></Group>
-      {void k}
     </>
   );
 }
