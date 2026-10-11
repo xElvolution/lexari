@@ -40,13 +40,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
 }
 export const useData = () => useContext(Ctx);
 
-/** webapp/lib/store.ts hello(): the home agent's first line, put at the top of its thread so a new chat never opens empty. */
+/**
+ * webapp/lib/store.ts hello() / customHi(): an agent's first line, put at the top of its thread so a new chat never opens empty.
+ * The home agent says "Hi you, I'm Nova. Ask me anything."; an agent you built yourself mentions its brief.
+ */
 export function withHello<T extends { id: string; at: number }>(me: Me | null, slug: string, msgs: T[]): T[] {
+  if (msgs.some((m) => m.id === "hello")) return msgs;
   const home = me?.agents.find((a) => a.slug === "home");
-  if (slug !== "home" || !home || msgs.some((m) => m.id === "hello")) return msgs;
-  const you = String((home.meta as { you?: string } | undefined)?.you || "");
-  const at = Math.min(Number(new Date(me?.user.createdAt as unknown as string)) || Date.now(), ...msgs.map((m) => m.at - 1));
-  return [{ id: "hello", from: "home", at, text: `Hi${you ? ` ${you}` : ""}, I'm ${home.name}. Ask me anything.` } as unknown as T, ...msgs];
+  const you = String((home?.meta as { you?: string } | undefined)?.you || "");
+  const hi = `Hi${you ? ` ${you}` : ""}`;
+  let text = "", at0 = 0;
+  if (slug === "home" && home) { text = `${hi}, I'm ${home.name}. Ask me anything.`; at0 = Number(new Date(me?.user.createdAt as unknown as string)); }
+  else {
+    const c = me?.agents.find((a) => a.slug === slug && a.kind === "custom");
+    if (!c) return msgs;
+    text = `${hi}, I'm ${c.name}. ${c.about ? "I've read the brief you gave me." : "Tell me what you want me to do."} What should I start with?`; at0 = Number(c.createdAt);
+  }
+  const at = Math.min(at0 || Date.now(), ...msgs.map((m) => m.at - 1));
+  return [{ id: "hello", from: slug, at, text } as unknown as T, ...msgs];
 }
 export const primaryOf = (me: Me | null) => me?.prefs?.defaultAgent || "home";
 export const nameOf = (me: Me | null, slug: string) => me?.agents.find((a) => a.slug === slug)?.name || slug;
