@@ -64,3 +64,12 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
     verify: async (_email, code) => { await emailLogin.loginWithCode({ code }); await finish(_email); },
   };
 }
+
+/** Sign a plain message with this account's Privy embedded wallet (no prompt). Base64, like sign-in. Null when there's none. */
+export function usePrivySigner(): ((message: string) => Promise<string>) | null {
+  const { wallets } = useWallets();
+  const { signMessage } = useSignMessage();
+  const wallet = wallets[0];
+  if (!wallet) return null;
+  return async (message: string) => toBase64((await signMessage({ message: new TextEncoder().encode(message), wallet, options: { uiOptions: { showWalletUIs: false } } })).signature);
+}
