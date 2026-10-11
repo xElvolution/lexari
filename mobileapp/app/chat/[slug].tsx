@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
 import Icon from "@/components/Icon";
+import { ModelSheet } from "@/web/ModelSheet";
 import { api, msgId, streamChat, type ChatEvent } from "@/lib/api";
 import { cutSecrets, findSecrets, isBlockedKind, SECRET_NAME_RE, toSecretName } from "@/lib/secretScan";
 import { useSession } from "@/state/session";
@@ -132,6 +133,7 @@ export default function Chat() {
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState(prompt || "");
   const [model, setModel] = useState("lamina");
+  const [modelOpen, setModelOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [mailOn, setMailOn] = useState(false);
   const [tasks, setTasks] = useState<TaskView[]>([]);
@@ -236,7 +238,7 @@ export default function Chat() {
         </Pressable>
         {taskAgent && tasks.length ? <HeadBtn icon="jobs" label={`${name}'s tasks`} dot={tasks.some((t) => t.status === "running" || t.status === "waiting")} onPress={() => router.push(`/agents/${id}?tab=tasks`)} /> : null}
         {!group && mailOn ? <HeadBtn icon="mail" label={`${name}'s email`} badge={unread} onPress={() => router.push(`/agents/${id}?tab=email`)} /> : null}
-        <ModelChip id={model} onPress={() => router.push(`/settings/models?convo=${id}`)} />
+        <ModelChip id={model} onPress={() => setModelOpen(true)} />
       </View>
 
       <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingVertical: 16 }} keyboardShouldPersistTaps="handled">
@@ -343,6 +345,7 @@ export default function Chat() {
           )}
         </View>
       </View>
+      <ModelSheet open={modelOpen} onClose={() => setModelOpen(false)} convo={id} agent={group ? null : id} agentName={name} group={!!group} onChange={setModel} />
     </KeyboardAvoidingView>
   );
 }

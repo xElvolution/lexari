@@ -21,10 +21,11 @@ function Navigator() {
       <StatusBar style={isDark ? "light" : "dark"} />
       <LockGate>
         <Stack screenOptions={{ headerShown: false, animation: "fade_from_bottom", contentStyle: { backgroundColor: palette.bg } }}>
-          <Stack.Screen name="index" options={{ animation: "none" }} />
-          <Stack.Screen name="welcome" options={{ animation: "fade", contentStyle: { backgroundColor: "#000" } }} />
-          <Stack.Screen name="(auth)/sign-in" options={{ animation: "fade", contentStyle: { backgroundColor: "#000" } }} />
-          <Stack.Screen name="security-setup" options={{ animation: "fade", contentStyle: { backgroundColor: "#000" } }} />
+          <Stack.Screen name="index" options={{ animation: "none", contentStyle: { backgroundColor: "#14072e" } }} />
+          <Stack.Screen name="settings/billing" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
+          <Stack.Screen name="welcome" options={{ animation: "fade", contentStyle: { backgroundColor: "#14072e" } }} />
+          <Stack.Screen name="(auth)/sign-in" options={{ animation: "fade", contentStyle: { backgroundColor: "#14072e" } }} />
+          <Stack.Screen name="security-setup" options={{ animation: "fade", contentStyle: { backgroundColor: "#14072e" } }} />
           <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
           <Stack.Screen name="chat/[slug]" options={{ animation: "slide_from_right" }} />
         </Stack>
