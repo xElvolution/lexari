@@ -201,11 +201,12 @@ export default function SignIn() {
   const bridge = useWalletBridge();
   const entered = useRef(false);
   const [slow, setSlow] = useState(false);
-  const [mobile, setMobile] = useState(false);
   const [privyStep, setPrivyStep] = useState<"" | "wallet" | "sign" | "error">("");
   const [privyErr, setPrivyErr] = useState("");
-  useEffect(() => { setMobile(isMobile()); if (ready || !PRIVY_ON) return; const t = setTimeout(() => setSlow(true), 12000); return () => clearTimeout(t); }, [ready]);
-  const googleNote = !PRIVY_ON ? "Sign-in by Google or email is not set up here yet. Use a wallet." : ready ? "" : slow ? "Sign-in could not load. Check your connection and reload." : "Loading sign-in…";
+  // Sign-in shows Google or email only. A wallet account can still get in with /signin?wallet=phantom|solflare|backpack.
+  useEffect(() => { const w = new URLSearchParams(window.location.search).get("wallet"); const hit = WALLETS.find((x) => x.id === w); if (hit) setFlow({ method: "wallet", wallet: hit.id }); }, []);
+  useEffect(() => { if (ready || !PRIVY_ON) return; const t = setTimeout(() => setSlow(true), 12000); return () => clearTimeout(t); }, [ready]);
+  const googleNote = !PRIVY_ON ? "Sign-in by Google or email is not set up here yet." : ready ? "" : slow ? "Sign-in could not load. Check your connection and reload." : "Loading sign-in…";
   // After Google or email: the Privy wallet signs the same sign-in message a Phantom user would.
   useEffect(() => {
     if (!ready || !authenticated || !user || entered.current) return;
@@ -251,7 +252,7 @@ export default function SignIn() {
         <div className="relative z-10 mt-8 lg:mt-auto">
           <p data-in className="label text-white/80">Day one · getting in</p>
           <h1 data-in className="display mt-4 text-[48px] sm:text-[72px] lg:text-[88px]">Sign in.<br />Meet your agent.</h1>
-          <p data-in className="mt-5 max-w-md text-[16px] leading-relaxed text-white/90 sm:text-[18px]">Use a Solana wallet. Then you name your agent and it clocks in on its own computer.</p>
+          <p data-in className="mt-5 max-w-md text-[16px] leading-relaxed text-white/90 sm:text-[18px]">Use Google or email. Then you name your agent and it clocks in on its own computer.</p>
         </div>
         <div className="pointer-events-none absolute right-[-30px] top-[64px] hidden sm:block lg:right-10 lg:top-[14%]">
           <div data-float className="bob grid h-36 w-36 place-items-center rounded-[34px] bg-[#0a0a0a] shadow-[0_20px_40px_-12px_rgba(0,0,0,.5)] lg:h-44 lg:w-44"><Face size={130} track /></div>
@@ -278,22 +279,6 @@ export default function SignIn() {
 
           {privyStep === "error" && <p role="alert" className="mt-3 text-[13.5px] text-[#e5484d]">{privyErr} Tap the button to try again.</p>}
 
-          <div data-in className="my-7 flex items-center gap-3"><span className="h-px flex-1 bg-line" /><span className="label text-[10px] text-ink/60">or a Solana wallet</span><span className="h-px flex-1 bg-line" /></div>
-
-          <ul className="grid gap-2.5">
-            {WALLETS.map((w) => (
-              <li data-in key={w.id}>
-                <button onClick={() => setFlow({ method: "wallet", wallet: w.id })} className="group flex w-full items-center gap-4 rounded-[22px] bg-card p-2 pr-4 text-left ring-2 ring-line transition hover:-translate-y-0.5 hover:ring-grape active:scale-[.98]">
-                  <WalletGlyph id={w.id} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2 text-[16px] font-bold text-ink">{w.name}</span>
-                    <span className="block truncate text-[13px] text-ink/70">{mobile ? `Opens in the ${w.name} app.` : w.note}</span>
-                  </span>
-                  <Icon name="arrow" size={18} className="text-ink/60 transition group-hover:translate-x-1 group-hover:text-brand-ink" />
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
       {flow && <Sheet flow={flow} onClose={() => setFlow(null)} />}
