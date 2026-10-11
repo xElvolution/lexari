@@ -70,7 +70,7 @@ export function NotifyBell() {
               {(items || []).map((n) => (
                 <Pressable key={n.id} onPress={() => { setOpen(false); if (!n.read) read([n.id]); go(n.url); }} style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: n.read ? "transparent" : palette.tint }}>
                   <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: n.read ? palette.alt : "#5b2bff" }}>
-                    <Icon name={KIND[n.kind] || "bell"} size={16} color={n.read ? palette.muted : "#fff"} />
+                    <Icon name={(n.kind && KIND[n.kind]) || "bell"} size={16} color={n.read ? palette.muted : "#fff"} />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>

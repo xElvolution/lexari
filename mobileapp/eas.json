@@ -6,6 +6,7 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
+        "EXPO_PUBLIC_PRIVY_APP_ID": "cmusfhplr019q0clb78qy382j",
         "EXPO_PUBLIC_API_URL": "https://app.lexari.ai",
         "EXPO_PUBLIC_SOLANA_CLUSTER": "devnet",
         "EXPO_PUBLIC_LEXARI_PROGRAM_ID": "BbnD28xf3kwfQRiRA6VQmw4p2R55WivUgozSoo81M6Po",
@@ -17,7 +18,8 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://testnet.lexari.ai",
+        "EXPO_PUBLIC_PRIVY_APP_ID": "cmusfhplr019q0clb78qy382j",
+        "EXPO_PUBLIC_API_URL": "https://app.lexari.ai",
         "EXPO_PUBLIC_SOLANA_CLUSTER": "devnet",
         "EXPO_PUBLIC_LEXARI_PROGRAM_ID": "BbnD28xf3kwfQRiRA6VQmw4p2R55WivUgozSoo81M6Po",
         "EXPO_PUBLIC_SKR_MINT": "ExGnANupZkiSRMDQXiTY9JEwPZa33m8ZfA5kKDuf3n68",
@@ -27,6 +29,7 @@
     "production": {
       "android": { "buildType": "apk" },
       "env": {
+        "EXPO_PUBLIC_PRIVY_APP_ID": "cmusfhplr019q0clb78qy382j",
         "EXPO_PUBLIC_API_URL": "https://app.lexari.ai",
         "EXPO_PUBLIC_SOLANA_CLUSTER": "mainnet-beta",
         "EXPO_PUBLIC_LEXARI_PROGRAM_ID": "BbnD28xf3kwfQRiRA6VQmw4p2R55WivUgozSoo81M6Po",

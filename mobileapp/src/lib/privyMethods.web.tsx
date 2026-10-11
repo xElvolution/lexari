@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useLogin, useLoginWithEmail, usePrivy } from "@privy-io/react-auth";
-import { useCreateWallet, useWallets } from "@privy-io/react-auth/solana";
+import { useCreateWallet, useSignMessage, useWallets } from "@privy-io/react-auth/solana";
 import { nonceFor, signInWithServer } from "@/lib/authFlow";
 import type { SavedSession } from "@/lib/session";
 import type { Methods } from "./privyMethods.native";
@@ -18,6 +18,7 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
   const emailLogin = useLoginWithEmail();
   const { wallets } = useWallets();
   const { createWallet } = useCreateWallet();
+  const { signMessage } = useSignMessage();
   const walletsRef = useRef(wallets);
   walletsRef.current = wallets;
   const onSessionRef = useRef(onSession);
@@ -33,19 +34,19 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
     }
     if (!wallet) throw new Error("We couldn't set up your wallet. Please try again.");
     const message = await nonceFor(wallet.address);
-    const signed = await wallet.signMessage({
+    const signed = await signMessage({
       message: new TextEncoder().encode(message),
-      address: wallet.address,
+      wallet,
       options: { uiOptions: { showWalletUIs: false } },
     });
-    const signature = signed.signature instanceof Uint8Array ? toBase64(signed.signature) : String(signed.signature);
+    const signature = toBase64(signed.signature);
     const token = await getAccessToken();
     await onSessionRef.current(await signInWithServer({ wallet: wallet.address, message, signature, privyToken: token || undefined, email }));
   };
 
   const { login } = useLogin({
     onComplete: () => { void finish().then(() => pending.current?.resolve()).catch((error) => pending.current?.reject(error instanceof Error ? error : new Error("That didn't work. Please try again."))); },
-    onError: (error) => { pending.current?.reject(error instanceof Error ? error : new Error("Google sign-in was cancelled.")); },
+    onError: (code) => { console.warn("privy login", code); pending.current?.reject(new Error("Google sign-in was cancelled.")); },
   });
 
   return {
