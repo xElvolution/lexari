@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ActivityIndicator, Image, Platform, Pressable, Text, TextInput, View, useWindowDimensions } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLoginWithEmail, useLoginWithOAuth, useEmbeddedSolanaWallet, usePrivy } from "@privy-io/expo";
 import * as Device from "expo-device";
@@ -9,7 +9,7 @@ import Constants from "expo-constants";
 import Svg, { Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { Mail, ShieldCheck, Wallet } from "lucide-react-native";
 import { Button, Face, Sheet, T, tap } from "@/components/ui";
-import { FaceRow } from "@/components/Landing";
+import { BADGE, HeroBadge, HeroTitle, LandingBg, LandingLogo } from "@/components/Landing";
 import { LogoMark } from "@/components/Logo";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
@@ -91,6 +91,8 @@ export default function SignIn() {
 function SignInView({ methods, onSession }: { methods: Methods; onSession: (s: SavedSession) => Promise<void> }) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
+  const params = useLocalSearchParams<{ name?: string }>();
+  const [badgeName, setBadgeName] = useState(params.name || BADGE.defaultName);
   const [busy, setBusy] = useState<"" | "google" | "wallet" | "email">("");
   const [msg, setMsg] = useState("");
   const [emailOpen, setEmailOpen] = useState(false);
@@ -137,21 +139,12 @@ function SignInView({ methods, onSession }: { methods: Methods; onSession: (s: S
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <Svg width={width} height={height} style={{ position: "absolute" }}>
-        <Defs>
-          <RadialGradient id="g" cx="50%" cy="22%" rx="80%" ry="40%">
-            <Stop offset="0" stopColor="#5b2bff" stopOpacity="0.45" />
-            <Stop offset="1" stopColor="#000" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Rect width={width} height={height} fill="url(#g)" />
-      </Svg>
-      <View style={{ flex: 1, paddingTop: insets.top + 24, paddingHorizontal: 24, paddingBottom: insets.bottom + 20 }}>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <View style={{ marginBottom: 26 }}><FaceRow size={70} /></View>
-          <LogoMark size={44} />
-          <Text style={{ color: "#fff", fontSize: 30, fontWeight: "700", letterSpacing: -1, marginTop: 16, textAlign: "center" }}>Welcome to Lexari</Text>
-          <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 21, marginTop: 8, textAlign: "center", maxWidth: 300 }}>Sign in to meet your personalized AI agent. It takes less than a minute.</Text>
+      <LandingBg width={width} height={height} grape />
+      <View style={{ flex: 1, paddingTop: insets.top + 14, paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}>
+        <LandingLogo />
+        <View style={{ marginTop: 22 }}><HeroTitle s={36} /></View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-start", overflow: "hidden" }}>
+          <View style={{ transform: [{ scale: 0.6 }], marginTop: -110 }}><HeroBadge name={badgeName} setName={setBadgeName} /></View>
         </View>
         <View style={{ gap: 10 }}>
           <AuthButton light icon={<GoogleG />} label="Continue with Google" busy={busy === "google"} onPress={() => run("google", methods.google)} />

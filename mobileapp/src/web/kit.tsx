@@ -79,9 +79,9 @@ export function ringOf(slug: string, kind?: string, primary = "home"): Ring {
   return slug === "home" || kind === "custom" || slug.startsWith("c-") ? "made" : "hired";
 }
 /** An agent face on its tile with the gold / purple / silver ring and a presence dot (faces.tsx AgentTile). */
-export function AgentTile({ slug, look, size = 48, ring, dot = true, live = false }: { slug: string; look?: unknown; size?: number; ring?: Ring; dot?: boolean; live?: boolean }) {
+export function AgentTile({ slug, look, size = 48, ring, dot = true, live = false, mood, radius }: { slug: string; look?: unknown; size?: number; ring?: Ring; dot?: boolean; live?: boolean; mood?: "idle" | "thinking" | "speaking" | "happy"; radius?: number }) {
   const k = useC();
-  const r = Math.round(size * 0.32), d = Math.max(8, Math.round(size * 0.24));
+  const r = radius ?? Math.round(size * 0.32), d = Math.max(8, Math.round(size * 0.24));
   const rc = ring === "primary" ? GOLD : ring === "made" ? GRAPE_SOFT : ring === "hired" ? (k.dark ? SILVER : "#a9aebb") : null;
   const face = Math.round(size * 0.74);
   const lk = look && typeof look === "object" && Object.keys(look as object).some((x) => x !== "v") ? lookVariant(look as never) : null;
@@ -89,7 +89,7 @@ export function AgentTile({ slug, look, size = 48, ring, dot = true, live = fals
     <View style={{ width: size, height: size }}>
       {rc ? <View style={{ position: "absolute", left: -4, top: -4, right: -4, bottom: -4, borderRadius: r + 4, borderWidth: 2, borderColor: rc, ...(ring === "primary" ? { shadowColor: GOLD, shadowOpacity: 0.7, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }} /> : null}
       <View style={{ width: size, height: size, borderRadius: r, backgroundColor: k.faceTile, borderWidth: 1, borderColor: k.line, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-        {lk ? <AgentFace variant={lk} size={face} /> : <Face slug={slug === "home" ? undefined : slug} size={face} />}
+        {lk ? <AgentFace variant={lk} size={face} state={mood} animated={!!mood && mood !== "idle"} /> : <Face slug={slug === "home" ? undefined : slug} size={face} mood={mood} />}
       </View>
       {dot && ring ? <View style={{ position: "absolute", width: d, height: d, borderRadius: d / 2, right: -d * 0.15, bottom: -d * 0.15, backgroundColor: live ? ONLINE : IDLE, borderWidth: 2, borderColor: k.alt }} /> : null}
     </View>
