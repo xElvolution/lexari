@@ -1,3 +1,4 @@
+import { useHideBalance } from "@/lib/privacy";
 import { useLocalSearchParams } from "expo-router";
 /** Port of webapp/components/wallet/WalletsView.tsx at phone width: Wallet / Cards tabs, Lexari balance (Top up, History), each agent's wallet (Fund, Move to balance). */
 import { useEffect, useState } from "react";
@@ -12,7 +13,6 @@ import Icon from "@/components/Icon";
 import { COINS } from "@/content/roster";
 import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
-import { usePrefs } from "@/state/prefs";
 import { AgentTile, F, GRAPE, Label, Pill, Segs, T, WSheet, ringOf, short, useC } from "@/web/kit";
 import { primaryOf, useData, type Wallet } from "@/web/data";
 
@@ -45,7 +45,7 @@ export default function Wallets() {
   const k = useC();
   const { token } = useSession();
   const { me, wallet, reload } = useData();
-  const { hideBalances, toggleBalances } = usePrefs();
+  const [hideBalances, setHide] = useHideBalance(); const toggleBalances = () => setHide(!hideBalances);
   const [tab, setTab] = useState<"wallet" | "cards">("wallet");
   const qp = useLocalSearchParams<{ topup?: string }>();
   const [sheet, setSheet] = useState<"topup" | "history" | null>(qp.topup ? "topup" : null);
@@ -182,7 +182,7 @@ const monthOf = (t: number) => new Date(t).toLocaleDateString("en-GB", { month: 
 /** Port of wallet/HistorySheet.tsx: grape wallet tile, eye toggle, Added/Spent tiles, rows grouped by month. */
 function HistorySheet({ open, onClose, wallet, onTopUp }: { open: boolean; onClose: () => void; wallet: Wallet | null; onTopUp: () => void }) {
   const k = useC();
-  const { hideBalances, toggleBalances } = usePrefs();
+  const [hideBalances, setHide] = useHideBalance(); const toggleBalances = () => setHide(!hideBalances);
   const mask = (v: string) => (hideBalances ? "••••" : v);
   const rows = wallet?.history ?? [];
   const added = rows.filter((r) => r.delta > 0).reduce((a, r) => a + r.delta, 0); const spent = rows.filter((r) => r.delta < 0).reduce((a, r) => a - r.delta, 0);
