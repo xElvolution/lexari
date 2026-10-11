@@ -10,7 +10,8 @@ export async function signInWithServer(input: { wallet: string; signature: strin
   if (input.email) body.email = input.email;
   const res = await api<Verify>("/api/auth/verify?client=mobile", { method: "POST", body: JSON.stringify(body) });
   if (!res.token) {
-    throw new Error("Mobile sessions are not on this server yet. The bearer-token change in standalone/mainnet still needs a deploy.");
+    console.warn("[lexari] /api/auth/verify?client=mobile returned no token; the server needs the mobile bearer-token change deployed.");
+    throw new Error("Phone sign-in isn't switched on for this server yet. Please try again later.");
   }
   return { token: res.token, expires: res.expires || new Date(Date.now() + 30 * 864e5).toISOString(), wallet: input.wallet };
 }

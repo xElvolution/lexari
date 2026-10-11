@@ -10,12 +10,14 @@
     "test": "node --experimental-strip-types --test test/*.test.ts"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~57.0.16",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@noble/curves": "^1.9.7",
     "@privy-io/expo": "^0.76.1",
     "@privy-io/expo-native-extensions": "^0.0.12",
     "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^3.0.0",
     "@solana/web3.js": "^1.99.0",
+    "babel-preset-expo": "~57.0.0",
     "buffer": "^6.0.3",
     "expo": "~57.0.27",
     "expo-apple-authentication": "~57.0.2",
@@ -51,6 +53,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2",
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.10.1",
     "viem": "^2.56.5"
