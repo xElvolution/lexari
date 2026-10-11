@@ -18,10 +18,10 @@ export function HireBtn({ a, lg }: { a: Specialist; lg?: boolean }) {
   const { me } = useData();
   const hired = !!me?.agents.some((x) => x.slug === a.slug);
   const again = !hired && !!me?.hires?.some((h) => h.slug === a.slug);
-  const h = lg ? 48 : 32;
+  const h = lg ? 44 : 32; // the phone site: .h-12 is 2.75rem, .px-7 is 1.125rem and text-[16px] is 15px at ≤430
   return (
-    <Pressable onPress={() => (hired ? router.push(`/chat/${a.slug}`) : onHire(a.slug))} style={{ height: h, paddingHorizontal: lg ? 24 : 16, borderRadius: h / 2, alignItems: "center", justifyContent: "center", backgroundColor: hired ? k.tint : "#5b2bff" }}>
-      <T f="bold" s={lg ? 16 : 13} c={hired ? k.brandInk : "#fff"}>{hired ? "Open" : a.free || again ? "Hire · Free" : "Hire · $1"}</T>
+    <Pressable onPress={() => (hired ? router.push(`/chat/${a.slug}`) : onHire(a.slug))} style={{ height: h, paddingHorizontal: lg ? 18 : 16, borderRadius: h / 2, alignItems: "center", justifyContent: "center", backgroundColor: hired ? k.tint : "#5b2bff" }}>
+      <T f="bold" s={lg ? 15 : 13} c={hired ? k.brandInk : "#fff"}>{hired ? "Open" : a.free || again ? "Hire · Free" : "Hire · $1"}</T>
     </Pressable>
   );
 }

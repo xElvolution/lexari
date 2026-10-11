@@ -29,7 +29,8 @@ const SEC = new Set(SECONDARY.map((s) => s.name));
 function PhoneNav({ state, navigation }: BottomTabBarProps) {
   const k = useC();
   const insets = useSafeAreaInsets();
-  const current = state.routes[state.index]?.name;
+  const raw = state.routes[state.index]?.name;
+  const current = raw === "marketplace/[slug]" ? "marketplace" : raw; // a listing keeps Market lit, like the web
   const [more, setMore] = useState(SEC.has(current));
   useEffect(() => { if (SEC.has(current)) setMore(true); }, [current]);
   const items = more ? [...SECONDARY, { name: "close", label: "Close", icon: "x" }] : [...PRIMARY, { name: "more", label: "More", icon: "more" }];
@@ -71,6 +72,7 @@ export default function TabsLayout() {
         <Bar />
         <Tabs tabBar={(p) => <PhoneNav {...p} />} screenListeners={{ tabPress: () => tap() }} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: k.bg }, animation: "fade" }}>
           {[...PRIMARY, ...SECONDARY].map((t) => <Tabs.Screen key={t.name} name={t.name} options={{ title: t.label }} />)}
+          <Tabs.Screen name="marketplace/[slug]" options={{ href: null, title: "Listing" }} />
         </Tabs>
       </View>
     </>
