@@ -135,7 +135,7 @@ export const short = (a?: string | null, n = 4) => (a ? `${a.slice(0, n)}…${a.
 
 /** Bottom sheet like the web phone sheets: rounded top, title + round close, scrolling body. */
 /** Bottom sheet like the web's: blurred dim backdrop, drag handle, optional grape icon tile + subtitle (billing Sheet), close. */
-export function WSheet({ open, title, sub, icon, right, onClose, children, footer }: { open: boolean; title: string; sub?: string; icon?: string; right?: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
+export function WSheet({ open, title, sub, icon, iconNode, right, onClose, children, footer }: { open: boolean; title: string; sub?: ReactNode; icon?: string; iconNode?: ReactNode; right?: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
   const k = useC();
   if (!open) return null;
   return (
@@ -145,11 +145,11 @@ export function WSheet({ open, title, sub, icon, right, onClose, children, foote
       </Pressable>
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, maxHeight: "92%", backgroundColor: k.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: k.line }}>
         <View style={{ alignItems: "center", paddingTop: 10 }}><View style={{ width: 44, height: 6, borderRadius: 3, backgroundColor: k.dark ? "rgba(255,255,255,0.2)" : "rgba(10,10,10,0.2)" }} /></View>
-        <View style={{ flexDirection: "row", alignItems: icon ? "flex-start" : "center", gap: 12, paddingHorizontal: 16, paddingTop: icon ? 12 : 8, paddingBottom: 10 }}>
-          {icon ? <View style={{ width: 40, height: 40, borderRadius: 16, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={20} /></View> : null}
+        <View style={{ flexDirection: "row", alignItems: icon || iconNode ? "flex-start" : "center", gap: 12, paddingHorizontal: 16, paddingTop: icon || iconNode ? 12 : 8, paddingBottom: 10 }}>
+          {iconNode ?? (icon ? <View style={{ width: 40, height: 40, borderRadius: 16, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={20} /></View> : null)}
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontFamily: icon ? F.display : F.bold, fontSize: icon ? 19 : 18, letterSpacing: icon ? -0.4 : 0, color: k.ink }}>{title}</Text>
-            {sub ? <Text style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 17, color: k.ink60, marginTop: 3 }}>{sub}</Text> : null}
+            <Text style={{ fontFamily: icon || iconNode ? F.display : F.bold, fontSize: icon ? 19 : 18, letterSpacing: icon ? -0.4 : 0, color: k.ink }}>{title}</Text>
+            {typeof sub === "string" ? <Text style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 17, color: k.ink60, marginTop: 3 }}>{sub}</Text> : sub ? <View style={{ marginTop: 3 }}>{sub}</View> : null}
           </View>
           {right}
           <Pressable accessibilityLabel="Close" onPress={onClose} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: icon ? "transparent" : k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="x" size={18} color={k.ink75} /></Pressable>
