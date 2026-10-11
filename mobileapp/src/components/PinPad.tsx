@@ -1,51 +1,95 @@
-import { useEffect } from "react";
-import { Pressable, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
+/** Port of webapp/components/lock/PinPad.tsx: title, dots that fill and shake, round keys, chevron delete. */
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Platform, Pressable, Text, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { Delete, Fingerprint, ScanFace } from "lucide-react-native";
+import Icon from "@/components/Icon";
+import { F, GRAPE, useC } from "@/web/kit";
+import { PIN_LENGTH } from "@/lib/lock";
 
-export const PIN_LEN = 6;
+export const PIN_LEN = PIN_LENGTH;
 
-/** Six dots that fill as you type, and shake on a wrong PIN. */
-export function PinDots({ value, shake }: { value: string; shake: number }) {
-  const x = useSharedValue(0);
-  useEffect(() => {
-    if (!shake) return;
-    x.value = withSequence(withTiming(-10, { duration: 50 }), withTiming(10, { duration: 50 }), withTiming(-8, { duration: 50 }), withTiming(8, { duration: 50 }), withTiming(0, { duration: 50 }));
-  }, [shake, x]);
-  const st = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
+function Dot({ on, dark, ink }: { on: boolean; dark: boolean; ink: string }) {
+  const s = useSharedValue(on ? 1.1 : 1);
+  useEffect(() => { s.value = withTiming(on ? 1.1 : 1, { duration: 150 }); }, [on, s]);
+  const st = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
+  return <Animated.View style={[{ width: 14, height: 14, borderRadius: 7, backgroundColor: on ? GRAPE : dark ? "rgba(255,255,255,0.25)" : ink }, st]} />;
+}
+
+function Key({ onPress, label, children, dark, plain }: { onPress: () => void; label: string; children: ReactNode; dark: boolean; plain?: boolean }) {
+  const k = useC();
   return (
-    <Animated.View style={[{ flexDirection: "row", gap: 16, justifyContent: "center" }, st]}>
-      {Array.from({ length: PIN_LEN }).map((_, i) => <Dot key={i} on={i < value.length} />)}
-    </Animated.View>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}
+      style={({ pressed }) => ({
+        width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center",
+        backgroundColor: plain ? "transparent" : dark ? (pressed ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)") : pressed ? GRAPE : k.tint,
+        transform: [{ scale: pressed ? 0.95 : 1 }],
+      })}>
+      {({ pressed }) => typeof children === "string"
+        ? <Text style={{ fontFamily: F.semi, fontSize: 26, color: dark ? "#fff" : pressed ? "#fff" : k.ink }}>{children}</Text>
+        : children}
+    </Pressable>
   );
 }
 
-function Dot({ on }: { on: boolean }) {
-  const st = useAnimatedStyle(() => ({ transform: [{ scale: withSpring(on ? 1.15 : 1, { damping: 12 }) }], backgroundColor: on ? "#8f6bff" : "transparent" }));
-  return <Animated.View style={[{ width: 13, height: 13, borderRadius: 7, borderWidth: 1.5, borderColor: on ? "#8f6bff" : "rgba(255,255,255,0.35)" }, st]} />;
-}
-
-/** Number pad. The bottom-left key is biometric when offered. */
-export function PinPad({ value, onChange, bio, onBio, disabled }: { value: string; onChange: (v: string) => void; bio?: "face" | "finger" | null; onBio?: () => void; disabled?: boolean }) {
-  const press = (k: string) => {
-    if (disabled) return;
+/** A phone-style PIN pad. Calls onDone with the digits; the parent shows errors. `side` fills the empty bottom-left slot. */
+export function PinPad({ title, sub, length = PIN_LEN, error, errorKey = 0, busy, onDone, dark = false, side }: {
+  title: string; sub?: string; length?: number; error?: string; errorKey?: number; busy?: boolean; onDone: (pin: string) => void; dark?: boolean; side?: ReactNode;
+}) {
+  const k = useC();
+  const [pin, setPin] = useState("");
+  const x = useSharedValue(0);
+  const pinRef = useRef(pin);
+  pinRef.current = pin;
+  useEffect(() => {
+    if (!error) return;
+    setPin("");
+    x.value = withSequence(withTiming(-8, { duration: 80 }), withTiming(8, { duration: 80 }), withTiming(-5, { duration: 80 }), withTiming(5, { duration: 80 }), withTiming(0, { duration: 80 }));
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+  }, [error, errorKey, x]);
+  const add = (d: string) => {
+    if (busy) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    if (k === "del") onChange(value.slice(0, -1));
-    else if (value.length < PIN_LEN) onChange(value + k);
+    const n = (pinRef.current + d).slice(0, length);
+    pinRef.current = n;
+    setPin(n);
+    if (n.length === length) onDone(n);
   };
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "bio", "0", "del"];
+  const del = () => { const n = pinRef.current.slice(0, -1); pinRef.current = n; setPin(n); };
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const on = (e: KeyboardEvent) => { if (/^[0-9]$/.test(e.key)) add(e.key); else if (e.key === "Backspace") del(); };
+    window.addEventListener("keydown", on);
+    return () => window.removeEventListener("keydown", on);
+  });
+  const shake = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
+  const ink = dark ? "#fff" : k.ink;
+  const soft = dark ? "rgba(255,255,255,0.7)" : k.ink60;
+  const row = (ds: string[]) => (
+    <View style={{ flexDirection: "row", gap: 16 }}>
+      {ds.map((d) => <Key key={d} label={d} dark={dark} onPress={() => add(d)}>{d}</Key>)}
+    </View>
+  );
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", rowGap: 14, columnGap: 26, maxWidth: 300, alignSelf: "center", opacity: disabled ? 0.4 : 1 }}>
-      {keys.map((k) => {
-        if (k === "bio" && !bio) return <View key={k} style={{ width: 72, height: 72 }} />;
-        return (
-          <Pressable key={k} accessibilityLabel={k === "del" ? "Delete" : k === "bio" ? "Use biometrics" : k} onPress={() => (k === "bio" ? onBio?.() : press(k))}
-            style={({ pressed }) => ({ width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? "rgba(143,107,255,0.25)" : k === "del" || k === "bio" ? "transparent" : "rgba(255,255,255,0.06)" })}>
-            {k === "del" ? <Delete color="#fff" size={24} /> : k === "bio" ? (bio === "face" ? <ScanFace color="#a58bff" size={28} /> : <Fingerprint color="#a58bff" size={28} />) : <Text style={{ color: "#fff", fontSize: 28, fontWeight: "500" }}>{k}</Text>}
-          </Pressable>
-        );
-      })}
+    <View style={{ alignItems: "center" }}>
+      <Text style={{ fontFamily: F.display, fontSize: 26, lineHeight: 28, letterSpacing: -0.8, color: ink, textAlign: "center" }}>{title}</Text>
+      {sub ? <Text style={{ marginTop: 8, textAlign: "center", fontFamily: F.sans, fontSize: 14, lineHeight: 20, color: soft }}>{sub}</Text> : null}
+      <Animated.View accessibilityLabel={`${pin.length} of ${length} digits`} style={[{ marginTop: 24, flexDirection: "row", gap: 12 }, shake]}>
+        {Array.from({ length }).map((_, i) => <Dot key={i} on={i < pin.length} dark={dark} ink={dark ? "" : k.dark ? "rgba(255,255,255,0.15)" : "rgba(10,10,10,0.15)"} />)}
+      </Animated.View>
+      <View style={{ marginTop: 12, minHeight: 20, justifyContent: "center" }}>
+        <Text accessibilityRole="alert" style={{ fontFamily: busy ? F.sans : F.semi, fontSize: 13, color: busy ? soft : "#ff5a5f", textAlign: "center" }}>{busy ? "Checking…" : error || ""}</Text>
+      </View>
+      <View style={{ marginTop: 8, gap: 16 }}>
+        {row(["1", "2", "3"])}
+        {row(["4", "5", "6"])}
+        {row(["7", "8", "9"])}
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <View style={{ width: 64, height: 64, alignItems: "center", justifyContent: "center" }}>{side}</View>
+          <Key label="0" dark={dark} onPress={() => add("0")}>0</Key>
+          <Key label="Delete" dark={dark} plain onPress={del}><Icon name="left" size={22} color={dark ? "rgba(255,255,255,0.8)" : k.ink75} /></Key>
+        </View>
+      </View>
     </View>
   );
 }
