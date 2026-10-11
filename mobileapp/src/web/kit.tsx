@@ -194,3 +194,44 @@ export function Grad({ stops, angle = 120, radial }: { stops: [string, number][]
     </Svg>
   );
 }
+
+/**
+ * The web `.btn` family (shared/styles/theme.css): pill, bold, 56px (sm 40/44px), with the solid 6px drop for brand/white
+ * and 5px grape drop for ink. Pressing scales to .97 like `.btn:active`.
+ */
+export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRight, disabled, style, full, children }: {
+  label?: string; onPress?: () => void; kind?: "brand" | "white" | "line" | "ghost" | "ink"; h?: number; fs?: number; icon?: string; iconRight?: string;
+  disabled?: boolean; style?: ViewStyle; full?: boolean; children?: ReactNode;
+}) {
+  const k = useC();
+  const drop = kind === "brand" || kind === "white" ? 6 : kind === "ink" ? 5 : 0;
+  const dropC = kind === "ink" ? GRAPE : "#3514b0";
+  const bg = kind === "brand" ? GRAPE : kind === "white" ? "#fff" : kind === "ghost" ? k.tint : kind === "ink" ? k.ink : "transparent";
+  const fg = kind === "brand" ? "#fff" : kind === "white" ? "#0a0a0a" : kind === "ink" ? k.bg : k.ink;
+  const size = fs ?? (h >= 52 ? 16 : 14);
+  return (
+    <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={label} onPress={() => { tap(); onPress?.(); }}
+      style={({ pressed }) => [{ alignSelf: full ? "stretch" : "flex-start", height: h + drop, opacity: disabled ? 0.55 : 1, transform: [{ scale: pressed && !disabled ? 0.97 : 1 }] }, style]}>
+      {drop ? <View style={{ position: "absolute", left: 0, right: 0, top: drop, height: h, borderRadius: 999, backgroundColor: dropC }} /> : null}
+      <View style={{ height: h, borderRadius: 999, backgroundColor: bg, borderWidth: kind === "line" ? 2 : 0, borderColor: k.ink, paddingHorizontal: h >= 52 ? 25.6 : 18.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8.8 }}>
+        {icon ? <Icon name={icon} size={size + 2} color={fg} /> : null}
+        {children ?? <Text style={{ fontFamily: F.bold, fontSize: size, color: fg }}>{label}</Text>}
+        {iconRight ? <Icon name={iconRight} size={size + 2} color={fg} /> : null}
+      </View>
+    </Pressable>
+  );
+}
+
+/** The web `.chip`: 38px tint pill, grape with a 4px deep drop when on. */
+export function Chip({ label, on, onPress, icon, style }: { label: string; on?: boolean; onPress?: () => void; icon?: ReactNode; style?: ViewStyle }) {
+  const k = useC();
+  return (
+    <Pressable accessibilityRole="button" accessibilityState={{ selected: !!on }} onPress={() => { tap(); onPress?.(); }} style={({ pressed }) => [{ height: 42.4, transform: [{ scale: pressed ? 0.97 : 1 }] }, style]}>
+      {on ? <View style={{ position: "absolute", left: 0, right: 0, top: 4, height: 38.4, borderRadius: 999, backgroundColor: "#3514b0" }} /> : null}
+      <View style={{ height: 38.4, borderRadius: 999, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 6.4, backgroundColor: on ? GRAPE : k.tint }}>
+        {icon}
+        <Text style={{ fontFamily: F.bold, fontSize: 14, color: on ? "#fff" : k.ink }}>{label}</Text>
+      </View>
+    </Pressable>
+  );
+}
