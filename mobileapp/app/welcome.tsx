@@ -163,7 +163,7 @@ export default function Welcome() {
         {PAGES.map((p, i) => (
           <Page key={p.key} i={i} x={x} width={width} active={page === i} label={p.label} title={p.title} body={p.body} hero={hero}>
             {i === 0 ? <Fit><Badge name={name} setName={setName} strap={56} /></Fit>
-              : <IntroAgent mode={MODES[i]} x={x} index={i} width={width - 40} height={height * 0.6} active={page === i} />}
+              : <IntroAgent mode={MODES[i]} x={x} index={i} width={width - 40} page={width} height={height * 0.6} active={page === i} />}
           </Page>
         ))}
       </Animated.ScrollView>
