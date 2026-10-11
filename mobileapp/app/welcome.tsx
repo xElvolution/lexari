@@ -47,11 +47,6 @@ function Art({ i, w }: { i: number; w: number }) {
   if (i === 1) return (
     <View style={box}>
       <View style={{ position: "absolute", left: "50%", top: h * 0.2, marginLeft: -80 }}><Face size={160} mood="speaking" animated /></View>
-      <Chip icon={<MessageCircle color="#a58bff" size={14} />} label="Chat" style={{ left: 0, top: h * 0.08 }} />
-      <Chip icon={<Phone color="#34d399" size={14} />} label="Calls" style={{ right: 4, top: h * 0.14 }} />
-      <Chip icon={<CalendarDays color="#7dd3fc" size={14} />} label="Meetings" style={{ left: 0, top: h * 0.62 }} />
-      <Chip icon={<Code2 color="#fcd34d" size={14} />} label="Build" style={{ right: 0, top: h * 0.68 }} />
-      <Chip icon={<TrendingUp color="#f9a8d4" size={14} />} label="Trade" style={{ left: "50%", marginLeft: -36, bottom: 0 }} />
     </View>
   );
   return (
