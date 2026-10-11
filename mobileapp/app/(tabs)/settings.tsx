@@ -10,6 +10,8 @@ import { useSession } from "@/state/session";
 import { usePrefs } from "@/state/prefs";
 import { AgentTile, F, GRAPE, Label, Pill, T, WSheet, ringOf, short, useC } from "@/web/kit";
 import { primaryOf, useData } from "@/web/data";
+import { UpgradeSheet } from "@/web/Plans";
+import { SECRET_NAME_RE, findSecrets, isBlockedKind, toSecretName } from "@/lib/secretScan";
 
 const SECTIONS = [
   { id: "general", label: "General", icon: "settings" },
@@ -301,27 +303,81 @@ function Integrations() {
   );
 }
 
+type SecretInfo = { id: string; name: string; label?: string; service?: string; last4?: string };
+/** Port of webapp/components/secrets/SecretsSection.tsx: vault list with add / delete sheets, and "How it works". */
 function Secrets() {
   const { token } = useSession();
-  const [list, setList] = useState<{ id: string; label: string; service: string; last4: string }[] | null>(null);
-  useEffect(() => { if (token) api<{ secrets: NonNullable<typeof list> }>("/api/secrets", {}, token).then((r) => setList(r.secrets)).catch(() => setList([])); }, [token]);
+  const k = useC();
+  const [list, setList] = useState<SecretInfo[] | null>(null);
+  const [err, setErr] = useState("");
+  const [edit, setEdit] = useState<{ kind: "add" } | { kind: "delete"; s: SecretInfo } | null>(null);
+  const [name, setName] = useState(""); const [service, setService] = useState(""); const [value, setValue] = useState(""); const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false); const [msg, setMsg] = useState("");
+  const load = () => { if (token) api<{ secrets: SecretInfo[] }>("/api/secrets", {}, token).then((r) => { setList(r.secrets); setErr(""); }).catch(() => setErr("Couldn't load your secrets.")); };
+  useEffect(load, [token]);
+  const save = async () => {
+    setMsg("");
+    if (!value.trim()) return setMsg("Paste the value first.");
+    if (!SECRET_NAME_RE.test(toSecretName(name))) return setMsg("Give it a name like CLOUDFLARE_API_TOKEN.");
+    const bad = (await findSecrets(value)).find((f) => isBlockedKind(f.kind));
+    if (bad) { setValue(""); return setMsg(`That looks like ${bad.label}. Lexari never stores those. Keep it private.`); }
+    setBusy(true);
+    try { const r = await api<{ secret: SecretInfo }>("/api/secrets", { method: "POST", body: JSON.stringify({ name: toSecretName(name), value, service: service || undefined, label: service ? `${service} key` : undefined }) }, token); setList((l) => [r.secret, ...(l ?? [])]); setEdit(null); setName(""); setService(""); setValue(""); }
+    catch (e) { setMsg(e instanceof Error ? e.message : "That didn't save."); } finally { setBusy(false); }
+  };
+  const del = async (x: SecretInfo) => { setBusy(true); try { await api(`/api/secrets/${x.id}`, { method: "DELETE" }, token); setList((l) => (l ?? []).filter((y) => y.id !== x.id)); setEdit(null); } catch { /* keep sheet */ } finally { setBusy(false); } };
+  const field = { height: 44, borderRadius: 14, borderWidth: 1, borderColor: k.line, backgroundColor: k.tint, color: k.ink, paddingHorizontal: 12, fontSize: 14 };
   return (
     <>
-      <Group title="Your secrets">
-        {(list ?? []).map((s, i, a) => <Row key={s.id} last={i === a.length - 1} title={s.label} desc={`${s.service} · ••••${s.last4}`} />)}
-        {list && !list.length ? <Row last title="No secrets yet" desc="Paste a key in a secure secret card and it lands here, masked." /> : null}
-      </Group>
-      <Group><Row last title="Add a secret" desc="Keys are encrypted and never shown again."><Small icon="plus" label="Add" onPress={() => router.push("/settings/secrets")} /></Row></Group>
+      <View style={{ marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, marginBottom: 6 }}>
+        <Label s={9.5} c={k.ink45}>Vault</Label>
+        <Pressable onPress={() => { setMsg(""); setEdit({ kind: "add" }); }} style={{ height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: GRAPE, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="plus" size={14} color="#fff" /><T f="bold" s={12.5} c="#fff">Add</T></Pressable>
+      </View>
+      <View style={{ borderRadius: 20, backgroundColor: k.card, borderWidth: 1, borderColor: k.line }}>
+        {err ? <View style={{ padding: 16 }}><T s={14} c={k.ink60}>{err} </T><Pressable onPress={load}><T f="bold" s={14} c={k.brandInk}>Try again</T></Pressable></View>
+          : list && !list.length ? <View style={{ padding: 16 }}><T s={13.5} c={k.ink60} style={{ lineHeight: 19 }}>Nothing saved yet. When an agent needs an API key or token it asks with a secure card in the chat, and it lands here.</T></View>
+          : (list ?? []).map((x, i) => (
+            <View key={x.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderTopWidth: i ? 1 : 0, borderTopColor: k.line }}>
+              <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="key" size={16} color={k.brandInk} /></View>
+              <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={13.5} lines={1} style={{ fontFamily: F.mono }}>{x.name}</T><T s={11.5} c={k.ink60} lines={1}>{`${x.service || x.label || "Secret"}${x.last4 ? ` · ••••${x.last4}` : ""}`}</T></View>
+              <Pressable accessibilityLabel={`Delete ${x.name}`} onPress={() => setEdit({ kind: "delete", s: x })} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="trash" size={15} color={k.ink75} /></Pressable>
+            </View>
+          ))}
+      </View>
+      <Label s={9.5} c={k.ink45} style={{ marginTop: 18, marginBottom: 6, paddingHorizontal: 4 }}>How it works</Label>
+      <View style={{ borderRadius: 20, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, padding: 16, gap: 10 }}>
+        {[["lock", "Encrypted on our server (AES-256). Nobody, not even your agents, can read a saved value back."], ["terminal", "Agents use a secret by name. It's added to their command only while it runs, and blocked out of anything they see."], ["eyeoff", "Never paste keys in chat. If you do, Lexari catches it and offers to save it here. Recovery phrases and private keys are always refused."]].map(([ic, t]) => (
+          <View key={ic} style={{ flexDirection: "row", gap: 10 }}><Icon name={ic} size={15} color={k.brandInk} /><T s={13} c={k.ink75} style={{ flex: 1, lineHeight: 18 }}>{t}</T></View>
+        ))}
+      </View>
+      <WSheet open={edit?.kind === "add"} title="Add a secret" sub="The value is encrypted and never shown again." icon="key" onClose={() => setEdit(null)}
+        footer={<Pill h={44} label={busy ? "Saving…" : "Save securely"} onPress={() => void save()} />}>
+        <View style={{ gap: 8 }}>
+          <TextInput value={name} onChangeText={(v) => setName(v.toUpperCase().replace(/[^A-Z0-9_]/g, "_").slice(0, 64))} placeholder="NAME" placeholderTextColor={k.ink45} autoCapitalize="characters" style={[field, { fontFamily: F.mono }]} />
+          <TextInput value={service} onChangeText={(v) => setService(v.slice(0, 40))} placeholder="Service" placeholderTextColor={k.ink45} style={field} />
+          <View style={[field, { flexDirection: "row", alignItems: "center", paddingHorizontal: 0 }]}>
+            <TextInput value={value} onChangeText={setValue} secureTextEntry={!show} autoCapitalize="none" autoCorrect={false} placeholder="Paste the value" placeholderTextColor={k.ink45} style={{ flex: 1, color: k.ink, paddingHorizontal: 12, fontFamily: F.mono, fontSize: 14, height: 44 }} />
+            <Pressable accessibilityLabel={show ? "Hide" : "Show"} onPress={() => setShow(!show)} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><Icon name={show ? "eyeoff" : "eye"} size={16} color={k.ink60} /></Pressable>
+          </View>
+          {msg ? <T s={12.5} c="#e5484d">{msg}</T> : null}
+        </View>
+      </WSheet>
+      <WSheet open={edit?.kind === "delete"} title={edit?.kind === "delete" ? `Delete ${edit.s.name}?` : ""} sub="Agents lose access right away. This can't be undone." icon="trash" onClose={() => setEdit(null)}
+        footer={<View style={{ flexDirection: "row", gap: 8 }}><Pill kind="outline" h={44} label="Keep" style={{ flex: 1 }} onPress={() => setEdit(null)} /><Pill h={44} label="Delete" style={{ flex: 1, backgroundColor: "#e5484d" }} onPress={() => edit?.kind === "delete" && void del(edit.s)} /></View>}>
+        <View />
+      </WSheet>
     </>
   );
 }
 
 function Billing() {
   const { me } = useData();
+  const [up, setUp] = useState(false);
   const plan = me?.plan;
   return (
     <>
-      <Group title="Plan"><Row last title={`${plan?.name ?? "Free"} plan`} desc={`${plan?.seats ?? 1} seat${plan?.seats === 1 ? "" : "s"}`}><Small label="Upgrade plan" onPress={() => router.push("/settings/billing")} /></Row></Group>
+      <Group title="Plan"><Row last title={`${plan?.name ?? "Free"} plan`} desc={`${plan?.seats ?? 1} seat${plan?.seats === 1 ? "" : "s"}`}><Small label="Upgrade plan" onPress={() => setUp(true)} /></Row></Group>
+      <UpgradeSheet open={up} mode="plans" onClose={() => setUp(false)} onTopUp={() => { setUp(false); router.push({ pathname: "/(tabs)/wallets", params: { topup: "1" } }); }} />
       <Group title="Hires"><Row last title="Specialists" desc="Specialists are a one-time $1 hire each, paid from your Lexari balance."><Small label="Wallet" onPress={() => router.navigate("/(tabs)/wallets")} /></Row></Group>
     </>
   );
