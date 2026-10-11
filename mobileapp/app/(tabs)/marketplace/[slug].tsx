@@ -7,7 +7,6 @@
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Share, View, useWindowDimensions } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import * as Clipboard from "expo-clipboard";
 import Icon from "@/components/Icon";
@@ -61,8 +60,8 @@ function Bob({ children }: { children: React.ReactNode }) {
 export default function HireDetail() {
   const { slug = "" } = useLocalSearchParams<{ slug: string }>();
   const k = useC();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const av = width <= 370 ? 0.8 : 0.78;
   const { me, reload } = useData();
   const { token } = useSession();
   const hire = useHire();
@@ -75,7 +74,7 @@ export default function HireDetail() {
 
   if (!a) {
     return (
-      <View style={{ flex: 1, backgroundColor: k.bg, paddingTop: insets.top + 40, padding: 24, alignItems: "center" }}>
+      <View style={{ flex: 1, backgroundColor: k.bg, paddingTop: 40, padding: 24, alignItems: "center" }}>
         <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="search" size={22} color={k.brandInk} /></View>
         <T f="bold" s={20} style={{ marginTop: 14, textAlign: "center" }}>That agent isn't on the marketplace.</T>
         <T s={15} c={k.ink75} style={{ marginTop: 6, textAlign: "center" }}>It may have been renamed. Head back to find someone else.</T>
@@ -113,14 +112,14 @@ export default function HireDetail() {
 
   return (
     <HireCtx.Provider value={hire.start}>
-      <View style={{ flex: 1, backgroundColor: k.bg, paddingTop: insets.top }}>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: insets.bottom + 40 }}>
-          <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace("/marketplace"))} style={{ flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", paddingVertical: 4 }}>
+      <View key={slug} style={{ flex: 1, backgroundColor: k.bg }}>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 }}>
+          <Pressable onPress={() => router.navigate("/marketplace")} style={{ flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", paddingVertical: 4 }}>
             <Icon name="back" size={16} color={k.ink75} /><T f="bold" s={14} c={k.ink75}>Marketplace</T>
           </Pressable>
 
           {/* banner, like a collection page: the face sits on its bottom edge */}
-          <View style={{ marginTop: 16, height: 128, borderRadius: 24, overflow: "hidden" }}>
+          <View style={{ marginTop: 20, height: 128, borderRadius: 18, overflow: "hidden" }}>
             <Grad angle={135} stops={[[`${PALETTE[a.face].shade}`, 0], ["#120d26", 1]]} radial={[{ cx: "88%", cy: "0%", r: "110%", color: col, opacity: 1 }]} />
             <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0.4, flexDirection: "row", flexWrap: "wrap" }}>
               {Array.from({ length: Math.ceil(width / 16) * 9 }).map((_, i) => <View key={i} style={{ width: 16, height: 16, alignItems: "center", justifyContent: "center" }}><View style={{ width: 2, height: 2, borderRadius: 1, backgroundColor: "rgba(255,255,255,0.28)" }} /></View>)}
@@ -129,7 +128,8 @@ export default function HireDetail() {
             <View style={{ position: "absolute", left: -40, top: -64, width: 192, height: 192, borderRadius: 96, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" }} />
             <View style={{ position: "absolute", right: 12, top: 12, borderRadius: 999, backgroundColor: "rgba(0,0,0,0.3)", paddingHorizontal: 10, paddingVertical: 4 }}><Label s={11} c="rgba(255,255,255,0.85)" style={{ lineHeight: 16.5, letterSpacing: 0.44 }}>{m.cat}</Label></View>
           </View>
-          <View style={{ marginTop: -44, marginLeft: 12, alignSelf: "flex-start", borderRadius: 30, backgroundColor: k.bg, padding: 4, zIndex: 2 }}><AgentTile slug={a.slug} size={104} radius={28} face={86} dot={false} /></View>
+          {/* the phone site scales agent tiles by --av-scale (.78 up to 370px wide .8): 104 -> 81, face 86 -> 67 */}
+          <View style={{ marginTop: -44, marginLeft: 12, alignSelf: "flex-start", borderRadius: 22, backgroundColor: k.bg, padding: 4, zIndex: 2 }}><AgentTile slug={a.slug} size={Math.round(104 * av)} radius={Math.round(28 * av)} face={Math.round(86 * av)} dot={false} /></View>
 
           <View style={{ marginTop: 12 }}>
             <T f="display" s={26} style={{ lineHeight: 24.7, letterSpacing: -1.17 }}>{a.name}</T>
@@ -139,29 +139,29 @@ export default function HireDetail() {
               {a.free || m.free ? chip(a.free ? "Free · no seat" : "Free to try", true) : null}
               {m.isNew ? <View style={{ borderRadius: 999, backgroundColor: k.ink, paddingHorizontal: 10, paddingVertical: 4 }}><T f="semi" s={13} c={k.bg} style={{ lineHeight: 19.5 }}>New</T></View> : null}
             </View>
-            <View style={{ flexDirection: "row", marginTop: 20 }}>
+            <View style={{ flexDirection: "row", marginTop: 16 }}>
               {stats.map((x, i) => (
                 <View key={i} style={{ flex: 1, paddingHorizontal: 12, paddingLeft: i ? 12 : 0, borderLeftWidth: i ? 1 : 0, borderLeftColor: k.line, alignItems: "center" }}>
                   <View style={{ height: 28, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>{x.top}</View>
-                  <T s={12} c={k.ink45} lines={1} style={{ marginTop: 2 }}>{x.sub}</T>
+                  <T s={12} c={k.ink45} lines={1} style={{ marginTop: 2, lineHeight: 18 }}>{x.sub}</T>
                 </View>
               ))}
             </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12, marginTop: 24 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 18 }}>
               {hired ? (
                 <>
-                  <Pressable onPress={() => router.push(`/chat/${a.slug}`)} style={{ height: 48, paddingHorizontal: 28, borderRadius: 24, backgroundColor: GRAPE, flexDirection: "row", alignItems: "center", gap: 8 }}><T f="bold" s={16} c="#fff">{`Chat with ${a.name}`}</T><Icon name="arrow" size={17} color="#fff" /></Pressable>
-                  <Pressable onPress={() => void release()} disabled={busy} style={{ height: 48, paddingHorizontal: 20, borderRadius: 24, borderWidth: 1, borderColor: k.line, justifyContent: "center", opacity: busy ? 0.5 : 1 }}><T f="bold" s={15}>{a.free ? "Release" : "Release seat"}</T></Pressable>
+                  <Pressable onPress={() => router.push(`/chat/${a.slug}`)} style={{ height: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: GRAPE, flexDirection: "row", alignItems: "center", gap: 8 }}><T f="bold" s={15} c="#fff">{`Chat with ${a.name}`}</T><Icon name="arrow" size={17} color="#fff" /></Pressable>
+                  <Pressable onPress={() => void release()} disabled={busy} style={{ height: 44, paddingHorizontal: 20, borderRadius: 22, borderWidth: 1, borderColor: k.line, justifyContent: "center", opacity: busy ? 0.5 : 1 }}><T f="bold" s={14.5}>{a.free ? "Release" : "Release seat"}</T></Pressable>
                 </>
               ) : <HireBtn a={a} lg />}
-              <Pressable accessibilityLabel="Share" onPress={() => void share()} style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="copy" size={18} color={k.ink} /></Pressable>
+              <Pressable accessibilityLabel="Share" onPress={() => void share()} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name="copy" size={18} color={k.ink} /></Pressable>
               <T s={13} c={k.ink45}>{`Joins your team next to ${home || "your agent"}`}</T>
             </View>
             {note ? <T f="semi" s={13} c={k.brandInk} style={{ marginTop: 10 }}>{note}</T> : null}
           </View>
 
           {/* previews */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={cardW + 16} decelerationRate="fast" style={{ marginHorizontal: -16, marginTop: 40 }} contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: 8 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={cardW + 16} decelerationRate="fast" style={{ marginHorizontal: -16, marginTop: 25 }} contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingBottom: 8 }}>
             {previews.map((p, i) => (
               <View key={p.ex} style={{ width: cardW, borderRadius: 28, overflow: "hidden", padding: 16 }}>
                 {i % 2 ? <Grad angle={160} stops={[["#0a0a0a", 0], ["#2a0f9a", 1]]} /> : <Grad angle={160} stops={[["#5b2bff", 0], [PALETTE[a.face].shade, 1]]} radial={[{ cx: "100%", cy: "100%", r: "90%", color: "#1d0f5c", opacity: 0.55 }]} />}
