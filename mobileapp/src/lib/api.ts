@@ -1,21 +1,30 @@
 import { env } from "./env";
-import { userAgent } from "./device";
 import { takeSse } from "./sse";
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  data?: unknown;
+  constructor(status: number, message: string, data?: unknown) {
     super(message);
     this.status = status;
+    this.data = data;
   }
 }
+
+/**
+ * Settings > Security step-up, as on the web: a high-risk action answers 401 { stepup }. The confirm sheet
+ * (components/StepUpSheet) registers here; api() opens it, and once you confirm (PIN or wallet) the same request runs once more.
+ */
+type StepUpHandler = (what: string) => Promise<boolean>;
+let stepUpHandler: StepUpHandler | null = null;
+export function setStepUpHandler(h: StepUpHandler | null) { stepUpHandler = h; }
 
 let agent = "LexariAndroid/1.0.0 (Android)";
 export function setUserAgent(value: string) {
   agent = value;
 }
 
-export async function api<T>(path: string, init: RequestInit = {}, token?: string | null): Promise<T> {
+export async function api<T>(path: string, init: RequestInit = {}, token?: string | null, retried = false): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("accept", "application/json");
   headers.set("user-agent", agent);
@@ -28,11 +37,16 @@ export async function api<T>(path: string, init: RequestInit = {}, token?: strin
   if (text) {
     try { data = JSON.parse(text); } catch { data = { error: text.slice(0, 180) }; }
   }
+  const step = res.status === 401 && data && typeof data === "object" ? (data as { stepup?: { what?: string } }).stepup : undefined;
+  if (step && !retried && stepUpHandler) {
+    if (await stepUpHandler(step.what || "continue")) return api<T>(path, init, token, true);
+    throw new ApiError(401, "You didn't confirm, so nothing changed.", data);
+  }
   if (!res.ok) {
     const msg = (data && typeof data === "object" && "error" in data && typeof (data as { error: unknown }).error === "string")
       ? (data as { error: string }).error
       : `Request failed (${res.status})`;
-    throw new ApiError(res.status, msg);
+    throw new ApiError(res.status, msg, data);
   }
   return data as T;
 }

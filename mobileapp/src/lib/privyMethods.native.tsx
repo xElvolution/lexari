@@ -58,3 +58,15 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
     verify: async (email, code) => { await emailLogin.loginWithCode({ code, email }); await finish(email); },
   };
 }
+
+/** Sign a plain message with this account's Privy embedded wallet (no prompt). Base64, like sign-in. Null when there's none. */
+export function usePrivySigner(): ((message: string) => Promise<string>) | null {
+  const solana = useEmbeddedSolanaWallet();
+  const wallet = solana.wallets?.[0];
+  if (!wallet) return null;
+  return async (message: string) => {
+    const provider = await wallet.getProvider();
+    const signed = await provider.request({ method: "signMessage", params: { message } });
+    return signed.signature;
+  };
+}
