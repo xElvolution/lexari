@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from "expo-router";
 /** Port of webapp/components/wallet/WalletsView.tsx at phone width: Wallet / Cards tabs, Lexari balance (Top up, History), each agent's wallet (Fund, Move to balance). */
 import { useEffect, useState } from "react";
 import { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
@@ -24,7 +25,8 @@ export default function Wallets() {
   const { me, wallet, reload } = useData();
   const { hideBalances, toggleBalances } = usePrefs();
   const [tab, setTab] = useState<"wallet" | "cards">("wallet");
-  const [sheet, setSheet] = useState<"topup" | "history" | null>(null);
+  const qp = useLocalSearchParams<{ topup?: string }>();
+  const [sheet, setSheet] = useState<"topup" | "history" | null>(qp.topup ? "topup" : null);
   const [fund, setFund] = useState<{ slug: string; name: string } | null>(null);
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");

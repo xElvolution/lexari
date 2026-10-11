@@ -26,7 +26,7 @@ export default function HireDetail() {
         setOk(`${person.name} is on your team.`);
         return;
       }
-      router.push({ pathname: "/topup", params: { coin: "SKR", hire: person.slug } });
+      router.push({ pathname: "/(tabs)/wallets", params: { topup: "1" } });
     } catch (e) { setErr(e instanceof Error ? e.message : "Hire did not go through."); }
   };
 
