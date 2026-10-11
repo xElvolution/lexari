@@ -1,10 +1,10 @@
 /** Port of webapp/components/lock/LockSettings.tsx: turn the app lock on, change the PIN or turn it off (server PIN). */
 import { useEffect, useState } from "react";
-import { Modal, Pressable, Switch, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Icon from "./Icon";
 import { PinPad } from "./PinPad";
-import { Btn, F, GRAPE, useC } from "@/web/kit";
+import { Btn, F, WToggle, useC } from "@/web/kit";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
 import { useData } from "@/web/data";
@@ -83,7 +83,7 @@ export function SecurityRows() {
             <Text style={{ fontFamily: F.semi, fontSize: 15, color: k.ink }}>{bio.label}</Text>
             <Text style={{ fontFamily: F.sans, fontSize: 13, color: k.ink60 }}>Open Lexari with {bio.label} on this phone. Your PIN still works.</Text>
           </View>
-          <Switch value={bioOn} onValueChange={(v) => void toggleBio(v)} trackColor={{ true: GRAPE, false: k.tint }} thumbColor="#fff" />
+          <WToggle on={bioOn} onChange={(v) => void toggleBio(v)} label={`Unlock with ${bio?.label || "biometrics"}`} />
         </View>
       ) : null}
       {note ? <View style={{ alignSelf: "flex-start", borderRadius: 14, backgroundColor: k.ink, paddingHorizontal: 12, paddingVertical: 6, marginBottom: 8 }}><Text style={{ fontFamily: F.semi, fontSize: 12.5, color: k.bg }}>{note}</Text></View> : null}
