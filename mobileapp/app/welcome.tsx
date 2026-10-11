@@ -6,11 +6,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { tap } from "@/components/ui";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
-import { BADGE, COPY, DeskShift, Display, FloorPlan, HeroBadge, HeroTitle, LandingBg, MemoryNotes, RosterFan, SectionLabel } from "@/components/Landing";
+import { BADGE, COPY, Display, HeroTitle, SectionLabel } from "@/components/Landing";
+import { BRAND_BG, BrandBg, GlowIllustration } from "@/components/BrandBg";
 import { GRAPE, T } from "@/web/kit";
 import { LandingLogo } from "@/components/Landing";
 
 const SECTIONS = [COPY.desk, COPY.memory, COPY.roster, COPY.seats];
+const ART = ["monitor", "memory", "users", "team"];
 
 export default function Welcome() {
   const { width, height } = useWindowDimensions();
@@ -18,35 +20,32 @@ export default function Welcome() {
   const { setOnboarded } = usePrefs();
   const { token } = useSession();
   const [page, setPage] = useState(0);
-  const [name, setName] = useState(BADGE.defaultName);
+  const [name] = useState(BADGE.defaultName);
   const ref = useRef<ScrollView>(null);
   const N = 5;
   const done = () => { setOnboarded(); router.replace(token ? "/(tabs)/agents" : { pathname: "/(auth)/sign-in", params: { name } }); };
   const go = (p: number) => { ref.current?.scrollTo({ x: width * p, animated: true }); setPage(p); };
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => { const p = Math.round(e.nativeEvent.contentOffset.x / width); if (p !== page) { setPage(p); tap(); } };
-  const inner = width - 40;
-
+  
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <LandingBg width={width} height={height} grape={page === 0} />
+    <View style={{ flex: 1, backgroundColor: BRAND_BG }}>
+      <BrandBg width={width} height={height} cy="40%" />
       <View style={{ paddingTop: insets.top + 10, paddingHorizontal: 20, height: insets.top + 58, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <LandingLogo />
         {page < N - 1 ? <Pressable onPress={() => { tap(); done(); }} hitSlop={12} style={{ height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", justifyContent: "center" }}><T f="bold" s={13} c="#fff">Skip</T></Pressable> : null}
       </View>
       <ScrollView ref={ref} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64} style={{ flex: 1 }}>
         <View style={{ width, paddingHorizontal: 20, paddingTop: 14 }}>
-          <HeroTitle s={44} />
-          <View style={{ alignItems: "center", marginTop: -6, height: 470 }}><View style={{ transform: [{ scale: 0.74 }], marginTop: -40 }}><HeroBadge name={name} setName={setName} /></View></View>
+          <HeroTitle s={40} />
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><GlowIllustration size={220} /></View>
         </View>
         {SECTIONS.map((S, i) => (
-          <ScrollView key={S.label} style={{ width }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+          <View key={S.label} style={{ width, paddingHorizontal: 20, paddingTop: 10 }}>
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><GlowIllustration icon={ART[i]} size={210} /></View>
             <SectionLabel>{S.label}</SectionLabel>
-            <Display s={34} style={{ marginTop: 14 }}>{S.title}</Display>
-            {i === 0 ? <View style={{ marginTop: 20 }}><DeskShift width={inner} /></View> : null}
-            {i === 1 ? <><T s={14.5} c="rgba(255,255,255,0.72)" style={{ marginTop: 12, lineHeight: 21 }}>{S.body}</T><View style={{ marginTop: 10 }}><MemoryNotes width={inner} /></View></> : null}
-            {i === 2 ? <><T s={14.5} c="rgba(255,255,255,0.72)" style={{ marginTop: 12, lineHeight: 21 }}>{S.body}</T><View style={{ marginTop: 22 }}><RosterFan width={inner} /></View></> : null}
-            {i === 3 ? <><T s={14.5} c="rgba(255,255,255,0.72)" style={{ marginTop: 12, lineHeight: 21 }}>{S.body}</T><View style={{ marginTop: 22 }}><FloorPlan width={inner} /></View></> : null}
-          </ScrollView>
+            <Display s={32} style={{ marginTop: 12 }}>{S.title}</Display>
+            {S.body ? <T s={14.5} c="rgba(255,255,255,0.72)" style={{ marginTop: 10, lineHeight: 21 }}>{S.body}</T> : null}
+          </View>
         ))}
       </ScrollView>
       <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 18, paddingTop: 10, gap: 16 }}>
