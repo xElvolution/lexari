@@ -348,7 +348,7 @@ export default function Settings() {
   const body: Record<Sec, ReactNode> = { general: <General />, personal: <Personal />, agents: <AgentsSec />, models: <Models />, notifications: <Notifs />, data: <Data />, security: <Security />, accounts: <Accounts />, social: <Social />, integrations: <Integrations />, secrets: <Secrets />, billing: <Billing />, about: <About /> };
   if (!cur) return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, paddingBottom: 32 }}>
-      <T f="display" s={23} style={{ letterSpacing: -1.1 }}>Settings</T>
+      <T f="display" s={20.5} style={{ letterSpacing: -1.1 }}>Settings</T>
       <View style={{ marginTop: 14 }}>
         {SECTIONS.map((x) => (
           <Pressable key={x.id} onPress={() => setSec(x.id)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: pressed ? k.tint : "transparent" })}>

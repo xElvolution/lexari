@@ -1,6 +1,6 @@
 /** Port of webapp/components/brain/Brain.tsx: the turning point-cloud brain (same geometry and area colours as scene.ts), area labels with counts, swipe between agents, and the area panel. */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanResponder, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
+import { PanResponder, Pressable, ScrollView, Share, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import Svg, { Circle, Polyline } from "react-native-svg";
 import Icon from "@/components/Icon";
@@ -86,7 +86,13 @@ export default function Brain() {
   const mem = (me?.memories ?? []).filter((m) => ((m as { agent?: string }).agent || "home") === (who?.slug ?? "home"));
   const hired = (me?.agents ?? []).filter((a) => a.kind === "hired");
   const skills = who?.slug === "home" ? (who.skills?.length ? who.skills : ["web", "files", "code", "calendar"]) : who?.skills ?? [];
-  const files = 0;
+  const fileList = (me?.jobs ?? []).map((j, i) => ({ j, i })).filter(({ j }) => j.status !== "running" && (j.assignee || "home") === (who?.slug ?? "home") && j.output).map(({ j, i }) => {
+    const title = j.title || j.prompt.slice(0, 80);
+    const name = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "output"}.md`;
+    const body = `# ${title}\n\nAsked: ${j.prompt}\n\n${j.output}\n`;
+    return { name, job: i + 1, size: `${Math.max(1, Math.round(body.length / 1024))} KB`, body };
+  });
+  const files = fileList.length;
   const count = (id: string) => (id === "Files" ? files : id === "Hired agents" ? hired.length : id === "Skills" ? skills.length : mem.filter((m) => (m as { tag?: string }).tag === id).length);
   const stageH = height - 56 - 66 - 40;
   const cx = width / 2, cy = stageH * 0.58, S = Math.min(width, stageH) * 0.95;
@@ -135,7 +141,14 @@ export default function Brain() {
                 <Label s={9} c={k.ink60} style={{ marginTop: 6 }}>{`${(n as { source?: string }).source ?? "You"} · ${new Date((n as { at: number }).at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}</Label>
               </View>
             )) : <View style={{ borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: k.line, padding: 20 }}><T s={14} c={k.ink75} style={{ textAlign: "center" }}>{`Nothing here yet. Teach ${name} something below.`}</T></View>) : null}
-            {c.id === "Files" ? <View style={{ borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: k.line, padding: 20 }}><T s={14} c={k.ink75} style={{ textAlign: "center" }}>No files yet. Finished jobs save them here.</T></View> : null}
+            {c.id === "Files" && fileList.length ? fileList.map((f) => (
+              <View key={`${f.job}-${f.name}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, backgroundColor: k.alt, borderWidth: 1, borderColor: k.line, padding: 12 }}>
+                <View style={{ width: 32, height: 36, borderRadius: 6, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><T f="bold" s={9} c="#fff">MD</T></View>
+                <View style={{ flex: 1 }}><T f="mono" s={13} lines={1}>{f.name}</T><Label s={9} c={k.ink60} style={{ marginTop: 4 }}>{`Job #${String(f.job).padStart(3, "0")} · ${f.size}`}</Label></View>
+                <Pressable accessibilityLabel={`Download ${f.name}`} onPress={() => void Share.share({ title: f.name, message: f.body })} style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}><Icon name="download" size={15} color={k.ink75} /></Pressable>
+              </View>
+            )) : null}
+            {c.id === "Files" && !fileList.length ? <View style={{ borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: k.line, padding: 20 }}><T s={14} c={k.ink75} style={{ textAlign: "center" }}>No files yet. Finished jobs save them here.</T></View> : null}
             {c.id === "Skills" ? skills.map((s) => (
               <View key={s} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, backgroundColor: k.alt, borderWidth: 1, borderColor: k.line, padding: 12 }}>
                 <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: col(focus), alignItems: "center", justifyContent: "center" }}><Icon name="check" size={15} stroke={3} color={k.dark ? "#0a0a0a" : "#fff"} /></View>

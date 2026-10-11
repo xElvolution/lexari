@@ -38,7 +38,7 @@ export default function Wallets() {
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, paddingBottom: 32 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} tintColor={k.ink} />}>
         <Label>Money</Label>
-        <T f="display" s={23} style={{ marginTop: 10, letterSpacing: -1.1 }}>Wallet.</T>
+        <T f="display" s={20.5} style={{ marginTop: 10, letterSpacing: -1.1 }}>Wallet.</T>
         <T s={15} c={k.ink75} style={{ marginTop: 8, lineHeight: 21 }}>Your Lexari balance, and the wallets your agents hold.</T>
         <Segs style={{ marginTop: 16, alignSelf: "flex-start", width: 220 }} on={tab} set={setTab} items={[{ k: "wallet", label: "Wallet", icon: "wallet" }, { k: "cards", label: "Cards", icon: "idcard" }]} />
 

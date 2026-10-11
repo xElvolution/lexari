@@ -11,7 +11,8 @@ export type Me = {
   profile: { name?: string; username?: string; avatar?: string };
   plan: { id: string; name: string; seats: number };
   prefs?: { defaultAgent?: string; hideBalance?: boolean; language?: string; voice?: string };
-  agents: Agent[]; chats: Chat[]; memories?: { id: string; agent?: string; tag?: string; source?: string; at: number }[]; hires?: unknown[];
+  agents: Agent[]; chats: Chat[]; jobs?: { id: string; assignee?: string; title?: string; prompt: string; status: string; output?: string; startedAt: number; finishedAt?: number }[];
+  memories?: { id: string; agent?: string; tag?: string; source?: string; at: number }[]; hires?: unknown[];
 };
 export type Quest = { id: string; period: string; goal: number; reward: number; progress: number; claimed: boolean };
 export type HubState = { program?: { live: boolean }; player?: { coins: number; lifetime: number; streak: number; checkedInToday: boolean; lastCheckIn?: number } | null; levels?: { slug: string; name: string; level: number; xp: number }[]; quests?: Quest[]; achievements?: { id: string; done?: boolean }[]; referrals?: number; box?: { openedToday?: boolean } };
