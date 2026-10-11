@@ -81,11 +81,11 @@ export function ringOf(slug: string, kind?: string, primary = "home"): Ring {
   return slug === "home" || kind === "custom" || slug.startsWith("c-") ? "made" : "hired";
 }
 /** An agent face on its tile with the gold / purple / silver ring and a presence dot (faces.tsx AgentTile). */
-export function AgentTile({ slug, look, size = 48, ring, dot = true, live = false, mood, radius }: { slug: string; look?: unknown; size?: number; ring?: Ring; dot?: boolean; live?: boolean; mood?: "idle" | "thinking" | "speaking" | "happy"; radius?: number }) {
+export function AgentTile({ slug, look, size = 48, ring, dot = true, live = false, mood, radius, face: faceSize }: { slug: string; look?: unknown; size?: number; ring?: Ring; dot?: boolean; live?: boolean; mood?: "idle" | "thinking" | "speaking" | "happy"; radius?: number; /** face size inside the tile (default 74% of it) */ face?: number }) {
   const k = useC();
   const r = radius ?? Math.round(size * 0.32), d = Math.max(8, Math.round(size * 0.24));
   const rc = ring === "primary" ? GOLD : ring === "made" ? GRAPE_SOFT : ring === "hired" ? (k.dark ? SILVER : "#a9aebb") : null;
-  const face = Math.round(size * 0.74);
+  const face = faceSize ?? Math.round(size * 0.74);
   const lk = look && typeof look === "object" && Object.keys(look as object).some((x) => x !== "v") ? lookVariant(look as never) : null;
   return (
     <View style={{ width: size, height: size }}>
