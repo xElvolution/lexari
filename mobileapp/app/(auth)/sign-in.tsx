@@ -9,6 +9,7 @@ import Constants from "expo-constants";
 import Svg, { Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { Mail, ShieldCheck, Wallet } from "lucide-react-native";
 import { Button, Face, Sheet, T, tap } from "@/components/ui";
+import { FaceRow } from "@/components/Landing";
 import { LogoMark } from "@/components/Logo";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
@@ -147,11 +148,7 @@ function SignInView({ methods, onSession }: { methods: Methods; onSession: (s: S
       </Svg>
       <View style={{ flex: 1, paddingTop: insets.top + 24, paddingHorizontal: 24, paddingBottom: insets.bottom + 20 }}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <View style={{ flexDirection: "row", alignItems: "flex-end", marginBottom: 22 }}>
-            <View style={{ marginRight: -14, marginBottom: -4 }}><Face slug="scout" size={58} /></View>
-            <View style={{ zIndex: 2 }}><Face size={96} animated /></View>
-            <View style={{ marginLeft: -14, marginBottom: -4 }}><Face slug="pulse" size={58} /></View>
-          </View>
+          <View style={{ marginBottom: 26 }}><FaceRow size={70} /></View>
           <LogoMark size={44} />
           <Text style={{ color: "#fff", fontSize: 30, fontWeight: "700", letterSpacing: -1, marginTop: 16, textAlign: "center" }}>Welcome to Lexari</Text>
           <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 14.5, lineHeight: 21, marginTop: 8, textAlign: "center", maxWidth: 300 }}>Sign in to meet your personalized AI agent. It takes less than a minute.</Text>

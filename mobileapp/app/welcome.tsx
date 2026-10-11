@@ -1,14 +1,12 @@
 import { useRef, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { Pressable, ScrollView, Text, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useAnimatedStyle, withSpring } from "react-native-reanimated";
-import { BadgeCheck, CalendarDays, Code2, Fingerprint, MessageCircle, Phone, ShieldCheck, TrendingUp } from "lucide-react-native";
-import { Button, Face, tap } from "@/components/ui";
+import { Button, tap } from "@/components/ui";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
-import { COINS } from "@/content/roster";
-import { grape } from "@/theme/colors";
+import { BADGE, DeskBrief, HeroBadge, RosterCard } from "@/components/Landing";
 
 const PAGES = [
   { title: "Meet your\npersonalized AI agent", body: "An agent that is only yours, with a name, a face and an ID card. It shows up every day and gets to know how you like things done." },
@@ -16,64 +14,14 @@ const PAGES = [
   { title: "Hire more\nas you grow", body: "Bring in specialists from the marketplace when the job gets bigger than one desk. You approve every payment from your wallet." },
 ];
 
-function Chip({ icon, label, style }: { icon: React.ReactNode; label: string; style: object }) {
-  return (
-    <View style={[{ position: "absolute", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: "#13101f", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" }, style]}>
-      {icon}
-      <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>{label}</Text>
-    </View>
-  );
-}
-
 function Art({ i, w }: { i: number; w: number }) {
-  const h = Math.min(330, w * 0.86);
-  const box = { width: w - 40, height: h, alignSelf: "center" as const };
-  if (i === 0) return (
-    <View style={box}>
-      <View style={{ position: "absolute", left: "50%", top: h * 0.12, marginLeft: -70 }}><Face size={140} animated mood="idle" /></View>
-      <View style={{ position: "absolute", left: 6, top: h * 0.06 }}><Face slug="scout" size={64} /></View>
-      <View style={{ position: "absolute", right: 10, top: h * 0.02 }}><Face slug="quill" size={58} /></View>
-      <View style={{ position: "absolute", left: 22, top: h * 0.56 }}><Face slug="tally" size={56} /></View>
-      <View style={{ position: "absolute", right: 16, top: h * 0.52 }}><Face slug="frame" size={66} /></View>
-      <View style={{ position: "absolute", bottom: 4, alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: "#13101f", borderWidth: 1, borderColor: "rgba(143,107,255,0.45)" }}>
-        <BadgeCheck color="#a58bff" size={18} />
-        <View>
-          <Text style={{ color: "#fff", fontSize: 12.5, fontWeight: "700" }}>Nova · Agent ID</Text>
-          <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 10.5, fontFamily: "monospace" }}>BbnD…M6Po · Solana</Text>
-        </View>
-      </View>
-    </View>
-  );
-  if (i === 1) return (
-    <View style={box}>
-      <View style={{ position: "absolute", left: "50%", top: h * 0.2, marginLeft: -80 }}><Face size={160} mood="speaking" animated /></View>
-    </View>
-  );
+  const [name, setName] = useState(BADGE.defaultName);
+  if (i === 0) return <View style={{ alignItems: "center", height: 400, marginTop: -40 }}><View style={{ transform: [{ scale: 0.8 }], marginTop: -50 }}><HeroBadge name={name} setName={setName} width={250} /></View></View>;
+  if (i === 1) return <View style={{ alignItems: "center" }}><DeskBrief width={w} /></View>;
   return (
-    <View style={[box, { justifyContent: "center" }]}>
-      <View style={{ borderRadius: 26, padding: 18, backgroundColor: grape, overflow: "hidden" }}>
-        <View style={{ position: "absolute", right: -40, top: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.12)" }} />
-        <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, fontWeight: "600", letterSpacing: 0.6 }}>BALANCE</Text>
-        <Text style={{ color: "#fff", fontSize: 32, fontWeight: "700", letterSpacing: -1, marginTop: 2 }}>$1,240.50</Text>
-        <View style={{ flexDirection: "row", marginTop: 10 }}>
-          {COINS.slice(0, 4).map((c, k) => <Image key={c.id} source={c.logo} style={{ width: 24, height: 24, borderRadius: 12, marginLeft: k ? -6 : 0, borderWidth: 2, borderColor: grape }} />)}
-        </View>
-      </View>
-      <View style={{ marginTop: 12, borderRadius: 20, padding: 14, backgroundColor: "#13101f", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", gap: 10 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <Face slug="scout" size={30} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: "#fff", fontSize: 12.5, fontWeight: "600" }}>Scout · daily budget</Text>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.1)", marginTop: 6 }}><View style={{ width: "38%", height: 6, borderRadius: 3, backgroundColor: "#8f6bff" }} /></View>
-          </View>
-          <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 11 }}>$3.80 / $10</Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(52,211,153,0.15)", alignItems: "center", justifyContent: "center" }}><ShieldCheck color="#34d399" size={16} /></View>
-          <Text style={{ color: "#fff", fontSize: 12.5, flex: 1 }}>Every payment needs your OK</Text>
-          <Fingerprint color="#a58bff" size={20} />
-        </View>
-      </View>
+    <View style={{ height: 380, alignItems: "center" }}>
+      <View style={{ position: "absolute", left: w / 2 - 20, top: 26, opacity: 0.55, transform: [{ rotate: "6deg" }] }}><RosterCard i={1} width={210} /></View>
+      <View style={{ position: "absolute", left: w / 2 - 190, top: 0, transform: [{ rotate: "-4deg" }] }}><RosterCard i={0} width={230} /></View>
     </View>
   );
 }
