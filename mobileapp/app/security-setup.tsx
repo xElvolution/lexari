@@ -45,7 +45,7 @@ export default function SecuritySetup() {
 
   const finish = () => {
     setSecurityAsked();
-    if (changing) router.back(); else router.replace("/(tabs)/hub");
+    if (changing) router.back(); else router.replace("/(tabs)/agents");
   };
 
   const enableBio = async () => {

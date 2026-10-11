@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { Bell, BellOff } from "lucide-react-native";
-import { IconButton, Muted, Sheet, Skeleton, T, friendly } from "./ui";
+import { Round } from "@/web/kit";
+import { Muted, Sheet, Skeleton, T, friendly } from "./ui";
 import { usePrefs } from "@/state/prefs";
 import { useSession } from "@/state/session";
 import { api } from "@/lib/api";
@@ -36,10 +37,7 @@ export function NotifyBell() {
 
   return (
     <>
-      <View>
-        <IconButton label="Notifications" onPress={show}><Bell color={palette.ink} size={17} /></IconButton>
-        {unread ? <View style={{ position: "absolute", right: 7, top: 7, width: 8, height: 8, borderRadius: 4, backgroundColor: "#ff5a7a", borderWidth: 1.5, borderColor: palette.tint }} /> : null}
-      </View>
+      <Round label="Notifications" icon="bell" badge={unread ? (unread > 9 ? "9+" : String(unread)) : undefined} onPress={show} />
       <Sheet open={open} onClose={() => setOpen(false)} title="Notifications">
         <ScrollView style={{ maxHeight: 420 }}>
           {items === null ? <View style={{ gap: 10 }}><Skeleton h={48} r={12} /><Skeleton h={48} r={12} /></View> : null}

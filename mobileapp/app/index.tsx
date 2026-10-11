@@ -36,7 +36,7 @@ export default function Splash() {
   useEffect(() => {
     if (!played || !ready || !loaded) return;
     out.value = withTiming(0, { duration: 260 });
-    const next = !onboarded ? "/welcome" : !token ? "/(auth)/sign-in" : !securityAsked ? "/security-setup" : "/(tabs)/hub";
+    const next = !onboarded ? "/welcome" : !token ? "/(auth)/sign-in" : !securityAsked ? "/security-setup" : "/(tabs)/agents";
     const t = setTimeout(() => router.replace(next), 240);
     return () => clearTimeout(t);
   }, [played, ready, loaded, onboarded, token, securityAsked, out]);

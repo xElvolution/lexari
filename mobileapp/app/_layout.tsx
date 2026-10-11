@@ -8,6 +8,11 @@ import { PrefsProvider, usePrefs } from "@/state/prefs";
 import { SessionProvider } from "@/state/session";
 import { LockGate } from "@/components/Gates";
 import { env } from "@/lib/env";
+import { DataProvider } from "@/web/data";
+import { useFonts } from "expo-font";
+import { Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
+import { BricolageGrotesque_800ExtraBold } from "@expo-google-fonts/bricolage-grotesque";
+import { MartianMono_400Regular, MartianMono_500Medium } from "@expo-google-fonts/martian-mono";
 
 function Navigator() {
   const { palette, isDark } = usePrefs();
@@ -29,13 +34,16 @@ function Navigator() {
 }
 
 export default function Root() {
-  const nav = <Navigator />;
+  const [fonts] = useFonts({ Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold, BricolageGrotesque_800ExtraBold, MartianMono_400Regular, MartianMono_500Medium });
+  const nav = fonts ? <Navigator /> : <View style={{ flex: 1, backgroundColor: "#000" }} />;
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#000" }}>
       <SafeAreaProvider>
         <PrefsProvider>
           <SessionProvider>
+          <DataProvider>
             {env.privyOn ? <PrivyProvider appId={env.privyAppId} clientId={env.privyClientId || undefined}>{nav}</PrivyProvider> : nav}
+          </DataProvider>
           </SessionProvider>
         </PrefsProvider>
       </SafeAreaProvider>

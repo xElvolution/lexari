@@ -97,7 +97,7 @@ export default function Welcome() {
   const [h, setH] = useState(0);
   const ref = useRef<ScrollView>(null);
 
-  const done = () => { setOnboarded(); router.replace(token ? "/(tabs)/hub" : "/(auth)/sign-in"); };
+  const done = () => { setOnboarded(); router.replace(token ? "/(tabs)/agents" : "/(auth)/sign-in"); };
   const next = () => { if (page >= 2) return done(); ref.current?.scrollTo({ x: width * (page + 1), animated: true }); setPage(page + 1); };
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const p = Math.round(e.nativeEvent.contentOffset.x / width);
