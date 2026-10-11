@@ -4,7 +4,7 @@ import { AccessibilityInfo } from "react-native";
 import Svg, { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
 import { HOME, PALETTE, safeExtra, variantFor, type FaceState, type Shape, type Variant } from "./avatar";
 
-type Props = { seed?: number; variant?: Partial<Variant>; size?: number; state?: FaceState; animated?: boolean };
+type Props = { seed?: number; variant?: Partial<Variant>; size?: number; state?: FaceState; animated?: boolean; /** where the eyes look, -1..1 each way (overrides the idle glance) */ gaze?: { x: number; y: number } | null };
 
 /** seconds since mount at ~30 fps while `on` (paused when the tab is hidden or motion is reduced) */
 function useClock(on: boolean) {
@@ -35,7 +35,7 @@ const LAYOUT: Record<Shape, { eye: number; mouth: number; top: number; half: num
 };
 
 /** An agent face generated as SVG. Eyes can follow the pointer (track) or glance around (look). */
-export default function AgentFace({ seed, variant, size = 96, state = "idle", animated = false }: Props) {
+export default function AgentFace({ seed, variant, size = 96, state = "idle", animated = false, gaze }: Props) {
   const tRaw = useClock(animated);
   const live = animated && tRaw > 0;
   const t = live ? tRaw : 0.6; // still faces use a pleasant frame
@@ -51,8 +51,8 @@ export default function AgentFace({ seed, variant, size = 96, state = "idle", an
   const ph = (seed ?? 7) * 0.37;
   const every = 3.2 + ((seed ?? 3) % 5) * 0.35, lb = (t + ph) % every;
   const blinkK = live && !happy && lb < 0.16 ? Math.max(0.08, 1 - Math.sin((lb / 0.16) * Math.PI)) : 1;
-  const lx = think ? 0.75 : talk ? Math.sin(t * 0.9) * 0.25 : live ? Math.sin(t * 0.43 + ph) * 0.45 : 0;
-  const ly = think ? -0.85 : live ? Math.sin(t * 0.31 + ph * 2) * 0.3 : 0;
+  const lx = gaze ? clamp(gaze.x, -1.4, 1.4) : think ? 0.75 : talk ? Math.sin(t * 0.9) * 0.25 : live ? Math.sin(t * 0.43 + ph) * 0.45 : 0;
+  const ly = gaze ? clamp(gaze.y, -1.2, 1.2) : think ? -0.85 : live ? Math.sin(t * 0.31 + ph * 2) * 0.3 : 0;
   const syl = talk ? clamp(0.5 + 0.5 * Math.sin(t * 12.5) * (0.6 + 0.4 * Math.sin(t * 3.3 + 1))) : 0; // talking: mouth opens and closes
   const bounce = happy ? 0.5 + 0.5 * Math.sin(t * 9) : 0;
   const bob = !live ? 0 : happy ? -Math.abs(Math.sin(t * 4.6)) * 5 : talk ? Math.sin(t * 2) * 0.8 - syl * 0.8 : Math.sin(t * 1.6 + ph) * 1.2;
