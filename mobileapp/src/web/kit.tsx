@@ -1,5 +1,6 @@
 /** Phone kit that mirrors app.lexari.ai at 390px: colours, type scale, top bar, agent tiles with rings, labels, pills. */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { Modal, Pressable, ScrollView, Text, View, type TextStyle, type ViewStyle } from "react-native";
 import { router } from "expo-router";
@@ -199,12 +200,12 @@ export function Grad({ stops, angle = 120, radial }: { stops: [string, number][]
  * The web `.btn` family (shared/styles/theme.css): pill, bold, 56px (sm 40/44px), with the solid 6px drop for brand/white
  * and 5px grape drop for ink. Pressing scales to .97 like `.btn:active`.
  */
-export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRight, disabled, style, full, children }: {
-  label?: string; onPress?: () => void; kind?: "brand" | "white" | "line" | "ghost" | "ink"; h?: number; fs?: number; icon?: string; iconRight?: string;
+export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRight, disabled, style, full, children, drop: dropIn }: {
+  drop?: number; label?: string; onPress?: () => void; kind?: "brand" | "white" | "line" | "ghost" | "ink"; h?: number; fs?: number; icon?: string; iconRight?: string;
   disabled?: boolean; style?: ViewStyle; full?: boolean; children?: ReactNode;
 }) {
   const k = useC();
-  const drop = kind === "brand" || kind === "white" ? 6 : kind === "ink" ? 5 : 0;
+  const drop = dropIn ?? (kind === "brand" || kind === "white" ? 6 : kind === "ink" ? 5 : 0);
   const dropC = kind === "ink" ? GRAPE : "#3514b0";
   const bg = kind === "brand" ? GRAPE : kind === "white" ? "#fff" : kind === "ghost" ? k.tint : kind === "ink" ? k.ink : "transparent";
   const fg = kind === "brand" ? "#fff" : kind === "white" ? "#0a0a0a" : kind === "ink" ? k.bg : k.ink;
@@ -234,4 +235,19 @@ export function Chip({ label, on, onPress, icon, style }: { label: string; on?: 
       </View>
     </Pressable>
   );
+}
+
+/** gsap `from({ y, opacity }, back.out)` entrances: rises into place after `delay` ms. */
+export function Rise({ children, delay = 0, y = 30, x = 0, ms = 800, back = 1.5, style }: { children: ReactNode; delay?: number; y?: number; x?: number; ms?: number; back?: number; style?: ViewStyle | ViewStyle[] }) {
+  const p = useSharedValue(0);
+  useEffect(() => { p.value = withDelay(delay, withTiming(1, { duration: ms, easing: Easing.out(Easing.back(back)) })); }, [p, delay, ms, back]);
+  const st = useAnimatedStyle(() => ({ opacity: Math.min(1, p.value * 1.6), transform: [{ translateY: (1 - p.value) * y }, { translateX: (1 - p.value) * x }] }));
+  return <Animated.View style={[st, style as ViewStyle]}>{children}</Animated.View>;
+}
+/** gsap `from({ scale: 0, rotate: -20 }, back.out(2))`: pops in. */
+export function PopIn({ children, delay = 0, ms = 800, rotate = -20, style }: { children: ReactNode; delay?: number; ms?: number; rotate?: number; style?: ViewStyle | ViewStyle[] }) {
+  const p = useSharedValue(0);
+  useEffect(() => { p.value = withDelay(delay, withTiming(1, { duration: ms, easing: Easing.out(Easing.back(2)) })); }, [p, delay, ms]);
+  const st = useAnimatedStyle(() => ({ opacity: Math.min(1, p.value * 3), transform: [{ scale: Math.max(0, p.value) }, { rotate: `${(1 - p.value) * rotate}deg` }] }));
+  return <Animated.View style={[st, style as ViewStyle]}>{children}</Animated.View>;
 }
