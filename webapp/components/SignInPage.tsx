@@ -11,7 +11,7 @@ import { WalletReadyState, type WalletAdapter } from "@solana/wallet-adapter-bas
 type SigningAdapter = WalletAdapter & { signMessage?: (message: Uint8Array) => Promise<Uint8Array> };
 import { WALLETS, shortAddr, type WalletId } from "@/content/appData";
 import { get, signIn } from "@/lib/store";
-import { usePrivy } from "@privy-io/react-auth";
+import { useLoginWithOAuth, usePrivy } from "@privy-io/react-auth";
 import { signInWithWallet } from "@/lib/session";
 import { friendly } from "@/lib/api";
 import { useWalletBridge } from "@/lib/walletBridge";
@@ -51,6 +51,18 @@ function WalletGlyph({ id }: { id: WalletId }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={WALLET_ICON[id]} alt="" width={44} height={44} className={id === "backpack" ? "h-8 w-8" : "h-11 w-11"} />
     </span>
+  );
+}
+
+/** Google's four-colour G. */
+function GoogleG() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
   );
 }
 
@@ -231,6 +243,13 @@ export default function SignIn() {
     })();
   }, [ready, authenticated, user, bridge, router, getAccessToken, logout]);
   const privyBusy = authenticated && (privyStep === "wallet" || privyStep === "sign");
+  const { initOAuth } = useLoginWithOAuth();
+  // Google goes straight to Google; email opens Privy's email code step.
+  const start = (how: "google" | "email") => {
+    setPrivyErr(""); setPrivyStep("");
+    const go = () => (how === "google" ? initOAuth({ provider: "google" }).catch((e) => { setPrivyErr(friendly(e, "Google sign-in did not open.")); setPrivyStep("error"); }) : login({ loginMethods: ["email"] }));
+    if (authenticated) { entered.current = false; void logout().then(go); } else void go();
+  };
   const loader = privyBusy ? <SignInLoader sub={privyStep === "wallet" ? "Getting your Lexari wallet ready…" : "Confirming your account…"} /> : null;
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -271,13 +290,17 @@ export default function SignIn() {
           <h2 data-in className="display text-[40px] sm:text-[52px]">Welcome in.</h2>
           <p data-in className="mt-2 text-[16px] text-ink/75">Pick how you want to sign in. No new password to remember.</p>
 
-          <button data-in disabled={!PRIVY_ON || !ready || privyBusy} onClick={() => { setPrivyErr(""); setPrivyStep(""); if (authenticated) { entered.current = false; void logout().then(() => login()); } else login(); }} className="group mt-8 flex w-full items-center gap-4 rounded-[22px] bg-ink p-2 pr-5 text-left text-[var(--bg)] shadow-[0_6px_0_#5b2bff] transition hover:-translate-y-1 hover:shadow-[0_9px_0_#5b2bff] active:scale-[.98] disabled:opacity-60">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--bg)] text-ink"><Icon name="google" size={24} /></span>
-            <span className="flex-1"><span className="block text-[17px] font-bold">Continue with Google or email</span>{(() => { const t = privyStep === "wallet" && authenticated ? "Setting up your wallet…" : privyStep === "sign" ? "Signing you in…" : googleNote; return t ? <span className="block text-[13px] opacity-70">{t}</span> : null; })()}</span>
-            <Icon name="arrow" size={20} className="transition group-hover:translate-x-1" />
-          </button>
+          <div className="mt-8 grid gap-3">
+            <button data-in disabled={!PRIVY_ON || !ready || privyBusy} onClick={() => start("google")} className="flex h-14 w-full items-center justify-center gap-3 rounded-full bg-white px-5 text-[16px] font-bold text-[#0a0a0a] ring-1 ring-line transition hover:-translate-y-0.5 active:scale-[.98] disabled:opacity-60">
+              <GoogleG />Continue with Google
+            </button>
+            <button data-in disabled={!PRIVY_ON || !ready || privyBusy} onClick={() => start("email")} className="flex h-14 w-full items-center justify-center gap-3 rounded-full border-2 border-line bg-card px-5 text-[16px] font-bold text-ink transition hover:-translate-y-0.5 hover:border-grape active:scale-[.98] disabled:opacity-60">
+              <Icon name="mail" size={20} />Continue with email
+            </button>
+          </div>
+          {(() => { const t = privyStep === "wallet" && authenticated ? "Setting up your wallet…" : privyStep === "sign" ? "Signing you in…" : googleNote; return t ? <p className="mt-3 text-center text-[13px] text-ink/60">{t}</p> : null; })()}
 
-          {privyStep === "error" && <p role="alert" className="mt-3 text-[13.5px] text-[#e5484d]">{privyErr} Tap the button to try again.</p>}
+          {privyStep === "error" && <p role="alert" className="mt-3 text-[13.5px] text-[#e5484d]">{privyErr} Tap a button to try again.</p>}
 
         </div>
       </section>
