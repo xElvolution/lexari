@@ -26,16 +26,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "expo-dev-client",
     "expo-secure-store",
-    "expo-screen-capture",
     ["expo-notifications", { color: "#5b2bff" }],
     ["expo-local-authentication", { faceIDPermission: "Unlock Lexari." }],
     ["expo-audio", { microphonePermission: "Lexari uses the microphone for voice notes and calls with your agent." }],
-    ["expo-splash-screen", { backgroundColor: "#5b2bff", image: "./assets/splash.png" }],
+    ["expo-splash-screen", { backgroundColor: "#000000", image: "./assets/splash-icon.png", imageWidth: 96 }],
   ],
   experiments: { typedRoutes: false },
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://app.lexari.ai",
-    cluster: process.env.EXPO_PUBLIC_SOLANA_CLUSTER || (mainnet ? "mainnet-beta" : "devnet"),
+    cluster: "devnet", // mainnet is paused: devnet only for now
     programId: process.env.EXPO_PUBLIC_LEXARI_PROGRAM_ID || "BbnD28xf3kwfQRiRA6VQmw4p2R55WivUgozSoo81M6Po",
     privyAppId: process.env.EXPO_PUBLIC_PRIVY_APP_ID || "",
     privyClientId: process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID || "",
