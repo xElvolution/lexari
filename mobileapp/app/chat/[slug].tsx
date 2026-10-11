@@ -82,7 +82,7 @@ export default function Chat() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: palette.bg }}>
       <View style={{ paddingTop: insets.top + 6, paddingHorizontal: 12, paddingBottom: 10, flexDirection: "row", alignItems: "center", gap: 10, borderBottomWidth: 0.5, borderBottomColor: palette.line }}>
-        <IconButton label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/hub"))}><ChevronLeft color={palette.ink} size={20} /></IconButton>
+        <IconButton label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/agents"))}><ChevronLeft color={palette.ink} size={20} /></IconButton>
         <Face slug={s ? slug : undefined} size={40} mood={mood} animated />
         <View style={{ flex: 1 }}>
           <Text style={{ color: palette.ink, fontSize: 15.5, fontWeight: "700" }}>{name}</Text>

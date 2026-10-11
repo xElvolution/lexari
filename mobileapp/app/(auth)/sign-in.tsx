@@ -82,7 +82,7 @@ export default function SignIn() {
   const onSession = async (s: SavedSession) => {
     await accept(s);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    router.replace(securityAsked ? "/(tabs)/hub" : "/security-setup");
+    router.replace(securityAsked ? "/(tabs)/agents" : "/security-setup");
   };
   return env.privyOn ? <WithPrivy onSession={onSession} /> : <SignInView methods={offline} onSession={onSession} />;
 }
