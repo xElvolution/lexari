@@ -28,7 +28,7 @@ async function view(userId: string) {
   return {
     chainId: MONAD.chainId, rpc: process.env.MONAD_PUBLIC_RPC || "https://testnet-rpc.monad.xyz",
     agents: team.map((a) => ({ slug: a.slug, name: a.name, address: evmAddress(userId, a.slug) })),
-    delegations: rows.filter((r) => r.expiresAt.getTime() > Date.now()).map((r) => ({ id: r.id, agent: r.agentSlug, delegator: r.delegator, owner: r.owner, maxWei: r.maxWei, spentWei: r.spentWei, expiresAt: r.expiresAt.getTime() })),
+    delegations: rows.filter((r) => r.expiresAt.getTime() > Date.now()).map((r) => ({ id: r.id, agent: r.agentSlug, delegator: r.delegator, owner: r.owner, maxWei: r.maxWei, spentWei: r.spentWei, expiresAt: r.expiresAt.getTime(), delegation: r.delegation })),
   };
 }
 
@@ -53,11 +53,12 @@ export const POST = withUser(async (user, req) => {
   return Response.json(await view(user.userId), { headers: noStore });
 });
 
-/** Revokes a delegation: the agent can't use it from now on. To also disable it on chain, disable it from MetaMask. */
+/** Revokes a delegation: the agent can't use it from now on. The web app also disables it on chain first (tx). */
 export const DELETE = withUser(async (user, req) => {
   const id = new URL(req.url).searchParams.get("id") || "";
+  const tx = new URL(req.url).searchParams.get("tx") || "";
   if (!/^[0-9a-f-]{36}$/.test(id)) return jsonError(400, "Which delegation?");
   await db().update(agentDelegations).set({ revokedAt: new Date() }).where(and(eq(agentDelegations.userId, user.userId), eq(agentDelegations.id, id)));
-  await logEvent(user, "delegation", "Revoked a MetaMask delegation");
+  await logEvent(user, "delegation", /^0x[0-9a-fA-F]{64}$/.test(tx) ? `Revoked a MetaMask delegation on chain (tx ${tx})` : "Revoked a MetaMask delegation");
   return Response.json(await view(user.userId), { headers: noStore });
 });
