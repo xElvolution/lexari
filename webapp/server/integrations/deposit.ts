@@ -50,12 +50,12 @@ export async function depositCoins(): Promise<DepositCoin[]> {
 }
 
 /** A one-time deposit address for `amount` of the coin on `chain`. Aurora Intents converts it to USDC on Solana. */
-export async function depositAddress(recipient: string, assetId: string, amount: number) {
+export async function depositAddress(recipient: string, refund: string, assetId: string, amount: number) {
   const coins = await depositCoins();
   const coin = coins.find((c) => c.chains.some((x) => x.assetId === assetId));
   const ch = coin?.chains.find((x) => x.assetId === assetId);
   if (!coin || !ch) throw new Error("Aurora Intents doesn't take that coin.");
   if (!intentsReady()) return { ready: false as const, coin: coin.symbol, chain: chainName(ch.chain) };
-  const q = await intentsDepositQuote(recipient, ch, amount);
+  const q = await intentsDepositQuote(recipient, refund, ch, amount);
   return { ready: true as const, coin: coin.symbol, chain: chainName(ch.chain), address: q.depositAddress, memo: q.depositMemo || null, receive: q.amountOutFormatted, deadline: q.deadline || null, qr: await QR.toString(q.depositAddress, { type: "svg", margin: 1, width: 180 }) };
 }
