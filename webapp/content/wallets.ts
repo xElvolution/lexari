@@ -8,6 +8,7 @@ export const WALLET_CHAINS: WalletChain[] = [
   { id: "ethereum", name: "Ethereum", family: "evm", network: "Sepolia" },
   { id: "tempo", name: "Tempo", family: "evm", network: "Testnet" },
   { id: "hyperliquid", name: "Hyperliquid", family: "evm", network: "Testnet" },
+  { id: "monad", name: "Monad", family: "evm", network: "Testnet" },
 ];
 export const chainById = (id: string) => WALLET_CHAINS.find((c) => c.id === id);
 export const chainsFor = (family: WalletFamily) => WALLET_CHAINS.filter((c) => c.family === family);

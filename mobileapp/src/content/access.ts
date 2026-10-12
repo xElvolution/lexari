@@ -15,6 +15,8 @@ const SCOPES: Record<string, Scope[]> = {
   orca: ["read", "trade"],
   tempo: ["read", "trade", "withdraw", "transfer"],
   hyperliquid: ["read", "trade"],
+  kuru: ["read", "trade"],
+  metamask: ["read", "withdraw"],
   panta: ["read", "bet"],
 };
 export const scopesOf = (id: string): Scope[] => SCOPES[id] ?? ["read"];
@@ -36,6 +38,10 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   tempo: { name: "Tempo", color: "#0a0a0a", moves: true, chains: "Tempo" },
   prices: { name: "Market prices", color: "#f5a524", moves: false, chains: "Market data" },
   hyperliquid: { name: "Hyperliquid", color: "#50e3c2", moves: true, trading: true, chains: "Hyperliquid" },
+  monad: { name: "Monad", color: "#836ef9", moves: false, chains: "Monad testnet" },
+  nansen: { name: "Nansen", color: "#1a1a2e", moves: false, chains: "Many chains" },
+  kuru: { name: "Kuru", color: "#ff6b35", moves: true, trading: true, chains: "Monad testnet" },
+  metamask: { name: "MetaMask Delegation", color: "#f6851b", moves: true, chains: "Monad testnet" },
 };
 
 export type AddedIntegration = {
@@ -58,8 +64,9 @@ export const WALLET_CHAINS: { id: string; name: string; family: WalletFamily; ne
   { id: "ethereum", name: "Ethereum", family: "evm", network: "Sepolia" },
   { id: "tempo", name: "Tempo", family: "evm", network: "Testnet" },
   { id: "hyperliquid", name: "Hyperliquid", family: "evm", network: "Testnet" },
+  { id: "monad", name: "Monad", family: "evm", network: "Testnet" },
 ];
-export const CHAIN_COLOR: Record<string, string> = { solana: "#9945ff", base: "#0052ff", ethereum: "#627eea", tempo: "#0a0a0a", hyperliquid: "#50e3c2" };
+export const CHAIN_COLOR: Record<string, string> = { solana: "#9945ff", base: "#0052ff", ethereum: "#627eea", tempo: "#0a0a0a", hyperliquid: "#50e3c2", monad: "#836ef9" };
 export type LinkedWallet = { address: string; family: WalletFamily; client: string; login?: boolean; verifiedAt: number };
 export type WalletsReply = { wallets: LinkedWallet[]; active: { address: string; chain: string } | null };
 const CLIENT_NAME: Record<string, string> = { phantom: "Phantom", solflare: "Solflare", backpack: "Backpack", metamask: "MetaMask", coinbase_wallet: "Coinbase Wallet", rainbow: "Rainbow", wallet_connect: "WalletConnect", privy: "Privy wallet", lexari: "Sign-in wallet", rabby_wallet: "Rabby" };
