@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your dashboard. Lexari waitlist</title>
+<meta name="description" content="Lexari is your personalized AI agent: your own agent with its own memory, wallet and computer, acting for you across chains and apps. Join the waitlist.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,600..800&family=Figtree:wght@400;500;600;700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/dashboard.css">
+</head>
+<body class="dash-body">
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="glow" aria-hidden="true"></div>
+<div class="crew fixed-crew" aria-hidden="true" id="crew"></div>
+<header class="top">
+  <a class="logo" href="/" aria-label="Lexari waitlist"><span class="mark"><span></span></span><span class="word">lexari</span></a>
+  <div class="top-r">
+    <span class="count label" id="count"><i></i><b id="countN">0</b> in line</span>
+    <button class="ghost sm" id="signout" type="button" hidden>Sign out</button>
+  </div>
+</header>
+
+<main class="dash" id="app" data-view="loading" aria-busy="true">
+  <section class="gate stage" id="gate" data-mood="idle" hidden>
+    <div class="bot-wrap" id="botWrap">
+      <svg class="bot" id="bot" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><clipPath id="headClip"><rect x="20" y="20" width="160" height="160" rx="40"/></clipPath></defs>
+      <g id="botBody">
+        <rect class="shadowbox" x="20" y="30" width="160" height="160" rx="40"/>
+        <rect class="head" x="20" y="20" width="160" height="160" rx="40"/>
+        <g class="blush"><ellipse cx="52" cy="122" rx="12" ry="7"/><ellipse cx="148" cy="122" rx="12" ry="7"/></g>
+        <g id="brows" class="brows"><rect id="browL" x="54" y="54" width="26" height="6" rx="3"/><rect id="browR" x="120" y="54" width="26" height="6" rx="3"/></g>
+        <g id="eyesOpen">
+          <g id="eyeL"><ellipse class="sclera" cx="70" cy="92" rx="17" ry="23"/><circle class="pupil" id="pupL" cx="70" cy="94" r="8"/></g>
+          <g id="eyeR"><ellipse class="sclera" cx="130" cy="92" rx="17" ry="23"/><circle class="pupil" id="pupR" cx="130" cy="94" r="8"/></g>
+        </g>
+        <g id="eyesHappy" class="eyes-happy">
+          <path d="M52 98 Q70 70 88 98"/><path d="M112 98 Q130 70 148 98"/>
+        </g>
+        <path id="mouth" class="mouth" d="M70 134 Q100 158 130 134"/>
+        <path id="mouthBig" class="mouth-big" d="M64 130 Q100 134 136 130 Q134 168 100 168 Q66 168 64 130 Z"/>
+      </g>
+      <g class="sparks" id="sparks"><path d="M178 34 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z"/><path d="M22 150 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/></g>
+    </svg>
+    </div>
+    <h1 class="display" id="gateTitle">Open your<br>agent dashboard.</h1>
+    <p class="sub" id="gateSub">Sign in with a one-time code sent to your email. Track your spot, points and referrals.</p>
+    <form id="emailForm" class="form" novalidate>
+      <label class="sr" for="email">Email</label>
+      <div class="field" id="field">
+        <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" spellcheck="false" autocapitalize="off" required>
+        <button id="go" type="submit"><span class="t">Send code</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
+      </div>
+    </form>
+    <form id="codeForm" class="form" novalidate hidden>
+      <label class="sr" for="code">6 digit code</label>
+      <div class="field" id="codeField">
+        <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="000000" required>
+        <button id="verify" type="submit"><span class="t">Open dashboard</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
+      </div>
+      <button type="button" class="linkish label" id="changeEmail">Use a different email</button>
+    </form>
+    <p class="hint label" id="hint" role="status" aria-live="polite">Secure sign-in by Privy. No password.</p>
+  </section>
+
+  <section class="board" id="board" hidden>
+    <div class="hero card c-hero">
+      <div class="hero-bot" id="heroBot" aria-hidden="true"></div>
+      <div class="hero-txt">
+        <span class="label dim2" id="hello">Agent pass</span>
+        <h1 class="display" id="spotTitle">You're #0 in line.</h1>
+        <p class="sub small" id="spotSub">Earn points to climb toward the top 100 rewards.</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="card stat"><span class="label dim2">Spot in line</span><strong class="display" id="sSpot">#0</strong><span class="label faint" id="sTotal">of 0</span></div>
+      <div class="card stat"><span class="label dim2">Points rank</span><strong class="display" id="sRank">#0</strong><span class="label faint">by points</span></div>
+      <div class="card stat hot"><span class="label">Points</span><strong class="display" id="sPts">0</strong><span class="label" id="sPtsSub">total</span></div>
+    </div>
+
+    <div class="card c-progress">
+      <div class="row-b"><h2 class="h2">Top 100 rewards</h2><span class="label pill" id="pState">Climbing</span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="pBar"><i id="pFill"></i><b class="bar-bot" id="pBot" aria-hidden="true"></b></div>
+      <p class="sub small" id="pNote"></p>
+    </div>
+
+    <div class="cols">
+      <div class="col">
+        <div class="card c-share">
+          <div class="row-b"><h2 class="h2">Your referral link</h2><span class="label pill">+50 per friend</span></div>
+          <div class="share">
+            <input id="shareUrl" readonly aria-label="Your referral link">
+            <button id="copy" type="button">Copy</button>
+          </div>
+          <div class="share-row">
+            <a id="shareX" class="cta" target="_blank" rel="noopener">Post on X</a>
+            <button id="shareNative" class="ghost" type="button">Share</button>
+            <a id="bannerDl" class="ghost" download>Save banner</a>
+          </div>
+          <a class="banner" id="bannerLink" target="_blank" rel="noopener"><img id="banner" alt="Your Lexari agent pass banner" width="1200" height="630"></a>
+          <p class="label faint">This banner shows up when your link is posted on X.</p>
+        </div>
+
+        <div class="card c-tasks">
+          <div class="row-b"><h2 class="h2">Earn points</h2><span class="label faint" id="tDone"></span></div>
+          <ul class="tasks" id="tasks"></ul>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card c-lb">
+          <div class="row-b"><h2 class="h2">Leaderboard</h2><span class="label faint">Top 10</span></div>
+          <ol class="lb" id="lb"></ol>
+        </div>
+        <div class="card c-refs">
+          <div class="row-b"><h2 class="h2">Your referrals</h2><span class="label pill" id="rCount">0</span></div>
+          <ul class="refs" id="refs"></ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="note"><span class="note-i" aria-hidden="true">i</span>Waitlist points are for rewards at launch and are not transferred to your main Lexari balance.</p>
+  </section>
+
+  <div class="loader" id="loader" aria-label="Loading"><span></span><span></span><span></span></div>
+</main>
+<footer class="foot label"><span>Personalized AI agents, onchain</span><a href="https://lexari.ai">lexari.ai</a></footer>
+<script src="/dashboard.js" defer></script>
+</body>
+</html>
