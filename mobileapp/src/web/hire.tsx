@@ -20,7 +20,7 @@ export function useHire() {
   const [pay, setPay] = useState<Specialist | null>(null);
   const [party, setParty] = useState<Specialist | null>(null);
   const [paidNow, setPaidNow] = useState(false);
-  const [upgrade, setUpgrade] = useState(false);
+  const [upgrade, setUpgrade] = useState<false | "seats" | "plans">(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -42,14 +42,16 @@ export function useHire() {
     const a = specialist(slug);
     if (!a || !token) return;
     if (me?.agents.some((x) => x.slug === a.slug)) { router.push(`/chat/${a.slug}`); return; }
-    if (seatsFull(a)) { setUpgrade(true); return; }
+    if (seatsFull(a)) { setUpgrade("seats"); return; }
+    // Free specialists (the ORE Miner) come with any paid plan.
+    if (a.free && me?.plan?.id === "free") { setUpgrade("plans"); return; }
     const again = !!me?.hires?.some((h) => h.slug === a.slug);
     if (a.free || again) {
       setBusy(true); setErr("");
       const run = a.free
         ? api("/api/hires", { method: "POST", body: JSON.stringify({ slug: a.slug, pay: "balance" }) }, token)
         : api("/api/hires", { method: "PUT", body: JSON.stringify({ slug: a.slug }) }, token);
-      run.then(() => finish(a, false)).catch((e) => setErr(e instanceof Error ? e.message : "Could not hire them.")).finally(() => setBusy(false));
+      run.then(() => finish(a, false)).catch((e) => { if (e instanceof ApiError && e.status === 402) setUpgrade("plans"); else setErr(e instanceof Error ? e.message : "Could not hire them."); }).finally(() => setBusy(false));
       return;
     }
     setErr(""); setPay(a);
@@ -109,7 +111,7 @@ export function useHire() {
           ) : null}
         </View>
       </Modal>
-      <UpgradeSheet open={upgrade} mode="seats" onClose={() => setUpgrade(false)} onTopUp={() => { setUpgrade(false); router.push({ pathname: "/(tabs)/wallets", params: { topup: "1" } }); }} />
+      <UpgradeSheet open={!!upgrade} mode={upgrade || "seats"} onClose={() => setUpgrade(false)} onTopUp={() => { setUpgrade(false); router.push({ pathname: "/(tabs)/wallets", params: { topup: "1" } }); }} />
       <Modal visible={!!err && !pay} transparent animationType="fade" onRequestClose={() => setErr("")}>
         <Pressable onPress={() => setErr("")} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <Pressable style={{ width: "100%", maxWidth: 360, borderRadius: 20, backgroundColor: k.card, padding: 18, gap: 10 }}>
