@@ -20,6 +20,23 @@ import { primaryOf, useData, type Wallet } from "@/web/data";
 const usd = (micros: number) => `$${(Math.max(0, micros) / 1e6).toFixed(2)}`;
 type PayCard = { agent: string; last4: string; limit: number; spent: number; frozen: boolean; test?: boolean };
 
+type Tempo = { address: string; frozen: boolean; perTxUsd: number; dailyUsd: number; spentTodayUsd: number; balances: { symbol: string; amount: number }[] | null };
+/** The real Tempo card face (same as webapp/components/agentpay/TempoCardRow.tsx). */
+function TempoFace({ slug, name, token }: { slug: string; name: string; token?: string | null }) {
+  const [c, setC] = useState<Tempo | null>(null);
+  useEffect(() => { if (token) api<Tempo>(`/api/agents/card?agent=${encodeURIComponent(slug)}`, {}, token).then(setC).catch(() => setC(null)); }, [slug, token]);
+  if (!c) return <T s={13} c="#888">Loading card…</T>;
+  const tot = (c.balances || []).reduce((n, b) => n + b.amount, 0);
+  return (
+    <View style={{ alignSelf: "stretch", borderRadius: 16, padding: 16, backgroundColor: c.frozen ? "#5b5b66" : "#3b2a8f" }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Label s={9} c="rgba(255,255,255,0.7)">Tempo card</Label><Label s={9} c="rgba(255,255,255,0.7)">{c.frozen ? "Frozen" : "Active"}</Label></View>
+      <T f="xbold" s={24} c="#fff" style={{ marginTop: 10 }}>{c.balances ? `$${tot.toFixed(2)}` : "Balance unavailable"}</T>
+      <T s={12.5} c="rgba(255,255,255,0.75)" style={{ marginTop: 4 }}>{`${name} · $${c.perTxUsd} a payment · $${c.dailyUsd} a day · $${c.spentTodayUsd.toFixed(2)} spent today`}</T>
+      <T f="mono" s={11.5} c="rgba(255,255,255,0.6)" style={{ marginTop: 8 }}>{`${c.address.slice(0, 6)}…${c.address.slice(-4)}`}</T>
+    </View>
+  );
+}
+
 function PayCardFace({ name, card, home }: { name: string; card: PayCard | null; home?: boolean }) {
   const num = card ? `•••• •••• •••• ${card.last4}` : "•••• •••• •••• ••••";
   return (
@@ -152,7 +169,7 @@ export default function Wallets() {
               const pct = card ? Math.min(100, Math.round((card.spent / Math.max(1, card.limit)) * 100)) : 0;
               return (
                 <View key={a.slug} style={{ borderRadius: 24, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, padding: 16, alignItems: "center", gap: 12 }}>
-                  <PayCardFace name={a.name} card={card} home={a.slug === "home"} />
+                  {card ? <TempoFace slug={a.slug} name={a.name} token={token} /> : <PayCardFace name={a.name} card={card} home={a.slug === "home"} />}
                   {card ? (
                     <>
                       <View style={{ alignSelf: "stretch" }}>
@@ -162,8 +179,10 @@ export default function Wallets() {
                       <T s={13} c={k.ink60}>{card.frozen ? "Frozen" : `Ending ${card.last4} · $${card.limit} a month`}</T>
                     </>
                   ) : (
-                    <Pill label={busy === `card:${a.slug}` ? "Paying…" : "Get a card · $2"} icon="plus" h={40} onPress={async () => {
-                      if (!token) return; setBusy(`card:${a.slug}`);
+                    <Pill label={busy === `card:${a.slug}` ? "Paying…" : busy === `ask:${a.slug}` ? "Confirm: pay $2 from balance" : "Get a Tempo card · $2"} icon="plus" h={40} onPress={async () => {
+                      if (!token) return;
+                      if (busy !== `ask:${a.slug}`) { setBusy(`ask:${a.slug}`); return; }
+                      setBusy(`card:${a.slug}`);
                       try { await api("/api/cards", { method: "POST", body: JSON.stringify({ agent: a.slug, pay: "balance", limit: 250 }) }, token); say(`${a.name}'s card is ready`); await loadCards(); await reload(); }
                       catch (e) { say(e instanceof Error ? e.message : "The card couldn't be issued."); }
                       finally { setBusy(""); }
