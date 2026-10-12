@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { LAMINA, PREMIUM, type ModelInfo } from "@/content/models";
+import { HOUSE, LAMINA, PREMIUM, type ModelInfo } from "@/content/models";
 import type { PlanId } from "@/content/appData";
 import { CREDITS_ON_FREE } from "@/content/billing";
 import { billingBlocked, closeBillingSheet, enabledModels, modelFor, openTopUp, setModel, useBilling, type BillingState } from "@/lib/billing";
@@ -29,7 +29,7 @@ export default function ModelSheet({ convo, agent, group }: { convo: string; age
   const pick = async (m: ModelInfo) => {
     if (!state) return;
     const why = lockedWhy(state, m);
-    if (why === "soon") return;
+    if (why === "soon" || why === "off") return;
     if (why === "plan") { closeBillingSheet(); billingBlocked({ reason: "premium_locked", model: m.id, modelLabel: m.label, plan: state.plan.id as PlanId, planName: state.plan.name, resetsAt: null, credits: state.credits.balance, spendMode: state.spend.mode, spendLimit: state.spend.limit, convo, agent: agent ?? undefined }); return; }
     setBusy(m.id);
     try {
@@ -68,7 +68,12 @@ export default function ModelSheet({ convo, agent, group }: { convo: string; age
       {!state ? <div className="grid h-40 place-items-center text-ink/50"><Spinner /></div> : (
         <div className="grid gap-2">
           <Row m={LAMINA} on={selected === LAMINA.id} busy={busy === LAMINA.id} onPick={pick} note="Lexari's own model. Fast, tuned for your agents." />
-          {enabledModels(state).filter((m) => m.id !== LAMINA.id && m.pool !== "premium").map((m) => <Row key={m.id} m={m} on={selected === m.id} busy={busy === m.id} onPick={pick} />)}
+          {enabledModels(state).filter((m) => m.id !== LAMINA.id && m.pool !== "premium" && !m.house).map((m) => <Row key={m.id} m={m} on={selected === m.id} busy={busy === m.id} onPick={pick} />)}
+          <div className="mt-3 flex items-center justify-between px-1">
+            <h3 className="label text-[9.5px] text-ink/50">Open models</h3>
+            <span className="text-[11.5px] text-ink/45">Included · falls back if busy</span>
+          </div>
+          {HOUSE.filter((m) => !state.models.available[m.id] || enabledModels(state).some((x) => x.id === m.id)).map((m) => <Row key={m.id} m={m} on={selected === m.id} busy={busy === m.id} onPick={pick} locked={lockedWhy(state, m)} />)}
           <Link href="/settings#models" onClick={closeBillingSheet} data-add-own-model className="mt-1 inline-flex items-center gap-1.5 self-start px-1 text-[12.5px] font-bold text-brand-ink hover:underline"><Icon name="key" size={13} />{state.models.keys.length ? "Manage models and API keys" : "Use your own API keys"}</Link>
           <div className="mt-3 flex items-center justify-between px-1">
             <h3 className="label text-[9.5px] text-ink/50">Premium</h3>
@@ -90,23 +95,25 @@ export default function ModelSheet({ convo, agent, group }: { convo: string; age
   );
 }
 
-/** Why a model can't be picked right now: "soon" (not on this server), "plan" (Free with no credits), or null. */
-function lockedWhy(s: BillingState, m: ModelInfo): "soon" | "plan" | null {
+/** Why a model can't be picked right now: "soon" (not on this server), "off" (an open model whose provider key isn't set), "plan" (Free with no credits), or null. */
+function lockedWhy(s: BillingState, m: ModelInfo): "soon" | "off" | "plan" | null {
   if (m.pool === "byo") return null;
-  if (!s.models.available[m.id]) return "soon";
+  if (!s.models.available[m.id]) return m.house ? "off" : "soon";
   if (m.pool === "premium" && s.plan.id === "free" && (!CREDITS_ON_FREE || s.credits.balance <= 0)) return "plan";
   return null;
 }
 
-function Row({ m, on, busy, onPick, locked = null, note }: { m: ModelInfo; on: boolean; busy: boolean; onPick: (m: ModelInfo) => void; locked?: "soon" | "plan" | null; note?: string }) {
+function Row({ m, on, busy, onPick, locked = null, note }: { m: ModelInfo; on: boolean; busy: boolean; onPick: (m: ModelInfo) => void; locked?: "soon" | "off" | "plan" | null; note?: string }) {
   const lamina = m.id === "lamina";
+  const off = locked === "soon" || locked === "off";
   return (
     <button
       data-model={m.id}
       onClick={() => onPick(m)}
-      disabled={locked === "soon" || busy}
+      disabled={off || busy}
+      data-unavailable={locked === "off" || undefined}
       aria-pressed={on}
-      className={`flex w-full items-center gap-3 rounded-[18px] p-3 text-left transition max-[430px]:gap-2.5 max-[430px]:p-2.5 ${on ? "bg-grape text-white ring-1 ring-grape" : lamina ? "bg-card ring-2 ring-grape/40 hover:ring-grape" : "bg-card ring-1 ring-line hover:ring-grape/50"} ${locked === "soon" ? "cursor-not-allowed opacity-55" : ""}`}
+      className={`flex w-full items-center gap-3 rounded-[18px] p-3 text-left transition max-[430px]:gap-2.5 max-[430px]:p-2.5 ${on ? "bg-grape text-white ring-1 ring-grape" : lamina ? "bg-card ring-2 ring-grape/40 hover:ring-grape" : "bg-card ring-1 ring-line hover:ring-grape/50"} ${off ? "cursor-not-allowed opacity-55" : ""}`}
     >
       <span className={on && lamina ? "rounded-[14px] ring-2 ring-white/40" : ""}><ModelMark m={m} size={40} /></span>
       <span className="min-w-0 flex-1">
@@ -116,6 +123,7 @@ function Row({ m, on, busy, onPick, locked = null, note }: { m: ModelInfo; on: b
       <span className="shrink-0">
         {busy ? <Spinner /> : on ? <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-brand-ink"><Icon name="check" size={14} stroke={3} /></span>
           : locked === "soon" ? <span className="label rounded-full bg-tint px-2 py-1 text-[8.5px] text-ink/60">Soon</span>
+          : locked === "off" ? <span title="Its provider key isn't set on this server yet" className="label rounded-full bg-tint px-2 py-1 text-[8.5px] text-ink/60">Unavailable</span>
           : locked === "plan" ? <span className="label inline-flex items-center gap-1 rounded-full bg-ink px-2 py-1 text-[8.5px] text-[var(--bg)]"><Icon name="lock" size={10} />Pro</span>
           : <span className="grid h-7 w-7 place-items-center rounded-full ring-1 ring-line" />}
       </span>

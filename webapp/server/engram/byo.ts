@@ -14,7 +14,9 @@ import type { ByoProvider } from "@/content/models";
 import { ModelError, type ChatMessage } from "./cortex";
 import type { Usage } from "./gateway";
 
-export type ByoTarget = { provider: ByoProvider; model: string; key: string; baseUrl?: string | null; label: string; /** who to name in errors (the provider, or your name for a custom API) */ who?: string };
+export type ByoTarget = { provider: ByoProvider; model: string; key: string; baseUrl?: string | null; label: string; /** who to name in errors (the provider, or your name for a custom API) */ who?: string;
+  /** provider-specific request fields (Lexari's open models only) */ extra?: Record<string, unknown>;
+  /** an open model on Lexari's own key (server/engram/house.ts): billed like Lamina, errors never mention "your key" */ house?: boolean };
 
 const BASES: Record<Exclude<ByoProvider, "custom" | "anthropic" | "gemini">, string> = {
   openai: "https://api.openai.com/v1",
@@ -125,7 +127,7 @@ export function buildRequest(t: ByoTarget, messages: ChatMessage[], maxTokens: n
     url: `${base}/chat/completions`,
     headers: { Authorization: `Bearer ${t.key}`, "content-type": "application/json", ...(t.provider === "openrouter" ? { "HTTP-Referer": process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.lexari.ai", "X-Title": "Lexari" } : {}) },
     // OpenAI's newer models take max_completion_tokens; everyone else max_tokens.
-    body: { model: t.model, messages, stream: true, ...(t.provider === "openai" ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }), stream_options: { include_usage: true } },
+    body: { ...(t.extra || {}), model: t.model, messages, stream: true, ...(t.provider === "openai" ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }), stream_options: { include_usage: true } },
     parse: (data) => {
       if (!data || data === "[DONE]") return {};
       try {
@@ -140,6 +142,11 @@ export function buildRequest(t: ByoTarget, messages: ChatMessage[], maxTokens: n
 
 function friendlyStatus(t: ByoTarget, status: number, detail: string) {
   const who = t.who || t.label;
+  if (t.house) {
+    if (status === 429) return `${who} is busy right now. Try again in a minute.`;
+    if (status === 401 || status === 403 || status === 402) return `${who} isn't available on Lexari right now. Pick another model.`;
+    return `${who} couldn't answer (error ${status}). Try again.`;
+  }
   if (status === 401 || status === 403) return `${who} rejected your API key. Check it in Settings > Models.`;
   if (status === 404) return `${who} couldn't find the model "${t.model}". Check the model id in Settings > Models.`;
   if (status === 429) return `${who} says you're over your rate limit or quota on your key. Try again in a minute.`;
@@ -189,7 +196,7 @@ export async function* streamByo(messages: ChatMessage[], t: ByoTarget, opts: { 
       }
     }
   } finally {
-    if (out || p !== undefined) opts.onUsage?.({ model: `${t.provider}/${t.model}`.slice(0, 120), promptTokens: p ?? Math.ceil(messages.reduce((n, m) => n + m.content.length, 0) / 4), completionTokens: c ?? Math.ceil(out.length / 4), costUsd: 0, estimated: p === undefined });
+    if (out || p !== undefined) opts.onUsage?.({ model: `${t.provider}/${t.model}`.slice(0, 120), promptTokens: p ?? Math.ceil(messages.reduce((n, m) => n + m.content.length, 0) / 4), completionTokens: c ?? Math.ceil(out.length / 4), costUsd: t.house ? null : 0, estimated: p === undefined });
   }
 }
 

@@ -15,6 +15,7 @@ import { grokCliConfig, streamGrokCli } from "./grokCli";
 import { houseNote } from "./gateway";
 import { RELAY } from "./engines";
 import { streamByo, type ByoTarget } from "./byo";
+import { houseChain, houseReady, houseTarget } from "./house";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 export type Provider = "openai" | "xai" | "grok-cli";
@@ -112,6 +113,7 @@ export type StreamOpts = {
 /** True when a model can answer on this server right now. */
 export function modelReady(model: ModelInfo) {
   if (model.pool === "byo") return true;
+  if (model.house) return houseReady(model);
   if (RELAY[model.id]) return provider() === "grok-cli" && llmConfig().ready;
   if (gatewayReady()) return true;
   return model.pool === "lamina" && llmConfig().ready;
@@ -125,6 +127,33 @@ export async function* streamCompletion(messages: ChatMessage[], signal?: AbortS
     const at = messages.findIndex((m) => m.role !== "system");
     const withNote = at < 0 ? [...messages, sys] : [...messages.slice(0, at), sys, ...messages.slice(at)];
     yield* streamByo(withNote, opts.byo, { signal, maxTokens: opts.maxTokens ?? (opts.fast ? 300 : 1500), onUsage: opts.onUsage });
+    return;
+  }
+  // Open models on Lexari's provider keys (Kimi, Qwen, 0G): the model, then its ready fallbacks, then Lamina below.
+  if (model?.house) {
+    const sys = { role: "system" as const, content: houseNote(model, messages) };
+    const at = messages.findIndex((m) => m.role !== "system");
+    const withNote = at < 0 ? [...messages, sys] : [...messages.slice(0, at), sys, ...messages.slice(at)];
+    const chain = houseChain(model);
+    let last: unknown = null;
+    for (const m of chain) {
+      const t = houseTarget(m);
+      if (!t) continue;
+      let any = false;
+      try {
+        const onUsage = opts.onUsage && ((u: Usage) => opts.onUsage!({ ...u, model: `${m.id}:${t.model}`.slice(0, 120), costUsd: u.costUsd ?? (u.promptTokens * m.price.in + u.completionTokens * m.price.out) / 1e6 }));
+        for await (const tok of streamByo(withNote, t, { signal, maxTokens: opts.maxTokens ?? (opts.fast ? 300 : 1500), onUsage })) { any = true; yield tok; }
+        return;
+      } catch (e) {
+        // Only switch before any text reached the person, never mid-reply.
+        if (any || signal?.aborted) throw e;
+        last = e;
+        console.error(`[house] ${m.id} failed${m.id === model.id ? "" : " (fallback)"}: ${(e as Error).message?.slice(0, 200)}`);
+      }
+    }
+    if (!llmConfig().ready && !gatewayReady()) throw last instanceof ModelError ? last : new ModelError(`${model.label} isn't available right now. Pick another model.`, "house model: no provider ready");
+    console.error(`[house] ${model.id}: answering with Lamina`);
+    yield* streamCompletion(messages, signal, { ...opts, model: undefined, byo: null });
     return;
   }
   // Included Grok models run on the relay with their own CLI model id.
