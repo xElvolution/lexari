@@ -21,7 +21,7 @@ export async function tempoCardOf(userId: string, slug: string) {
 
 export async function cardSpentToday(userId: string, slug: string) {
   const [r] = await db().select({ v: sql<string>`coalesce(sum(${integrationActions.usdMicros}), 0)` }).from(integrationActions)
-    .where(and(eq(integrationActions.userId, userId), eq(integrationActions.agentSlug, slug), eq(integrationActions.tool, "card.pay"), inArray(integrationActions.status, [...COUNTED]), gte(integrationActions.createdAt, startOfUtcDay())));
+    .where(and(eq(integrationActions.userId, userId), eq(integrationActions.agentSlug, slug), inArray(integrationActions.tool, ["card.pay", "card.mpp"]), inArray(integrationActions.status, [...COUNTED]), gte(integrationActions.createdAt, startOfUtcDay())));
   return Number(r?.v || 0);
 }
 

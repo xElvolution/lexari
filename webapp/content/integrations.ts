@@ -111,7 +111,7 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     id: "tempo", name: "Tempo", category: "chains", status: "live", addable: true, moves: true, chains: ["Tempo Moderato testnet"],
     blurb: "Stablecoin wallet, sends and top-ups on Tempo testnet.",
     about: "Each agent gets its own Tempo address. Agents read their pathUSD and AlphaUSD balances, get test stablecoins from the Tempo faucet, send to an address you approve and top up your Lexari balance from their Tempo wallet. Fees are paid in the stablecoin itself. Every send waits for your Confirm.",
-    can: [{ text: "Its Tempo address and stablecoin balances", live: true }, { text: "Test stablecoins from the faucet", live: true }, { text: "Send pathUSD or AlphaUSD, after you confirm", live: true }, { text: "Top up your Lexari balance from its Tempo wallet", live: true }, { text: "Pay merchants with its Tempo card, inside card limits, after you confirm", live: true }, { text: "MPP machine payments", live: false }, { text: "Mainnet", live: false }],
+    can: [{ text: "Pay APIs that charge over MPP (HTTP 402) with the agent card, after you confirm", live: true }, { text: "Its Tempo address and stablecoin balances", live: true }, { text: "Test stablecoins from the faucet", live: true }, { text: "Send pathUSD or AlphaUSD, after you confirm", live: true }, { text: "Top up your Lexari balance from its Tempo wallet", live: true }, { text: "Pay merchants with its Tempo card, inside card limits, after you confirm", live: true }, { text: "MPP machine payments", live: false }, { text: "Mainnet", live: false }],
     tags: "stablecoin payments stripe pathusd alphausd tip20 moderato",
   },
   {
