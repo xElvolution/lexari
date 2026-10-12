@@ -8,6 +8,7 @@ import { evmAddress } from "@/server/integrations/evm";
 import { balances } from "@/server/integrations/solana";
 import { tempoBalances } from "@/server/integrations/tempo";
 import { monBalance } from "@/server/integrations/monad";
+import { ausdBalance } from "@/server/integrations/ausd";
 import { spotUsd } from "@/server/integrations/market";
 
 export const runtime = "nodejs";
@@ -23,13 +24,14 @@ export const GET = withUser(async (user, req) => {
   const [a] = await db().select({ kind: agents.kind }).from(agents).where(and(eq(agents.userId, user.userId), eq(agents.slug, slug))).limit(1);
   const kp = solanaKeypair(user.userId, slug, a?.kind || "home");
   const evm = evmAddress(user.userId, slug);
-  const [sol, tempo, mon, solPx] = await Promise.all([settle(balances(kp.publicKey)), settle(tempoBalances(evm)), settle(monBalance(evm)), settle(spotUsd("SOL"))]);
+  const [sol, tempo, mon, solPx, ausd] = await Promise.all([settle(balances(kp.publicKey)), settle(tempoBalances(evm)), settle(monBalance(evm)), settle(spotUsd("SOL")), settle(ausdBalance(evm))]);
   const parts: Part[] = [];
   if (sol) {
     parts.push({ asset: "USDC", amount: sol.usdc, usd: sol.usdc, where: "Solana (home)" });
     parts.push({ asset: "SOL", amount: sol.sol, usd: sol.sol * (solPx || 0), where: "Solana (home)" });
   }
   for (const t of tempo || []) parts.push({ asset: t.symbol, amount: t.amount, usd: t.amount, where: "Tempo" });
+  if (ausd !== null) parts.push({ asset: "AUSD", amount: ausd, usd: ausd, where: "Monad testnet" });
   if (mon !== null) parts.push({ asset: "MON", amount: mon, usd: 0, where: "Monad (test MON, no price)" });
   const byAsset = new Map<string, { asset: string; amount: number; usd: number; where: string[] }>();
   for (const p of parts) {

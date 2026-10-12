@@ -18,7 +18,7 @@ export const GET = withUser(async () => {
   return Response.json({ ready: intentsReady(), coins: coins.map((c) => ({ ...c, chains: c.chains.map((x) => ({ ...x, chainName: chainName(x.chain) })) })) }, { headers: noStore });
 });
 
-const body = z.object({ agent: z.string().min(1).max(64), assetId: z.string().min(3).max(200), amount: z.coerce.number().positive().max(1_000_000) });
+const body = z.object({ agent: z.string().min(1).max(64), assetId: z.string().min(3).max(200), amount: z.coerce.number().min(0).max(1_000_000).default(0) });
 export const POST = withUser(async (user, req) => {
   const b = body.parse(await req.json());
   await ownAgent(user.userId, b.agent);
