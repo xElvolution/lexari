@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -136,6 +136,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "kuru monad orderbook clob dex swap quote",
   },
   {
+    id: "metamask", name: "MetaMask Delegation", category: "chains", status: "testnet", addable: true, moves: true, chains: ["Monad testnet"],
+    blurb: "Capped spending from your MetaMask smart account.",
+    about: "You delegate from your MetaMask smart account to an agent with ERC-7710 caveats: a MON cap and an expiry, checked onchain by MetaMask's DelegationManager. The agent never holds your funds, sends only go to your linked wallets, and every send waits for your Confirm. Set it up in Settings > Wallets.",
+    can: [{ text: "See the delegation and what's left", live: true }, { text: "Send MON to your linked wallets, after you confirm", live: true }, { text: "Token and contract call scopes", live: false }],
+    tags: "metamask delegation erc7710 smart account caveats monad",
+  },
+  {
     id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],
     blurb: "Perps orders on Hyperliquid testnet with a trade-only API key.",
     about: "Each agent trades from its own Hyperliquid testnet account through an API wallet: a separate key that can place and cancel orders but can never withdraw or move funds. Agents read prices, positions and open orders, and every order waits for your Confirm inside your per-trade and daily limits. Test USDC only.",
@@ -252,6 +259,7 @@ const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
   tempo: ["read", "trade", "withdraw", "transfer"],
   hyperliquid: ["read", "trade"],
   kuru: ["read", "trade"],
+  metamask: ["read", "withdraw"],
   panta: ["read", "bet"],
 };
 /** The scopes an integration can ask for. */

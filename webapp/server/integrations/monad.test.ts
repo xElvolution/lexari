@@ -26,3 +26,9 @@ test("card.pay is a Tempo confirm-card sign tool, never auto", () => {
   const t = toolByName("card.pay")!;
   assert.equal(t.connector, "tempo"); assert.equal(t.risk, "sign"); assert.ok(!t.auto); assert.ok(t.prepare && t.execute);
 });
+
+test("metamask.send is a confirm-card sign tool on its own connector", () => {
+  const t = toolByName("metamask.send")!;
+  assert.equal(t.connector, "metamask"); assert.equal(t.risk, "sign"); assert.ok(!t.auto);
+  assert.ok(integrationById("metamask"));
+});
