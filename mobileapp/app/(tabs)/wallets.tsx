@@ -155,7 +155,7 @@ export default function Wallets() {
                 {([["EVM", "One address on Ethereum, Base, Monad, Hyperliquid EVM, Tempo and every other EVM chain", addrs.evm], ["Solana", "Solana", addrs.sol]] as const).filter((r) => r[2]).map(([t, d, ad]) => (
                   <View key={t} style={{ borderRadius: 16, backgroundColor: k.tint, padding: 12, marginBottom: 10, gap: 8 }}>
                     <T f="bold" s={14.5}>{t}</T><T s={12} c={k.ink60}>{d}</T>
-                    <Pressable onPress={async () => { await Clipboard.setStringAsync(ad!); say("Address copied"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><T f="mono" s={12.5} style={{ flex: 1 }}>{ad}</T><Icon name="copy" size={14} color={k.brandInk} /></Pressable>
+                    <Pressable onPress={async () => { await Clipboard.setStringAsync(ad!); say("Address copied"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><T f="mono" s={12.5} style={{ flex: 1 }}>{`${ad!.slice(0, Math.ceil(ad!.length / 2))}\n${ad!.slice(Math.ceil(ad!.length / 2))}`}</T><Icon name="copy" size={14} color={k.brandInk} /></Pressable>
                     <View style={{ alignSelf: "center", padding: 8, borderRadius: 12, backgroundColor: "#fff" }}><QRCode value={ad!} size={140} /></View>
                   </View>
                 ))}
