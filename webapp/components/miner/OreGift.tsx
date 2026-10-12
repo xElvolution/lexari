@@ -11,7 +11,7 @@ type Phase = "closed" | "opening" | "open" | "claiming" | "claimed";
 
 /** The honest lines shown on the gift. The ORE bot never earns anything on devnet and never mines on Lexari's machines. */
 export const ORE_GIFT_FACTS: { icon: "spark" | "server" | "undo"; title: string; body: string }[] = [
-  { icon: "spark", title: "Practice mode on devnet", body: "Real hashing with real hashrate, but no ORE rewards yet." },
+  { icon: "spark", title: "Practice mode", body: "Real hashing with real hashrate, but no ORE rewards yet." },
   { icon: "server", title: "Runs on a computer you connect", body: "A one-line install on a machine you own. Nothing mines on Lexari's servers." },
   { icon: "undo", title: "Free, and yours to remove", body: "It takes no seat. Release it or uninstall the miner anytime." },
 ];
@@ -80,7 +80,7 @@ export default function OreGift({ agentName, onDone }: { agentName: string; onDo
               <div className="min-w-0">
                 <p className="text-[20px] font-bold leading-tight text-ink">ORE bot</p>
                 <p className="mt-0.5 text-[13.5px] leading-snug text-ink/65">A bot that does the mining</p>
-                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#fff4d6] px-2 py-0.5 text-[10.5px] font-bold text-[#8a5a00]"><i className="h-1.5 w-1.5 rounded-full bg-[#f5a524]" />Practice mode · devnet</span>
+                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#fff4d6] px-2 py-0.5 text-[10.5px] font-bold text-[#8a5a00]"><i className="h-1.5 w-1.5 rounded-full bg-[#f5a524]" />Practice mode</span>
               </div>
             </div>
             {phase === "claimed" && <span className="pop absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-[#22c55e] text-white"><Icon name="check" size={16} stroke={3} /></span>}

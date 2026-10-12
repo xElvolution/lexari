@@ -98,7 +98,7 @@ export function CoinPicker({ value, onPick, onBack }: { value: string; onPick: (
 export function CoinTileLabel({ railKey }: { railKey: string }) {
   const r = railById(railKey)!;
   const c = coinById(r.coin)!;
-  return <><span className="block text-[14.5px] font-bold">{c.symbol}</span><span className="block text-[11.5px] leading-tight opacity-70">{CHAINS[r.chain].name}{r.chain === "solana" ? " devnet" : " testnet"}</span></>;
+  return <><span className="block text-[14.5px] font-bold">{c.symbol}</span><span className="block text-[11.5px] leading-tight opacity-70">{CHAINS[r.chain].name}</span></>;
 }
 
 function Steps({ phase }: { phase: string }) {
@@ -171,15 +171,15 @@ export function TokenPay({ usd, railKey, setBusy, after }: { usd: number; railKe
       <dl className="divide-y divide-[var(--line)] rounded-2xl bg-tint px-4 text-[13.5px]">
         <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">You pay</dt><dd data-token-amount className="font-bold tabular-nums text-ink">{req ? `${fmt(amount, r)} ${c.symbol}` : phase === "loading" ? "Pricing…" : "—"}</dd></div>
         <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Price</dt><dd className="text-right text-ink">{req ? `1 ${c.symbol} = $${req.price.toLocaleString("en-US", { maximumFractionDigits: req.price < 1 ? 6 : 2 })}` : "…"}<span className="block text-[11px] text-ink/45">Live, locked for 30 min</span></dd></div>
-        <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Network</dt><dd className="font-semibold text-ink">Solana devnet</dd></div>
+        <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Network</dt><dd className="font-semibold text-ink">Solana</dd></div>
         <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Your {c.symbol}</dt><dd className={`font-bold tabular-nums ${short ? "text-[#e5484d]" : "text-ink"}`}>{have === null ? "…" : fmt(have / 10 ** r.decimals, r)}</dd></div>
       </dl>
-      {r.test && <p className="mt-2 text-[11.5px] leading-snug text-ink/50">Devnet uses a Lexari test {c.symbol} token, valued at the real {c.symbol} price.</p>}
+      {r.test && <p className="mt-2 text-[11.5px] leading-snug text-ink/50">Valued at the live {c.symbol} price.</p>}
       {short && phase !== "done" && (
         <div className="mt-3 rounded-2xl bg-grape/10 p-3 ring-1 ring-grape/30">
           <p className="text-[13.5px] font-bold text-ink">Not enough {r.test ? "test " : ""}{c.symbol} in your wallet</p>
           {r.test ? <button data-drip onClick={drip} disabled={busy} className="btn btn-ghost btn-sm mt-2 w-full !h-10">{phase === "drip" ? <><Spinner className="mr-2" />Minting test {c.symbol}…</> : `Get test ${c.symbol}`}</button>
-            : <p className="mt-0.5 text-[12.5px] text-ink/65">{r.coin === "SOL" ? "Get devnet SOL at faucet.solana.com, or pay from another wallet." : "Add some to your Lexari wallet, or pay from another wallet."}</p>}
+            : <p className="mt-0.5 text-[12.5px] text-ink/65">{r.coin === "SOL" ? "Add SOL to this wallet, or pay from another wallet." : "Add some to your Lexari wallet, or pay from another wallet."}</p>}
         </div>
       )}
       {!short && noSol && <p className="mt-3 rounded-2xl bg-grape/10 p-3 text-[12.5px] text-ink/70 ring-1 ring-grape/30">A little SOL (about 0.003) is needed for the network fee.</p>}
@@ -193,7 +193,7 @@ export function TokenPay({ usd, railKey, setBusy, after }: { usd: number; railKe
           <button onClick={() => setOther((v) => !v)} aria-expanded={other} className="flex w-full items-center justify-center gap-1.5 text-[12.5px] font-bold text-ink/60 hover:text-ink">Pay from another wallet<Icon name="right" size={12} className={`transition ${other ? "-rotate-90" : "rotate-90"}`} /></button>
           {other && (
             <div className="mt-2 rounded-2xl bg-tint p-3 text-[12.5px] leading-snug text-ink/70">
-              <p>Send exactly <b className="text-ink">{fmt(amount, r)} {c.symbol}</b> on <b className="text-ink">Solana devnet</b> with this Solana Pay link. It carries a reference so we can find it.</p>
+              <p>Send exactly <b className="text-ink">{fmt(amount, r)} {c.symbol}</b> on <b className="text-ink">Solana</b> with this Solana Pay link. It carries a reference so we can find it.</p>
               <div className="mt-2 flex gap-2"><a href={req.url} className="btn btn-ink btn-sm !h-10 flex-1">Open in wallet</a><button onClick={() => copy(req.url, "Payment link")} className="btn btn-ghost btn-sm !h-10 flex-1"><Icon name="copy" size={14} />Copy</button></div>
             </div>
           )}

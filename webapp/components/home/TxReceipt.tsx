@@ -22,7 +22,7 @@ export default function TxReceipt({ tx }: { tx: Tx }) {
       <span className="min-w-0 flex-1 leading-tight">
         <span className="block break-words text-[12.5px] font-bold">{title}{tx.amount ? ` · ${tx.amount}` : tx.sol ? ` · ${sol(tx.sol)}` : ""}{who ? ` ${who}` : ""}</span>
         <span className="block break-words text-[11px] font-semibold leading-snug opacity-75">
-          {st === "pending" ? `Waiting for ${tx.net || "Solana devnet"}…` : st === "confirmed" ? `Confirmed on ${tx.net || "devnet"}${tx.balance !== undefined && tx.balance >= 0 ? ` · balance ${sol(tx.balance)}` : ""}` : st === "failed" ? tx.error || "Didn't go through" : "Nothing was sent"}
+          {st === "pending" ? `Waiting for ${tx.net || "Solana"}…` : st === "confirmed" ? `Confirmed on ${tx.net || "Solana"}${tx.balance !== undefined && tx.balance >= 0 ? ` · balance ${sol(tx.balance)}` : ""}` : st === "failed" ? tx.error || "Didn't go through" : "Nothing was sent"}
           {tx.sig ? ` · ${short(tx.sig)}` : ""}
         </span>
       </span>

@@ -67,7 +67,7 @@ export function TxReceipt({ tx }: { tx: Tx }) {
   const [bg, fg] = st === "confirmed" ? [OK_BG, OK_FG] : st === "failed" ? ["rgba(229,72,77,0.1)", "#c7353a"] : st === "cancelled" ? [k.tint, k.ink60] : ["#fff6d6", "#8a6500"];
   const title = st === "cancelled" ? `${NOT[tx.kind]} cancelled` : st === "failed" ? `${NOT[tx.kind]} failed` : st === "pending" ? `${NOT[tx.kind]} pending` : TITLE[tx.kind] || "Sent";
   const who = tx.kind === "incoming" ? `from ${tx.label || short(tx.from)}` : tx.kind === "mint" ? "" : tx.to ? `to ${tx.label || short(tx.to)}` : "";
-  const sub = (st === "pending" ? `Waiting for ${tx.net || "Solana devnet"}…` : st === "confirmed" ? `Confirmed on ${tx.net || "devnet"}${tx.balance !== undefined && tx.balance >= 0 ? ` · balance ${sol(tx.balance)}` : ""}` : st === "failed" ? tx.error || "Didn't go through" : "Nothing was sent") + (tx.sig ? ` · ${short(tx.sig)}` : "");
+  const sub = (st === "pending" ? `Waiting for ${tx.net || "Solana"}…` : st === "confirmed" ? `Confirmed on ${tx.net || "Solana"}${tx.balance !== undefined && tx.balance >= 0 ? ` · balance ${sol(tx.balance)}` : ""}` : st === "failed" ? tx.error || "Didn't go through" : "Nothing was sent") + (tx.sig ? ` · ${short(tx.sig)}` : "");
   return (
     <View style={{ marginVertical: 8, alignItems: "center" }}>
       <Pressable disabled={!tx.sig} onPress={() => Linking.openURL(tx.url || txUrl(tx.sig!))} style={{ width: "100%", maxWidth: 340, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: bg }}>
@@ -123,7 +123,7 @@ export function SendCard({ convo, mid, sd, who, onPatch }: { convo: string; mid:
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><Icon name="wallet" size={15} color="#fff" /></View>
         <T f="bold" s={14}>{fund ? (legacy ? `Fund ${who}'s task` : `Fund ${who}`) : "Send SOL"}</T>
-        <View style={{ marginLeft: "auto", borderRadius: 999, backgroundColor: "#ffd84d", paddingHorizontal: 8, paddingVertical: 2 }}><Label s={8} c="#0a0a0a">{fund && !legacy ? "Test funds" : "Devnet"}</Label></View>
+        <View style={{ marginLeft: "auto", borderRadius: 999, backgroundColor: "#ffd84d", paddingHorizontal: 8, paddingVertical: 2 }}><Label s={8} c="#0a0a0a">{fund && !legacy ? "Fund" : "Send"}</Label></View>
       </View>
       <View style={{ marginTop: 6 }}>
         <Row k="Amount" v={fund && !legacy ? `$${usd.toFixed(2)}` : `${sd.sol} SOL`} mono={!fund || legacy} />
@@ -131,7 +131,7 @@ export function SendCard({ convo, mid, sd, who, onPatch }: { convo: string; mid:
         {fund && !legacy ? <><Row k="From" v="Your Lexari balance" /><Row k="To" v={`${who}'s wallet`} /></> : <><Row k="To" v={fund ? `${who}'s wallet · ${short(sd.to)}` : short(sd.to)} mono /><Row k="From" v="Your wallet" /></>}
         {!fund && sd.valueUsd ? <Row k="Value" v={`≈ $${sd.valueUsd.toFixed(2)}`} /> : null}
       </View>
-      {fund && !legacy && !done ? <T s={12} c={k.ink60} style={{ marginTop: 8 }}>Arrives as test USDC on Solana devnet. Anything unused can go back to your balance.</T> : null}
+      {fund && !legacy && !done ? <T s={12} c={k.ink60} style={{ marginTop: 8 }}>Arrives in its wallet as USDC. Anything unused can go back to your balance.</T> : null}
       {!fund && sd.firstTime && sd.status === "pending" ? <View style={{ marginTop: 12, flexDirection: "row", gap: 8, borderRadius: 12, backgroundColor: "#fff4d6", paddingHorizontal: 12, paddingVertical: 8 }}><Icon name="info" size={14} color="#7a4b00" /><T f="semi" s={12.5} c="#7a4b00" style={{ flex: 1 }}>You've never sent to this address. Check every character. Agents can be tricked by web pages and emails.</T></View> : null}
       {sd.status === "sent" && sd.sig ? <OkLine sig={sd.sig} text={fund && !legacy ? `Funded · receipt ${short(sd.sig)}` : `Sent · ${short(sd.sig)}`} /> : null}
       {fund && sd.status === "sent" && sd.returned ? <T f="semi" s={12.5} c={k.ink60} style={{ marginTop: 8 }}>{sd.returned.usd ? `$${sd.returned.usd.toFixed(2)} went back to your balance` : sd.returned.sol ? `Leftover ${sd.returned.sol} SOL sent back to you` : "Nothing was left to send back."}</T> : null}
@@ -333,7 +333,7 @@ export function ActionCardView({ a0, who }: { a0: ActionCard; who: string }) {
         {a.usd > 0 ? <Row k="Counts toward limits" v={`$${a.usd.toFixed(2)}`} /> : null}
       </View>
       <View style={{ paddingHorizontal: 14, paddingBottom: 14, paddingTop: 10 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#22c55e" }} /><T f="semi" s={11.5} c={k.ink45}>{self ? "Only this agent's own settings. Nothing else changes." : `${a.network || "Solana devnet"} · test funds only`}</T></View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#22c55e" }} /><T f="semi" s={11.5} c={k.ink45}>{self ? "Only this agent's own settings. Nothing else changes." : "Solana"}</T></View>
         {a.status === "prepared" ? <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}><Btn label={busy === "cancel" ? "Cancelling…" : "Cancel"} flex={1} disabled={!!busy} onPress={() => void run("cancel")} /><Btn brand label="Confirm" flex={1.4} disabled={!!busy} onPress={() => void run("confirm")} /></View> : null}
         {(a.status === "done" || a.status === "confirmed") && a.sig ? <OkLine sig={a.sig} url={a.explorer} text={`Done · ${a.sig.length > 14 ? short(a.sig) : a.sig}`} /> : null}
         {a.status === "confirmed" && !a.sig && self ? <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, backgroundColor: OK_BG, paddingHorizontal: 12, paddingVertical: 8 }}><Icon name="check" size={14} color={OK_FG} /><T f="bold" s={13} c={OK_FG} style={{ flex: 1 }}>{(a.rows || []).find(([kk]) => kk === "Done")?.[1] || "Done"}</T></View> : null}

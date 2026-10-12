@@ -72,7 +72,7 @@ function FundCard({ convo, m }: { convo: string; m: Msg & { send: NonNullable<Ms
         <div className="flex justify-between gap-3"><dt className="text-ink/60">From</dt><dd className="text-ink">{legacy ? "Your wallet" : "Your Lexari balance"}</dd></div>
         <div className="flex justify-between gap-3"><dt className="text-ink/60">To</dt><dd title={sd.to} className="text-ink">{who}&apos;s wallet</dd></div>
       </dl>
-      {!legacy && !done && <p className="mt-2 text-[12px] leading-snug text-ink/55">Arrives as test USDC on Solana devnet. Anything unused can go back to your balance.</p>}
+      {!legacy && !done && <p className="mt-2 text-[12px] leading-snug text-ink/55">Arrives in its wallet as USDC. Anything unused can go back to your balance.</p>}
       {sd.status === "sent" && sd.sig && <a data-send-sig href={txUrl(sd.sig)} target="_blank" rel="noreferrer" className="mt-3 flex items-center gap-2 rounded-xl bg-[#e7f8ee] px-3 py-2 text-[13px] font-bold text-[#137a3d]"><Icon name="check" size={14} />Funded · receipt {short(sd.sig)}<Icon name="arrow" size={13} className="ml-auto" /></a>}
       {!legacy && sd.status === "sent" && (sd.returned ? <p data-fund-returned className="mt-2 text-[12.5px] font-semibold text-ink/65">{sd.returned.usd ? `$${sd.returned.usd.toFixed(2)} went back to your balance` : "Nothing was left to send back."}</p>
         : <button data-fund-return onClick={() => void giveBack()} disabled={back} className="btn btn-line btn-sm !h-9 mt-2 w-full text-ink disabled:opacity-60">{back ? "Sending back…" : "Task done · leftover to balance"}</button>)}
@@ -155,7 +155,7 @@ function TransferCard({ convo, m }: { convo: string; m: Msg & { send: NonNullabl
   };
   return (
     <div data-send-card className="mt-2 w-[min(300px,100%)] rounded-2xl bg-tint p-3.5 ring-1 ring-line">
-      <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl bg-grape text-white"><Icon name="wallet" size={15} /></span><span className="text-[14px] font-bold text-ink">{fund ? `Fund ${who}'s task` : "Send SOL"}</span><span className="label ml-auto rounded-full bg-[#ffd84d] px-2 py-0.5 text-[8px] text-[#0a0a0a]">Devnet</span></div>
+      <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl bg-grape text-white"><Icon name="wallet" size={15} /></span><span className="text-[14px] font-bold text-ink">{fund ? `Fund ${who}'s task` : "Send SOL"}</span><span className="label ml-auto rounded-full bg-[#ffd84d] px-2 py-0.5 text-[8px] text-[#0a0a0a]">Solana</span></div>
       <dl className="mt-3 space-y-1.5 text-[13.5px]">
         <div className="flex justify-between gap-3"><dt className="text-ink/60">Amount</dt><dd className="tab-num font-mono font-bold text-ink">{sd.sol} SOL</dd></div>
         {fund && sd.reason && <div className="flex justify-between gap-3"><dt className="text-ink/60">For</dt><dd className="min-w-0 text-right text-ink">{sd.reason}</dd></div>}

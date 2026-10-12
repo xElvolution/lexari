@@ -17,7 +17,7 @@ type Phase = "closed" | "opening" | "open" | "claiming" | "claimed";
 
 /** Same lines as the web. The ORE bot never earns anything on devnet and never mines on Lexari's machines. */
 export const ORE_GIFT_FACTS: { icon: string; title: string; body: string }[] = [
-  { icon: "spark", title: "Practice mode on devnet", body: "Real hashing with real hashrate, but no ORE rewards yet." },
+  { icon: "spark", title: "Practice mode", body: "Real hashing with real hashrate, but no ORE rewards yet." },
   { icon: "server", title: "Runs on a computer you connect", body: "A one-line install on a machine you own. Nothing mines on Lexari's servers." },
   { icon: "undo", title: "Free, and yours to remove", body: "It takes no seat. Release it or uninstall the miner anytime." },
 ];
@@ -104,7 +104,7 @@ export default function OreGift({ agentName, onDone }: { agentName: string; onDo
                 <T f="bold" s={20}>ORE bot</T>
                 <T s={13.5} c={k.ink60} style={{ marginTop: 2 }}>A bot that does the mining</T>
                 <View style={{ marginTop: 8, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 999, backgroundColor: "#fff4d6", paddingHorizontal: 8, paddingVertical: 3 }}>
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#f5a524" }} /><T f="bold" s={10.5} c="#8a5a00">Practice mode · devnet</T>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#f5a524" }} /><T f="bold" s={10.5} c="#8a5a00">Practice mode</T>
                 </View>
               </View>
             </View>

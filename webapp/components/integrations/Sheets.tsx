@@ -228,7 +228,7 @@ export function GrantSheet({ info, grant, st, onBack, onClose, onSaved }: {
                   </div>
                 </div>}
               </div>
-              <p className="mt-2 flex items-start gap-2 rounded-2xl bg-grape/8 px-3.5 py-3 text-[12.5px] leading-snug text-ink/70"><Icon name="lock" size={15} className="mt-px shrink-0 text-brand-ink" />Every trade still waits for your Confirm in chat, and Lexari checks these limits again before anything is sent. Devnet test funds only.</p>
+              <p className="mt-2 flex items-start gap-2 rounded-2xl bg-grape/8 px-3.5 py-3 text-[12.5px] leading-snug text-ink/70"><Icon name="lock" size={15} className="mt-px shrink-0 text-brand-ink" />Every trade still waits for your Confirm in chat, and Lexari checks these limits again before anything is sent. </p>
             </>
           )}
         </>
