@@ -4,7 +4,7 @@
  * approves it and Lexari executes it from the agent's own wallet). Catalog copy for the app is in
  * content/integrations.ts under the same connector ids.
  *
- * Adding an integration: add its entry to content/integrations.ts, then its tools here. Limits, the social gate,
+ * Adding an integration: add its entry to content/integrations.ts, then its tools here. Limits,
  * per-agent grants and the action log are applied to every tool by server/integrations/actions.ts.
  */
 import { z } from "zod";

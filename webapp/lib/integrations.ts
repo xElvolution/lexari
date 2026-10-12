@@ -5,10 +5,10 @@ import { api } from "./api";
 import { onSignOut } from "./walletBridge";
 import type { ActionCard, AddedIntegration } from "@/content/integrations";
 
-export type IntegrationsState = { locked: boolean; added: AddedIntegration[]; agents: { slug: string; kind: string; name: string }[]; loaded: boolean; error?: string };
+export type IntegrationsState = { added: AddedIntegration[]; agents: { slug: string; kind: string; name: string }[]; loaded: boolean; error?: string };
 type Reply = Omit<IntegrationsState, "loaded" | "error">;
 
-const EMPTY: IntegrationsState = { locked: true, added: [], agents: [], loaded: false };
+const EMPTY: IntegrationsState = { added: [], agents: [], loaded: false };
 let state: IntegrationsState = EMPTY;
 let inflight: Promise<void> | null = null;
 const subs = new Set<() => void>();

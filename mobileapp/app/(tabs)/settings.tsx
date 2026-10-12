@@ -324,13 +324,12 @@ function Social() {
 
 function Integrations() {
   const { token } = useSession();
-  const [d, setD] = useState<{ locked?: boolean; added?: { id: string; name?: string }[] } | null>(null);
+  const [d, setD] = useState<{ added?: { id: string; name?: string }[] } | null>(null);
   useEffect(() => { if (token) api<typeof d>("/api/integrations", {}, token).then(setD).catch(() => setD({})); }, [token]);
   return (
     <>
       <Group title="Your agents' tools">
-        {d?.locked ? <Row last title="Link a social account to unlock" desc="Integrations let your agents use real tools with their own wallets. Link X, Discord or Telegram first so every agent is tied to a real person."><Small icon="link" label="Link one to continue" onPress={() => Linking.openURL("https://app.lexari.ai/settings#social")} /></Row>
-          : (d?.added ?? []).length ? (d!.added!).map((x, i, a) => <Row key={x.id} last={i === a.length - 1} title={x.name ?? x.id} />)
+        {(d?.added ?? []).length ? (d!.added!).map((x, i, a) => <Row key={x.id} last={i === a.length - 1} title={x.name ?? x.id} />)
           : <Row last title="No integrations yet" desc="Add Solana, Orca or Polymarket and pick which agents can use them. Nothing runs until you add it." />}
       </Group>
       <Group><Row last title="Test funds only" desc="Trades and transfers run on Solana devnet with test funds only, and each one waits for your Confirm in chat. Market data is read only." /></Group>
