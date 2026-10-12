@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -148,6 +148,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     about: "Your agent keeps one balance. When a trade or payment needs funds on another chain, it routes them through Aurora Intents (any-chain liquidity, powered by NEAR Intents) in one Confirm card, with refunds back to your balance if it can't fill. Quotes work with an API key; moving real funds is switched on per server.",
     can: [{ text: "Cross-chain quotes to 25+ chains", live: true }, { text: "One Confirm card that routes and delivers", live: true }, { text: "Route status", live: true }],
     tags: "aurora intents near cross chain bridge swap any chain liquidity route",
+  },
+  {
+    id: "mera", name: "Mera", category: "chains", status: "live", addable: false, moves: false, chains: ["Monad", "Solana"],
+    blurb: "One passkey, many keys: sign in with Face ID and give every agent its own key.",
+    about: "Mera derives keys from a passkey (WebAuthn PRF), with no seed phrase and nothing secret stored. Your passkey signs you in to Lexari and derives a separate EVM key for each agent, so one Face ID or Touch ID covers all of them. Add it in Settings, Security.",
+    can: [{ text: "Passkey sign-in", live: true }, { text: "A separate key for each agent from one passkey", live: true }, { text: "Same keys on every device your passkey syncs to", live: true }],
+    tags: "mera passkey face id touch id webauthn prf sign in keys monad category labs",
   },
   {
     id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],

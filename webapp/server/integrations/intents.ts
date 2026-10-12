@@ -25,7 +25,7 @@ const MAINNET_USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const CHAIN_ALIAS: Record<string, string> = { solana: "sol", sol: "sol", ethereum: "eth", eth: "eth", base: "base", arbitrum: "arb", arb: "arb", monad: "monad", hyperliquid: "hypercore", hypercore: "hypercore", polygon: "pol", bsc: "bsc", bnb: "bsc", optimism: "op", op: "op", avalanche: "avax", near: "near", bitcoin: "btc", btc: "btc", sui: "sui", tron: "tron", gnosis: "gnosis" };
 const chainOf = (s: string) => CHAIN_ALIAS[s.trim().toLowerCase()] || s.trim().toLowerCase();
 
-type Token = { assetId: string; decimals: number; blockchain: string; symbol: string; price: number; contractAddress?: string };
+export type Token = { assetId: string; decimals: number; blockchain: string; symbol: string; price: number; contractAddress?: string };
 let tokCache: { at: number; list: Token[] } | null = null;
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!intentsReady()) throw new Reject("Aurora Intents is not set up on this server yet (no API key), so I can't route across chains.");

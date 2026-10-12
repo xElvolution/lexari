@@ -5,21 +5,29 @@
  * Deposit addresses come from an Aurora Intents Swap API quote, so they need AURORA_INTENTS_API_KEY.
  */
 import QR from "qrcode";
-import { intentsReady, intentsDepositQuote } from "./intents";
+import { intentsReady, intentsDepositQuote, intentsTokens } from "./intents";
 
 const CONNECT = () => (process.env.AURORA_INTENTS_CONNECT_URL || "https://intents-connect-api.aurora.dev").replace(/\/+$/, "");
 type Raw = { assetId: string; symbol: string; blockchain: string; decimals: number; price: number; coingeckoId?: string; contractAddress?: string };
 export type DepositChain = { assetId: string; chain: string; decimals: number };
 export type DepositCoin = { symbol: string; name: string; price: number; logo: string | null; chains: DepositChain[] };
-const CHAIN_NAME: Record<string, string> = { eth: "Ethereum", sol: "Solana", base: "Base", arb: "Arbitrum", op: "Optimism", pol: "Polygon", bsc: "BNB Chain", avax: "Avalanche", near: "NEAR", monad: "Monad", tron: "Tron", ton: "TON", gnosis: "Gnosis", stellar: "Stellar", bera: "Berachain", scroll: "Scroll", xlayer: "X Layer", plasma: "Plasma", btc: "Bitcoin", hypercore: "Hyperliquid", sui: "Sui" };
+const CHAIN_NAME: Record<string, string> = { xrp: "XRP Ledger", doge: "Dogecoin", ltc: "Litecoin", bch: "Bitcoin Cash", cardano: "Cardano", aptos: "Aptos", starknet: "Starknet", aleo: "Aleo", movement: "Movement", dash: "Dash", zec: "Zcash", abs: "Abstract", adi: "ADI", fogo: "Fogo", hood: "Robinhood Chain", eth: "Ethereum", sol: "Solana", base: "Base", arb: "Arbitrum", op: "Optimism", pol: "Polygon", bsc: "BNB Chain", avax: "Avalanche", near: "NEAR", monad: "Monad", tron: "Tron", ton: "TON", gnosis: "Gnosis", stellar: "Stellar", bera: "Berachain", scroll: "Scroll", xlayer: "X Layer", plasma: "Plasma", btc: "Bitcoin", hypercore: "Hyperliquid", sui: "Sui" };
 export const chainName = (c: string) => CHAIN_NAME[c] || c;
+const EXTRA_CG: Record<string, string> = { BTC: "bitcoin", XRP: "ripple", DOGE: "dogecoin", LTC: "litecoin", BCH: "bitcoin-cash", ADA: "cardano", APT: "aptos", SUI: "sui", TON: "the-open-network", DASH: "dash", STRK: "starknet", ALEO: "aleo", MOVE: "movement", ETH: "ethereum", SOL: "solana", BNB: "binancecoin", MON: "monad", USDC: "usd-coin", USDT: "tether", TRX: "tron", XLM: "stellar", ZEC: "zcash", NEAR: "near", AVAX: "avalanche-2", POL: "polygon-ecosystem-token", HYPE: "hyperliquid" };
 let cache: { at: number; coins: DepositCoin[] } | null = null;
 
 export async function depositCoins(): Promise<DepositCoin[]> {
   if (cache && Date.now() - cache.at < 600_000) return cache.coins;
   const r = await fetch(`${CONNECT()}/api/v1/supported_tokens`, { signal: AbortSignal.timeout(12_000) });
   if (!r.ok) throw new Error(`Aurora Intents Connect said HTTP ${r.status}`);
-  const all = ((await r.json()) as { result: { in: Raw[] } }).result.in.filter((t) => !/deprecated|test/i.test(t.symbol));
+  const connect = ((await r.json()) as { result: { in: Raw[] } }).result.in;
+  // With the API key, the Aurora Intents Swap API token list is the live source (it is wider: native BTC, XRP, DOGE…).
+  // Connect's list still supplies CoinGecko ids for logos.
+  const cg = new Map<string, string>(Object.entries(EXTRA_CG));
+  for (const t of connect) if (t.coingeckoId) cg.set(t.symbol.toUpperCase(), t.coingeckoId);
+  const live = intentsReady() ? await intentsTokens().catch(() => null) : null;
+  const src: Raw[] = live?.length ? live.map((t) => ({ ...t, coingeckoId: cg.get(t.symbol.toUpperCase()) })) : connect;
+  const all = src.filter((t) => !/deprecated|test/i.test(t.symbol));
   const ids = [...new Set(all.map((t) => t.coingeckoId).filter(Boolean))] as string[];
   const meta = new Map<string, { image: string; name: string }>();
   for (let i = 0; i < ids.length; i += 200) {
