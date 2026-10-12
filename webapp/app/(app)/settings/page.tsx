@@ -17,6 +17,7 @@ import { openAdd, openAgent } from "@/components/overlays";
 import BillingSection from "@/components/billing/BillingSection";
 import LockSettings from "@/components/lock/LockSettings";
 import SecurityCenter from "@/components/security/SecurityCenter";
+import MeraKeys from "@/components/security/MeraKeys";
 import SocialLinks from "@/components/social/SocialLinks";
 import IntegrationsSection from "@/components/integrations/IntegrationsSection";
 import WalletsSection from "@/components/wallets/WalletsSection";
@@ -251,6 +252,7 @@ function Security({ s }: { s: State }) {
       </Group>
       <Group title="App lock"><LockSettings /></Group>
       <SecurityCenter />
+      <MeraKeys agents={myAgents(s).map((a) => ({ slug: a.id, name: a.name }))} />
       <Group title="This device">
         <Row title="Sign out" desc="Ends this session."><button onClick={() => { void signOut().then(() => router.push("/signin")); }} className={smallBtn}><Icon name="out" size={15} />Sign out</button></Row>
       </Group>

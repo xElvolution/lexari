@@ -109,11 +109,7 @@ export async function verifySignIn(input: { wallet: string; message: string; sig
     }
   }
 
-  const token = crypto.randomBytes(32).toString("base64url");
-  const expires = new Date(Date.now() + SESSION_MS);
-  const device = deviceName(from.ua || ""), hint = ipHint(from.ip || "");
-  const [row] = await database.insert(sessions).values({ userId: user.id, tokenHash: hashToken(token), expiresAt: expires, userAgent: (from.ua || "").slice(0, 300), device, ipHint: hint }).returning({ id: sessions.id });
-  await noteSignIn(user.id, row.id, device, hint).catch((e: Error) => console.error(`[security] sign-in note: ${e.message?.slice(0, 120)}`));
+  const { token, expires } = await startSession(user.id, from);
   return { token, expires, wallet: user.wallet, referralCode: user.referralCode };
 }
 
@@ -154,3 +150,15 @@ export async function destroySession() {
 }
 
 export type SessionUser = NonNullable<Awaited<ReturnType<typeof currentSession>>>;
+
+/** A new session for a user who has proved who they are (wallet signature or a linked passkey). */
+export async function startSession(userId: string, from: { ua?: string; ip?: string } = {}) {
+  const database = db();
+  const token = crypto.randomBytes(32).toString("base64url");
+  const expires = new Date(Date.now() + SESSION_MS);
+  const device = deviceName(from.ua || ""), hint = ipHint(from.ip || "");
+  const [row] = await database.insert(sessions).values({ userId, tokenHash: hashToken(token), expiresAt: expires, userAgent: (from.ua || "").slice(0, 300), device, ipHint: hint }).returning({ id: sessions.id });
+  await noteSignIn(userId, row.id, device, hint).catch((e: Error) => console.error(`[security] sign-in note: ${e.message?.slice(0, 120)}`));
+  const [u] = await database.select({ wallet: users.wallet }).from(users).where(eq(users.id, userId)).limit(1);
+  return { token, expires, wallet: u?.wallet || "" };
+}
