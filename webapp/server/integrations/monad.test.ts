@@ -21,3 +21,8 @@ test("kuru.swap is a confirm-card sign tool, never auto", () => {
   const t = toolByName("kuru.swap")!;
   assert.equal(t.risk, "sign"); assert.ok(!t.auto); assert.ok(t.prepare && t.execute);
 });
+
+test("card.pay is a Tempo confirm-card sign tool, never auto", () => {
+  const t = toolByName("card.pay")!;
+  assert.equal(t.connector, "tempo"); assert.equal(t.risk, "sign"); assert.ok(!t.auto); assert.ok(t.prepare && t.execute);
+});
