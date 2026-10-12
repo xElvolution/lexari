@@ -153,7 +153,7 @@ const tokenIn = z.string().max(12).default("pathUSD");
 const tempoSendIn = z.object({ to: z.string().regex(/^0x[0-9a-fA-F]{40}$/), token: tokenIn, amount: num }).passthrough();
 const tempoSend: ToolDef = {
   name: "tempo.transfer", connector: "tempo", risk: "sign", input: tempoSendIn,
-  hint: `tempo.transfer {"to":"0x…","token":"pathUSD","amount":5} : prepare a stablecoin send from your Tempo wallet; the person confirms it.`,
+  hint: `tempo.transfer {"to":"0x…","token":"pathUSD","amount":5} : prepare a stablecoin send from your Tempo wallet; the person confirms it. "to":"me" sends to the person's own linked EVM wallet.`,
   prepare: async (i: z.output<typeof tempoSendIn>, agent, limits) => {
     const t = tempoToken(i.token);
     if (!t) throw new Reject(`Tempo tokens I can send: ${TEMPO_TOKENS.map((x) => x.symbol).join(", ")}.`);

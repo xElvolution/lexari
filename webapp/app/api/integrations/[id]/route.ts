@@ -12,6 +12,8 @@ const patchBody = z.object({
   perTxUsd: z.number().int().optional(),
   dailyUsd: z.number().int().optional(),
   maxSlippageBps: z.number().int().optional(),
+  scopes: z.array(z.string().min(2).max(20)).max(10).optional(),
+  expiresDays: z.number().int().optional(),
 }).strict();
 
 /** Switch it on or off, change which agents may use it, or change its limits. */

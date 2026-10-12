@@ -3,7 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { api } from "./api";
 import { onSignOut } from "./walletBridge";
-import type { ActionCard, AddedIntegration } from "@/content/integrations";
+import type { ActionCard, AddedIntegration, AuditRow } from "@/content/integrations";
 
 export type IntegrationsState = { added: AddedIntegration[]; agents: { slug: string; kind: string; name: string }[]; loaded: boolean; error?: string };
 type Reply = Omit<IntegrationsState, "loaded" | "error">;
@@ -26,9 +26,15 @@ export function useIntegrations(): IntegrationsState {
   return s;
 }
 
-export type GrantInput = { agents?: string[]; enabled?: boolean; perTxUsd?: number; dailyUsd?: number; maxSlippageBps?: number };
+export type GrantInput = { agents?: string[]; enabled?: boolean; perTxUsd?: number; dailyUsd?: number; maxSlippageBps?: number; scopes?: string[]; expiresDays?: number };
 export async function addIntegration(connector: string, input: GrantInput) { take(await api<Reply>("/api/integrations", { body: { connector, ...input } })); }
 export async function updateIntegration(id: string, input: GrantInput) { take(await api<Reply>(`/api/integrations/${id}`, { method: "PATCH", body: input })); }
+/** The kill switch: every integration off and every unconfirmed action cancelled. Returns how many were on. */
+export async function revokeAllIntegrations() { const r = await api<Reply & { revoked: number }>("/api/integrations/revoke-all", { body: {} }); take(r); return r.revoked; }
+export async function loadAudit(opts: { connector?: string; before?: number } = {}) {
+  const q = new URLSearchParams({ limit: "40", ...(opts.connector ? { connector: opts.connector } : {}), ...(opts.before ? { before: String(opts.before) } : {}) });
+  return (await api<{ rows: AuditRow[] }>(`/api/integrations/audit?${q}`)).rows;
+}
 export async function removeIntegration(id: string) { take(await api<Reply>(`/api/integrations/${id}`, { method: "DELETE" })); }
 
 export async function actOn(id: string, op: "confirm" | "cancel") {

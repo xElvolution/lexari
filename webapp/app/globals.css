@@ -124,3 +124,6 @@ html, body { overflow-x: clip; }
 .gift-card { animation: gift-card .9s .25s cubic-bezier(.2,.9,.3,1.15) both; }
 .gift-ping { animation: gift-ping 1.6s ease-out infinite; }
 @media (prefers-reduced-motion: reduce) { .gift-lid, .gift-sink, .gift-card, .gift-ping { animation: none; } .gift-lid, .gift-sink { opacity: 0; } .gift-rays { animation: none; transform: translate(-50%, -50%); } }
+@keyframes consent-shield { 0% { transform: scale(0) rotate(-40deg); } 60% { transform: scale(1.25) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+.consent-shield { animation: consent-shield .6s cubic-bezier(.3,1.6,.5,1) .25s both; }
+@media (prefers-reduced-motion: reduce) { .consent-shield { animation: none; } }

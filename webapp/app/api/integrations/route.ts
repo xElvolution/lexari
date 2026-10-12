@@ -17,6 +17,8 @@ const addBody = z.object({
   perTxUsd: z.number().int().optional(),
   dailyUsd: z.number().int().optional(),
   maxSlippageBps: z.number().int().optional(),
+  scopes: z.array(z.string().min(2).max(20)).max(10).optional(),
+  expiresDays: z.number().int().optional(),
 }).strict();
 
 /** Add an integration with the agents that may use it and its limits. Open to everyone. */

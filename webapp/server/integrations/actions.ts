@@ -7,14 +7,15 @@
  * Sign tools never execute from chat: they make a confirm card, and only the person's Confirm runs them.
  */
 import { and, eq, sql } from "drizzle-orm";
-import { integrationById, type ActionCard, type MarketsCard } from "@/content/integrations";
+import { SCOPE_INFO, integrationById, scopeOfTool, type ActionCard, type MarketsCard } from "@/content/integrations";
 import { db } from "../db";
 import { chats, messages } from "../db/schema";
 import { integrationActions, integrationGrants } from "../db/integrationsSchema";
 import { HttpError, rateLimit } from "../http";
 import { connection } from "../hub/chain";
 import { ownAgent, solanaKeypair } from "../agentWallets";
-import { COUNTED, isBuiltin, spentToday, type Grant } from "./grants";
+import { COUNTED, grantScopes, isBuiltin, isLive, spentToday, type Grant } from "./grants";
+import { isOwnWallet, myWalletFor } from "../wallets";
 import { overBudget } from "../agentpay/budgets";
 import { recordTx } from "../txlog";
 import { TEMPO, tempoReceipt } from "./tempo";
@@ -50,6 +51,38 @@ async function record(ctx: Ctx, tool: ToolDef | { name: string; connector: strin
   return row;
 }
 
+const ME = /^(me|mine|my wallet|my linked wallet|my active wallet|user|owner)$/i;
+
+/** "to":"me" in a transfer means your own wallet (the active one when it fits the chain). */
+async function resolveMe(userId: string, tool: ToolDef, input: unknown) {
+  if (!/\.transfer$/.test(tool.name) || !input || typeof input !== "object") return input;
+  const to = (input as { to?: unknown }).to;
+  if (typeof to !== "string" || !ME.test(to.trim())) return input;
+  const mine = await myWalletFor(userId, tool.connector === "solana" ? "solana" : "evm");
+  if (!mine) throw new Reject(`You haven't linked ${tool.connector === "solana" ? "a Solana" : "an EVM"} wallet yet. Link one in Settings > Wallets and I can send there.`);
+  return { ...input, to: mine };
+}
+
+/**
+ * The consent rules: the grant hasn't expired and covers what this tool does. A transfer to one of your own wallets
+ * needs "withdraw" (or "transfer"); to anyone else it needs "transfer". Built-in connectors carry every scope.
+ */
+export async function scopeDenied(userId: string, grant: Grant, tool: ToolDef, plan: unknown): Promise<string | null> {
+  const name = integrationById(tool.connector)?.name || tool.connector;
+  if (!isLive(grant)) return `My access to ${name} expired. Allow it again in Settings > Integrations.`;
+  const has = grantScopes(grant);
+  let need = scopeOfTool(tool.name, tool.risk);
+  if (need === "transfer") {
+    const to = (plan as { to?: string } | undefined)?.to;
+    if (to && (await isOwnWallet(userId, to))) return has.includes("withdraw") || has.includes("transfer") ? null : `You didn't allow ${name} to send to your wallets. Turn on "${SCOPE_INFO.withdraw.title}" in Settings > Integrations.`;
+    if (!has.includes("transfer")) return has.includes("withdraw")
+      ? `I can only send to wallets you linked (Settings > Wallets). To pay another address, allow "${SCOPE_INFO.transfer.title}" for ${name}.`
+      : `You didn't allow ${name} to send money. Change it in Settings > Integrations.`;
+    return null;
+  }
+  return has.includes(need) ? null : `You didn't allow ${name} to ${SCOPE_INFO[need].title.toLowerCase()}. Change it in Settings > Integrations.`;
+}
+
 /** One tool call from the agent's reply. `grants` are the integrations this agent may use right now. */
 export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: unknown): Promise<CallResult> {
   const tool = toolByName(name);
@@ -59,6 +92,16 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
   if (!grant) {
     await record(ctx, tool, input, "rejected", { error: `${info.name} isn't available to this agent.` }).catch(() => null);
     return { kind: "refused", tool: tool.name, text: `I don't have access to ${info.name}. In Settings > Integrations, add it (or switch it on) and give me access` };
+  }
+  try { input = await resolveMe(ctx.userId, tool, input); }
+  catch (e) {
+    const why = e instanceof Reject ? e.message : "I couldn't look up your wallets right now.";
+    await record(ctx, tool, input, "rejected", { error: why }).catch(() => null);
+    return { kind: "refused", tool: tool.name, text: why };
+  }
+  if (tool.risk === "read" && !isBuiltin(tool.connector)) {
+    const denied = await scopeDenied(ctx.userId, grant, tool, null);
+    if (denied) { await record(ctx, tool, input, "rejected", { error: denied }).catch(() => null); return { kind: "refused", tool: tool.name, text: denied }; }
   }
   const parsed = tool.input.safeParse(input ?? {});
   if (!parsed.success) {
@@ -95,6 +138,15 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
     return { kind: "refused", tool: tool.name, text: why };
   }
   const preview: Preview = { title: prep.title, rows: prep.rows, network: netOf(prep.chain), plan: prep.plan, summary: prep.summary };
+  if (!isBuiltin(tool.connector)) {
+    const denied = await scopeDenied(ctx.userId, grant, tool, prep.plan);
+    if (denied) {
+      await record(ctx, tool, parsed.data, "rejected", { preview, usdMicros: prep.usdMicros, error: denied, chain: prep.chain });
+      return { kind: "refused", tool: tool.name, text: denied };
+    }
+  }
+  const toOwn = !!(prep.plan as { to?: string } | undefined)?.to && (await isOwnWallet(ctx.userId, (prep.plan as { to: string }).to).catch(() => false));
+  if (toOwn) preview.rows = [...preview.rows, ["Destination", "Your linked wallet"]];
   // The agent's own settings move no money: straight to a Confirm card.
   if (tool.offchain) {
     const row = await record(ctx, tool, parsed.data, "prepared", { preview, usdMicros: 0, chain: prep.chain });
@@ -102,12 +154,13 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
   }
   // Settings > Security: the daily money limit and "saved addresses only" apply to everything an agent prepares.
   let guard: SendCheck;
-  try { guard = await checkMoney(ctx.userId, { usdMicros: prep.usdMicros, to: (prep.plan as { to?: string } | undefined)?.to ?? null }); }
+  try { guard = await checkMoney(ctx.userId, { usdMicros: prep.usdMicros, to: toOwn ? null : (prep.plan as { to?: string } | undefined)?.to ?? null }); }
   catch (e) {
     if (!(e instanceof HttpError)) throw e;
     await record(ctx, tool, parsed.data, "rejected", { preview, usdMicros: prep.usdMicros, error: e.message, chain: prep.chain });
     return { kind: "refused", tool: tool.name, text: e.message };
   }
+  if (toOwn) guard = { ...guard, firstTime: false };
   if (guard.firstTime) preview.rows = [...preview.rows, ["Heads up", "You've never sent to this address. Check every character before you confirm."]];
   if (tool.auto && (guard.firstTime || ctx.untrusted)) {
     // A new payee, or a turn that read email or web content: always your Confirm, never on its own.
@@ -209,6 +262,8 @@ export async function confirmAction(userId: string, id: string): Promise<ActionC
     if (!g) return `${info.name} was removed, so this can't run.`;
     if (!g.enabled) return `${info.name} is switched off in Settings > Integrations.`;
     if (!g.agentSlugs.includes(a.agentSlug)) return `This agent no longer has access to ${info.name}.`;
+    const denied = await scopeDenied(userId, g, tool, ((a.preview || {}) as Preview).plan);
+    if (denied) return denied;
     const over = await overLimit(userId, info.name, g, a.usdMicros, tx as never);
     if (over) return over;
     const [moved] = await tx.update(integrationActions).set({ status: "submitting" }).where(and(eq(integrationActions.id, a.id), eq(integrationActions.status, "prepared"))).returning({ id: integrationActions.id });
