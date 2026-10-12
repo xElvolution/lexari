@@ -20,7 +20,7 @@ export default function CardVisual({ id, name, className = "", card = null, onCo
   const accent = sp ? PALETTE[sp.color].fill : "#c9b8ff";
   const bg = id === "home" ? "linear-gradient(135deg,#6a3dff 0%,#5b2bff 45%,#2a0f9a 100%)" : `radial-gradient(120% 140% at 100% 0%, color-mix(in oklab, ${accent} 55%, transparent) 0%, transparent 55%), linear-gradient(135deg,#1a1726 0%,#0a0a0a 100%)`;
   return (
-    <div className={`@container relative flex aspect-[1.586] w-full max-w-[360px] flex-col overflow-hidden rounded-[20px] p-[6%] text-white shadow-[0_24px_50px_-24px_rgba(91,43,255,.7)] ring-1 ring-white/10 ${className}`} style={{ background: bg }} aria-label={card ? `${card.test ? "Test devnet card" : "Card"} for ${name} ending ${card.last4}${card.frozen ? ", frozen" : ""}` : `Card preview for ${name}. No card has been issued.`}>
+    <div className={`@container relative flex aspect-[1.586] w-full max-w-[360px] flex-col overflow-hidden rounded-[20px] p-[6%] text-white shadow-[0_24px_50px_-24px_rgba(91,43,255,.7)] ring-1 ring-white/10 ${className}`} style={{ background: bg }} aria-label={card ? `${"Card"} for ${name} ending ${card.last4}${card.frozen ? ", frozen" : ""}` : `Card preview for ${name}. No card has been issued.`}>
       <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full border border-white/10" />
       <div className="pointer-events-none absolute -right-2 -top-24 h-56 w-56 rounded-full border border-white/10" />
       <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full border border-white/[.07]" />
@@ -41,7 +41,7 @@ export default function CardVisual({ id, name, className = "", card = null, onCo
         <div className="shrink-0"><div className="label text-[clamp(6px,2cqw,7.5px)] text-white/60">CVV</div><div {...tap(card?.cvv || "", "CVV")} className={`font-mono text-[clamp(10px,3.6cqw,13px)] text-white/85 ${full && onCopy ? "cursor-copy rounded hover:bg-white/10" : ""}`}>{full ? card!.cvv : "•••"}</div></div>
         <div className="flex shrink-0 flex-col items-end" aria-hidden>
           <span className="flex"><i className="h-[clamp(16px,6.5cqw,24px)] w-[clamp(16px,6.5cqw,24px)] rounded-full bg-white/90" /><i className="-ml-[2.6cqw] h-[clamp(16px,6.5cqw,24px)] w-[clamp(16px,6.5cqw,24px)] rounded-full bg-lilac/80 mix-blend-screen" /></span>
-          <span className="label mt-0.5 text-[clamp(5.5px,1.8cqw,6.5px)] text-white/60">{card?.test ? "Devnet" : "Network"}</span>
+          <span className="label mt-0.5 text-[clamp(5.5px,1.8cqw,6.5px)] text-white/60">Network</span>
         </div>
       </div>
       {card?.frozen && (

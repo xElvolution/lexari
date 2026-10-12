@@ -4,4 +4,4 @@
  * so the card number cannot be used anywhere real. A real issuer plugs in on the server only.
  */
 export const CARD_LIMITS = [100, 250, 500, 1000];
-export const CARD_TEST_NOTE = "This is a devnet test card. The number works only inside Lexari's test environment, not at real shops.";
+export const CARD_TEST_NOTE = "A Tempo card: your agent pays merchants in stablecoins on Tempo, inside the limits you set. Every payment waits for your Confirm.";

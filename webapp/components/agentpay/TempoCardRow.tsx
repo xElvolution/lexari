@@ -29,7 +29,7 @@ export default function TempoCardRow({ agent, name }: { agent: string; name: str
   return (
     <>
       <button type="button" data-tempo-card={agent} onClick={() => setOpen(true)} className={`relative w-full overflow-hidden rounded-2xl p-4 text-left text-white ring-1 ring-black/10 transition hover:opacity-95 ${c.frozen ? "bg-[#5b5b66]" : "bg-gradient-to-br from-[#1b1b2f] via-[#3b2a8f] to-[#6d4aff]"}`}>
-        <span className="flex items-center justify-between text-[12px] font-bold uppercase tracking-wider text-white/70"><span>Tempo card</span><span>{c.frozen ? "Frozen" : "Testnet"}</span></span>
+        <span className="flex items-center justify-between text-[12px] font-bold uppercase tracking-wider text-white/70"><span>Tempo card</span><span>{c.frozen ? "Frozen" : "Active"}</span></span>
         <span className="mt-3 block text-[24px] font-extrabold tabular-nums">{c.balances ? mask(`$${total(c).toFixed(2)}`) : "Balance unavailable"}</span>
         <span className="mt-1 block text-[12.5px] text-white/75">{name} · {usd(c.perTxUsd)} a payment · {usd(c.dailyUsd)} a day · {mask(usd(c.spentTodayUsd))} spent today</span>
         <span className="mt-2 block font-mono text-[11.5px] text-white/60">{c.address.slice(0, 6)}…{c.address.slice(-4)}</span>
@@ -52,7 +52,7 @@ function CardSheet({ agent, name, c, onSaved, onClose }: { agent: string; name: 
   };
   const dirty = per !== c.perTxUsd || day !== c.dailyUsd;
   return (
-    <Sheet label="tempo-card" title="Tempo card" sub={`${name} pays merchants in stablecoins on ${c.network}. Every payment waits for your Confirm, inside these limits. Test funds only.`} icon={<Icon name="wallet" size={20} />} onClose={onClose}
+    <Sheet label="tempo-card" title="Tempo card" sub={`${name} pays merchants in stablecoins on Tempo. Every payment waits for your Confirm, inside these limits.`} icon={<Icon name="wallet" size={20} />} onClose={onClose}
       footer={<div className="flex gap-2">
         <button disabled={busy} onClick={() => save(!c.frozen, c.frozen ? "Card unfrozen" : "Card frozen")} className="h-11 flex-1 rounded-full bg-tint text-[15px] font-bold text-ink disabled:opacity-40">{c.frozen ? "Unfreeze" : "Freeze"}</button>
         <button disabled={!dirty || busy} onClick={() => save(c.frozen, "Card limits saved")} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-grape text-[15px] font-bold text-white disabled:opacity-40">{busy ? <Spinner /> : null}Save limits</button>
