@@ -1,5 +1,6 @@
 /** Port of webapp/components/security/SecurityCenter.tsx: balances privacy, anti-phishing phrase, money limits, saved addresses, devices and activity. */
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import Capped from "./Capped";
 import { Pressable, Text, TextInput, View } from "react-native";
 import Icon from "./Icon";
 import { PhraseBadge } from "./StepUpSheet";
@@ -110,7 +111,7 @@ export default function SecurityCenter() {
         <Addresses d={d} setD={setD} say={say} />
         <Sessions d={d} setD={setD} say={say} />
         <Group title="Recent security activity">
-          {d.events.length ? d.events.slice(0, 8).map((e) => (
+          <Capped n={Math.min(d.events.length, 40)}>{d.events.length ? d.events.slice(0, 40).map((e) => (
             <View key={e.id} testID={`sec-event-${e.kind}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 }}>
               <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><Icon name={EV_ICON[e.kind] || "info"} size={15} color={k.ink75} /></View>
               <View style={{ flex: 1, minWidth: 0 }}>
@@ -118,7 +119,7 @@ export default function SecurityCenter() {
                 <Text style={{ fontFamily: F.reg, fontSize: 12, lineHeight: 16, color: k.dark ? "rgba(255,255,255,0.5)" : "rgba(10,10,10,0.5)" }}>{[e.device, ago(e.at)].filter(Boolean).join(" · ")}</Text>
               </View>
             </View>
-          )) : <Row title="Nothing yet" desc="Sign-ins and security changes show here." />}
+          )) : <Row title="Nothing yet" desc="Sign-ins and security changes show here." />}</Capped>
         </Group>
       </> : null}
       {!d && !err ? <View style={{ marginTop: 24, height: 160, borderRadius: 22, backgroundColor: k.tint }} /> : null}
@@ -174,7 +175,7 @@ function Addresses({ d, setD, say }: { d: Data; setD: SetD; say: Say }) {
   };
   return (
     <Group title="Saved addresses">
-      {d.addresses.map((a) => (
+      <Capped n={d.addresses.length}>{d.addresses.map((a) => (
         <View key={a.id} testID="saved-address" style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 }}>
           <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(91,43,255,0.12)", alignItems: "center", justifyContent: "center" }}><Icon name="verified" size={15} color={k.brandInk} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -185,7 +186,7 @@ function Addresses({ d, setD, say }: { d: Data; setD: SetD; say: Say }) {
             {({ pressed }) => <Icon name="trash" size={15} color={pressed ? RED : (k.dark ? "rgba(255,255,255,0.55)" : "rgba(10,10,10,0.55)")} />}
           </Pressable>
         </View>
-      ))}
+      ))}</Capped>
       {open ? (
         <View style={{ gap: 8, paddingVertical: 16 }}>
           <Field mono value={addr} onChangeText={(t) => setAddr(t.trim())} placeholder="Solana or 0x… address" label="Address" />
@@ -219,7 +220,7 @@ function Sessions({ d, setD, say }: { d: Data; setD: SetD; say: Say }) {
   const dim = k.dark ? "rgba(255,255,255,0.5)" : "rgba(10,10,10,0.5)";
   return (
     <Group title="Where you're signed in">
-      {d.sessions.map((x) => (
+      <Capped n={d.sessions.length}>{d.sessions.map((x) => (
         <View key={x.id} testID={`session-${x.current ? "current" : "other"}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 }}>
           <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: x.current ? GRAPE : k.tint, alignItems: "center", justifyContent: "center" }}><Icon name={/iPhone|Android|iPad/.test(x.device) ? "phone" : "laptop"} size={15} color={x.current ? "#fff" : k.ink75} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -231,7 +232,7 @@ function Sessions({ d, setD, say }: { d: Data; setD: SetD; say: Say }) {
           </View>
           {!x.current ? <Pressable onPress={() => void end({ id: x.id })} disabled={busy} style={({ pressed }) => ({ height: 36, borderRadius: 18, paddingHorizontal: 12, justifyContent: "center", backgroundColor: pressed ? "#fde8e8" : "transparent", opacity: busy ? 0.5 : 1 })}><Text style={{ fontFamily: F.bold, fontSize: 13, color: RED }}>Sign out</Text></Pressable> : null}
         </View>
-      ))}
+      ))}</Capped>
       <Row title="Sign out everywhere else" desc={others ? `Ends ${others} other ${others === 1 ? "session" : "sessions"}. This device stays signed in.` : "You're only signed in here."}>
         <SmallBtn icon="out" label="Sign out others" disabled={busy || !others} onPress={() => void end({ others: true })} />
       </Row>
