@@ -26,7 +26,7 @@ export default function MeraKeys({ agents }: { agents: { slug: string; name: str
       <p className=" text-[13.5px] text-ink/65">One passkey, many keys. Link a passkey to this account to sign in with Face ID, Touch ID or a security key, and each agent gets its own key derived from it. Powered by Mera; nothing secret is stored.</p>
       {!passkeySupported() && <p className="mt-2 text-[13px] text-ink/60">This browser doesn&apos;t support passkeys.</p>}
       <div className="mt-3 flex flex-wrap gap-2">
-        <button disabled={busy || !passkeySupported()} onClick={() => go(!k?.passkeys.length)} className="rounded-full bg-grape px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-50">{busy ? "Waiting for passkey…" : k?.passkeys.length ? "Refresh agent keys" : "Add a passkey"}</button>
+        <button disabled={busy || !passkeySupported()} onClick={() => go(!k?.passkeys.length)} className="rounded-full bg-grape px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-50">{busy ? "Waiting for passkey…" : k?.passkeys.length ? "Refresh agent keys" : "Connect a passkey"}</button>
         {!k?.passkeys.length && <button disabled={busy || !passkeySupported()} onClick={() => go(false)} className="rounded-full bg-tint px-4 py-2.5 text-[14px] font-bold text-ink disabled:opacity-50">Use a passkey I have</button>}
       </div>
       {err && <p className="mt-2 text-[13px] text-[#e5484d]">{err}</p>}

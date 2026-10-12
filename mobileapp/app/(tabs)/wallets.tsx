@@ -43,6 +43,7 @@ function PayCardFace({ name, card, home }: { name: string; card: PayCard | null;
 const day = (ms: number) => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
 export default function Wallets() {
+  const [addrs, setAddrs] = useState<{ name: string; evm?: string; sol?: string } | null>(null);
   const k = useC();
   const { token } = useSession();
   const { me, wallet, reload } = useData();
@@ -108,17 +109,13 @@ export default function Wallets() {
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                     <AgentTile slug={a.slug} look={agent?.look} size={40} ring={ringOf(a.slug, a.kind, primary)} />
                     <View style={{ flex: 1 }}><T f="bold" s={15}>{`${a.name}'s wallet`}</T><T s={12.5} c={k.ink60}>{a.slug === primary ? "Its own wallet, separate from your balance" : "Its own wallet for tasks"}</T></View>
-                    {w?.network === "devnet" ? <View style={{ backgroundColor: "#ffd84d", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}><Label s={8.5} c="#0a0a0a">Test funds</Label></View> : null}
                   </View>
                   {w ? (
                     <View style={{ marginTop: 12, borderRadius: 16, backgroundColor: k.tint, padding: 12 }}>
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                        <Label c={k.ink60}>{`Solana ${w.network}`}</Label>
-                        <Pressable onPress={async () => { await Clipboard.setStringAsync(w.address); say("Address copied"); }} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                          <T s={11.5} c={k.ink75} style={{ fontFamily: F.mono }}>{short(w.address)}</T>
-                          <Pressable accessibilityLabel="Open in explorer" onPress={() => w.explorer && Linking.openURL(w.explorer)}><Icon name="arrow" size={13} color={k.ink60} /></Pressable>
-                        </Pressable>
-                      </View>
+                      <Pressable onPress={() => setAddrs({ name: a.name, evm: a.wallets.find((x) => x.chain !== "solana")?.address, sol: a.wallets.find((x) => x.chain === "solana")?.address })} style={{ flexDirection: "row", alignItems: "center" }}>
+                        <View style={{ flex: 1 }}><Label s={8.5} c={k.ink60}>Agent wallet</Label><T f="xbold" s={20}>{`$${a.wallets.flatMap((x) => x.holdings).filter((h) => /USD/.test(h.asset)).reduce((n, h) => n + h.amount / 10 ** h.decimals, 0).toFixed(2)}`}</T></View>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, paddingHorizontal: 10, paddingVertical: 4 }}><T f="bold" s={12} c={k.brandInk}>Addresses</T><Icon name="right" size={11} color={k.brandInk} /></View>
+                      </Pressable>
                       {held.length ? held.map((h) => (
                         <View key={h.asset} style={{ marginTop: 10, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 999, borderWidth: 1, borderColor: k.line, paddingHorizontal: 10, paddingVertical: 6 }}>
                           <Image source={COINS.find((c) => c.id === h.asset)?.logo} style={{ width: 20, height: 20, borderRadius: 10 }} />
@@ -135,7 +132,18 @@ export default function Wallets() {
                 </View>
               );
             })}
-            <T s={12} c={k.ink45} style={{ marginTop: 16, lineHeight: 17 }}>Test funds on Solana devnet, not real money. Base and Ethereum wallets are coming later.</T>
+            <T s={12} c={k.ink45} style={{ marginTop: 16, lineHeight: 17 }}>Agents are funded only from your balance. Tap an agent wallet to see its EVM and Solana addresses.</T>
+            {addrs ? (
+              <WSheet open title={`${addrs.name}'s addresses`} sub="Fund agents from your balance with Fund. These are for reference." icon="wallet" onClose={() => setAddrs(null)}>
+                {([["EVM", "One address on Ethereum, Base, Monad, Hyperliquid EVM, Tempo and every other EVM chain", addrs.evm], ["Solana", "Solana", addrs.sol]] as const).filter((r) => r[2]).map(([t, d, ad]) => (
+                  <View key={t} style={{ borderRadius: 16, backgroundColor: k.tint, padding: 12, marginBottom: 10, gap: 8 }}>
+                    <T f="bold" s={14.5}>{t}</T><T s={12} c={k.ink60}>{d}</T>
+                    <Pressable onPress={async () => { await Clipboard.setStringAsync(ad!); say("Address copied"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><T f="mono" s={12.5} style={{ flex: 1 }}>{ad}</T><Icon name="copy" size={14} color={k.brandInk} /></Pressable>
+                    <View style={{ alignSelf: "center", padding: 8, borderRadius: 12, backgroundColor: "#fff" }}><QRCode value={ad!} size={140} /></View>
+                  </View>
+                ))}
+              </WSheet>
+            ) : null}
           </>
         ) : (
           <View style={{ marginTop: 16, gap: 14 }}>
@@ -241,7 +249,7 @@ function FundSheet({ who, onClose, onDone }: { who: { slug: string; name: string
       <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
         {[1, 5, 10, 25].map((n) => <Pressable key={n} onPress={() => setV(n)} style={{ flex: 1, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: v === n ? GRAPE : k.tint }}><T f="bold" s={15} c={v === n ? "#fff" : k.ink}>{`$${n}`}</T></Pressable>)}
       </View>
-      <T s={12.5} c={k.ink45} style={{ marginTop: 12, lineHeight: 17 }}>Test funds on Solana devnet: it arrives as test USDC, not real money. Anything left can come back to your balance.</T>
+      <T s={12.5} c={k.ink45} style={{ marginTop: 12, lineHeight: 17 }}>It arrives in its wallet as USDC. Anything left can come back to your balance.</T>
       <Pill label={busy ? `Funding ${who.name}` : `Fund $${v} from balance`} h={48} style={{ marginTop: 14 }} disabled={busy} onPress={go} />
     </WSheet>
   );

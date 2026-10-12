@@ -7,7 +7,7 @@ import { verifyPayment } from "@/server/hires";
 import { fetchConfirmed } from "@/server/hub/confirm";
 import { jsonError, readJson } from "@/server/http";
 import { withUser } from "@/server/route";
-import { assertSeat } from "@/server/plans";
+import { assertSeat, currentPlan } from "@/server/plans";
 import { hireBody, rehireBody } from "@/server/validate";
 import { SPECIALISTS } from "@/content/appData";
 import { charge } from "@/server/billing/balance";
@@ -46,7 +46,8 @@ export const POST = withUser(async (user, req) => {
     const [on] = await database.select({ id: agents.id }).from(agents).where(and(eq(agents.userId, user.userId), eq(agents.slug, sp.slug))).limit(1);
     if (on) return Response.json({ ok: true, already: true });
     if (sp.free) {
-      // Free specialists (the ORE Miner): no charge and no seat.
+      // Free specialists (the ORE Miner): no charge and no seat, but only with an active paid plan.
+      if ((await currentPlan(user.userId)).id === "free") return jsonError(402, `${sp.name} is free with any paid plan. Upgrade to hire it.`, { reason: "plan_required", upgrade: "/settings#billing" });
       await database.insert(hires).values({ buyerId: user.userId, tx: `free:${user.userId}:${sp.slug}`, slug: sp.slug, mint: "USD", amount: 0, payer: "free" }).onConflictDoNothing();
       await database.insert(agents).values({ userId: user.userId, slug: sp.slug, kind: "hired", name: sp.name, role: sp.job, tone: "" }).onConflictDoNothing();
       await recordEvent(user.userId, "hire", { ref: `free:${sp.slug}` });

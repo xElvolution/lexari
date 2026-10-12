@@ -81,7 +81,13 @@ async function solanaHoldings(c: Connection, owner: PublicKey): Promise<Holding[
 /** Wallets for one agent on every live chain, with what they hold. */
 export async function walletsFor(userId: string, slug: string, kind: string): Promise<AgentWallet[]> {
   const kp = solanaKeypair(userId, slug, kind);
-  return [{ chain: "solana", network: cluster(), address: kp.publicKey.toBase58(), holdings: await solanaHoldings(connection(), kp.publicKey), explorer: explorer(kp.publicKey.toBase58()) }];
+  const out: AgentWallet[] = [{ chain: "solana", network: cluster(), address: kp.publicKey.toBase58(), holdings: await solanaHoldings(connection(), kp.publicKey), explorer: explorer(kp.publicKey.toBase58()) }];
+  try {
+    const { evmAddress } = await import("./integrations/evm");
+    const a = evmAddress(userId, slug);
+    out.push({ chain: "base" as ChainId, network: "evm", address: a, holdings: [], explorer: `https://basescan.org/address/${a}` });
+  } catch { /* no EVM seed on this server */ }
+  return out;
 }
 
 /** The agent row (your own agent, one you made, or a hired specialist), or 404. */

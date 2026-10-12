@@ -235,6 +235,8 @@ export default function SignIn() {
         const privyToken = (await getAccessToken()) || undefined;
         await signInWithWallet(bridge, { privyToken, ...(email ? { email } : {}) });
         await signIn();
+        // A new account: offer a passkey right after it's made (Settings, Security can link one any time).
+        if (!get().onboarded) { try { localStorage.setItem("lexari:ask-passkey", "1"); } catch { /* private mode */ } }
         router.push(get().onboarded ? "/agents" : `/onboarding${first ? `?name=${encodeURIComponent(first)}` : ""}`);
       } catch (e) {
         entered.current = false;
@@ -250,7 +252,7 @@ export default function SignIn() {
   const passkey = async (create = false) => {
     if (!passkeySupported()) { setPkErr("This browser doesn't support passkeys."); return; }
     setPkBusy(true); setPkErr("");
-    try { await passkeySignIn(create); await signIn(); router.push(get().onboarded ? "/agents" : "/onboarding"); }
+    try { await passkeySignIn(false); void create; await signIn(); router.push(get().onboarded ? "/agents" : "/onboarding"); }
     catch (e) { setPkErr(friendly(e, "The passkey didn't finish.")); }
     setPkBusy(false);
   };
@@ -308,6 +310,8 @@ export default function SignIn() {
               <Icon name="mail" size={20} />Continue with email
             </button>
           </div>
+          <p data-in className="mt-4 text-center text-[13px] text-ink/60">Linked a passkey already? <button data-passkey disabled={pkBusy} onClick={() => void passkey()} className="font-bold text-brand-ink underline disabled:opacity-60">{pkBusy ? "Waiting for passkey…" : "Sign in with it"}</button></p>
+          {pkErr && <p role="alert" className="mt-2 text-center text-[13px] text-[#e5484d]">{pkErr}</p>}
           {(() => { const t = privyStep === "wallet" && authenticated ? "Setting up your wallet…" : privyStep === "sign" ? "Signing you in…" : googleNote; return t ? <p className="mt-3 text-center text-[13px] text-ink/60">{t}</p> : null; })()}
 
           {privyStep === "error" && <p role="alert" className="mt-3 text-[13.5px] text-[#e5484d]">{privyErr} Tap a button to try again.</p>}

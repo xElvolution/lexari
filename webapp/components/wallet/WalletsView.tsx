@@ -51,7 +51,7 @@ function AgentWallets({ s, d }: { s: State; d: WalletData | null | undefined }) 
       {d === undefined ? <p className="mt-3 text-[14px] text-ink/60">Loading…</p> : !list.length ? <p className="mt-3 text-[14px] text-ink/60">No agents yet. <button onClick={() => openAdd("create")} className="font-bold text-brand-ink">Create an agent</button></p> : (
         <ul className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2.5 sm:grid-cols-2">{list.map((a) => <AgentWalletCard key={a.slug} a={a} name={names.get(a.slug) || a.name || "Agent"} look={a.slug === "home" ? s.agent?.look : undefined} funding={d!.funding} fundings={d!.fundings} />)}</ul>
       )}
-      {d && <p className="mt-3 text-[12px] leading-snug text-ink/50">{d.funding.network === "devnet" ? "Test funds on Solana devnet, not real money. " : ""}Base and Ethereum wallets are coming later.</p>}
+      {d && <p className="mt-3 text-[12px] leading-snug text-ink/50">Agents are funded only from your balance. Tap an agent wallet to see its EVM and Solana addresses.</p>}
     </section>
   );
 }

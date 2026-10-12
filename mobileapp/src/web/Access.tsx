@@ -199,6 +199,14 @@ function AuditSheet({ connector, team, onClose }: { connector?: string; team: Te
 
 type Sheet = null | { kind: "consent"; draft: Draft } | { kind: "audit"; connector?: string } | { kind: "add" };
 
+/** Same groups as the web page (webapp/components/integrations/IntegrationsSection.tsx). */
+const GROUPS: [string, string[]][] = [
+  ["Trading", ["orca", "jupiter", "kuru", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
+  ["Wallets & Payments", ["solana", "base", "ethereum", "monad", "tempo", "agora", "metamask", "mera", "payments"]],
+  ["Data", ["prices", "nansen", "alchemy", "ore", "solami"]],
+  ["AI", ["self"]],
+];
+
 export function IntegrationsSec() {
   const k = useC();
   const { token } = useSession();
@@ -209,6 +217,8 @@ export function IntegrationsSec() {
   const [busy, setBusy] = useState<string | null>(null);
   const [kill, setKill] = useState(false);
   const [note, setNote] = useState("");
+  const [detail, setDetail] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const load = useCallback(() => { if (token) api<IntReply>("/api/integrations", {}, token).then(setD, (e) => setErr((e as Error).message)); }, [token]);
   useEffect(load, [load]);
   useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(""), 2600); return () => clearTimeout(t); }, [note]);
@@ -229,36 +239,53 @@ export function IntegrationsSec() {
   const team = d?.agents ?? [];
   const addable = Object.keys(INTEGRATION_META).filter((id) => INTEGRATION_META[id].addable !== false && !added.some((g) => g.connector === id));
   const cat = new Map((d?.catalog ?? []).map((c) => [c.id, c]));
-  const more = Object.keys(INTEGRATION_META).filter((id) => !added.some((g) => g.connector === id) && (!d?.catalog || cat.has(id)));
+  const shown = detail ? added.find((g) => g.id === detail) ?? null : null;
   return (
     <>
-      <Hero icon="plug" kicker="Your agents' tools" title={`${added.length} added`} sub="Agents only see what you add here, act through their own wallets and stay inside your limits.">
-        <View style={{ marginTop: 16 }}><HeroBtn solid label="Add integration" icon="plus" onPress={() => setSheet({ kind: "add" })} /></View>
-        {added.length ? (kill ? (
-          <View style={{ marginTop: 12, borderRadius: 16, backgroundColor: "rgba(0,0,0,0.2)", padding: 12 }}>
-            <T s={13} c="rgba(255,255,255,0.9)" style={{ lineHeight: 18 }}>Switch off all {live} integration{live === 1 ? "" : "s"}? Agents lose access right away and anything waiting for your Confirm is cancelled.</T>
-            <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
-              <HeroBtn label="Keep" icon="x" onPress={() => setKill(false)} />
-              <Pressable onPress={() => void killAll()} disabled={busy === "all"} style={{ flex: 1, height: 40, borderRadius: 999, backgroundColor: "#e5484d", alignItems: "center", justifyContent: "center" }}><T f="bold" s={14} c="#fff">{busy === "all" ? "Switching off…" : "Switch off all"}</T></Pressable>
-            </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={15}>{`${added.length} connected`}</T><T s={12.5} c={k.ink60} style={{ lineHeight: 17 }}>Agents only use what you connect, and ask before moving money.</T></View>
+        <Pressable onPress={() => setSheet({ kind: "add" })} style={{ height: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: GRAPE, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="plus" size={13} stroke={2.6} color="#fff" /><T f="bold" s={13} c="#fff">Add</T></Pressable>
+        <Pressable onPress={() => setSheet({ kind: "audit" })} style={{ height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: k.tint, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="list" size={13} color={k.ink} /><T f="semi" s={13}>Audit</T></Pressable>
+        {live ? <Pressable onPress={() => setKill(true)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: k.tint, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="stop" size={13} color="#e5484d" /><T f="semi" s={13} c="#e5484d">Off</T></Pressable> : null}
+      </View>
+      {kill ? (
+        <View style={{ marginTop: 12, borderRadius: 16, backgroundColor: k.card, borderWidth: 1, borderColor: "rgba(229,72,77,0.4)", padding: 12 }}>
+          <T s={13} c={k.ink75} style={{ lineHeight: 18 }}>Switch off all {live} integration{live === 1 ? "" : "s"}? Agents lose access right away and anything waiting for your Confirm is cancelled.</T>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+            <Pressable onPress={() => setKill(false)} style={{ flex: 1, height: 36, borderRadius: 18, backgroundColor: k.tint, alignItems: "center", justifyContent: "center" }}><T f="semi" s={13.5}>Keep</T></Pressable>
+            <Pressable onPress={() => void killAll()} disabled={busy === "all"} style={{ flex: 1, height: 36, borderRadius: 18, backgroundColor: "#e5484d", alignItems: "center", justifyContent: "center" }}><T f="bold" s={13.5} c="#fff">{busy === "all" ? "Switching off…" : "Switch off all"}</T></Pressable>
           </View>
-        ) : (
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-            <HeroBtn label="Audit log" icon="list" onPress={() => setSheet({ kind: "audit" })} />
-            <HeroBtn label="Switch off all" icon="stop" disabled={!live} onPress={() => setKill(true)} />
-          </View>
-        )) : null}
-      </Hero>
+        </View>
+      ) : null}
       {note ? <Rise y={8}><View style={{ marginTop: 12, alignSelf: "center", borderRadius: 999, backgroundColor: k.ink, paddingHorizontal: 14, paddingVertical: 8 }}><T f="semi" s={13} c={k.bg}>{note}</T></View></Rise> : null}
       {err && !d ? <T s={14} c={k.ink60} style={{ marginTop: 16 }}>Integrations didn't load. {err}</T> : null}
-      {d && !added.length ? <View style={{ marginTop: 18, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, padding: 22, alignItems: "center" }}><T f="bold" s={16}>No integrations yet</T><T s={13.5} c={k.ink60} style={{ textAlign: "center", marginTop: 4 }}>Add Solana, Orca or Polymarket and pick which agents can use them. Nothing runs until you add it.</T></View> : null}
-      {added.map((g, i) => {
-        const m = INTEGRATION_META[g.connector];
-        const ends = endsIn(g.expiresAt);
-        const soon = g.expiresAt !== null && g.expiresAt - Date.now() < 3 * DAY;
+      {GROUPS.map(([label, ids]) => {
+        const items = ids.filter((id) => INTEGRATION_META[id] && (!d?.catalog || cat.has(id) || added.some((g) => g.connector === id)));
+        if (!items.length) return null;
         return (
-          <Rise key={g.id} delay={i * 60} y={16}>
-            <View style={{ marginTop: 16, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, overflow: "hidden" }}>
+          <View key={label} style={{ marginTop: 20 }}>
+            <Label s={9.5} c={k.ink45} style={{ marginBottom: 8 }}>{label}</Label>
+            <View style={{ gap: 8 }}>
+              {items.map((id) => {
+                const m = INTEGRATION_META[id], c = cat.get(id), g = added.find((x) => x.connector === id);
+                const on = !!g?.enabled, setup = !g && c?.status === "needskey", canAdd = (c?.addable ?? m.addable !== false) && !setup;
+                return (
+                  <Pressable key={id} testID={`card-${id}`} onPress={() => { tap(); if (g) setDetail(g.id); else if (canAdd) setSheet({ kind: "consent", draft: { connector: id, agents: [], perTxUsd: LIMITS.perTx.def, dailyUsd: LIMITS.daily.def, maxSlippageBps: LIMITS.slippageBps.def } }); else setInfo(id); }}
+                    style={{ height: 60, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, borderRadius: 16, backgroundColor: k.card, borderWidth: 1, borderColor: k.line }}>
+                    <Logo id={id} size={32} off={!!g && !g.enabled} />
+                    <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={14} lines={1}>{c?.name ?? m.name}</T><T s={12} c={k.ink60} lines={1}>{c?.blurb ?? m.chains}</T></View>
+                    <Chip label={on ? "Connected" : setup ? "Setup" : g ? "Off" : "Available"} color={on ? "#137a3d" : setup ? "#9a6700" : k.ink60} bg={on ? "#e7f8ee" : setup ? "rgba(245,165,36,0.16)" : k.tint} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        );
+      })}
+      <T s={12} c={k.ink45} style={{ marginTop: 16, lineHeight: 17 }}>Every trade and transfer waits for your Confirm in chat. Market data is read only.</T>
+      {shown ? (() => { const g = shown; const m = INTEGRATION_META[g.connector]; const ends = endsIn(g.expiresAt); const soon = g.expiresAt !== null && g.expiresAt - Date.now() < 3 * DAY; return (
+        <WSheet open title={m?.name ?? g.connector} onClose={() => setDetail(null)}>
+            <View style={{ borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, overflow: "hidden" }}>
               <View style={{ flexDirection: "row", gap: 12, padding: 16, paddingBottom: 12, alignItems: "flex-start" }}>
                 <Logo id={g.connector} off={!g.enabled} />
                 <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={16}>{m?.name ?? g.connector}</T><T s={11.5} c={k.ink45} style={{ marginTop: 3 }}>{m?.chains}</T></View>
@@ -295,31 +322,14 @@ export function IntegrationsSec() {
                 <Icon name="list" size={15} color={GRAPE} /><T f="semi" s={13.5} c={GRAPE}>Audit log</T><View style={{ marginLeft: "auto" }}><Icon name="right" size={15} color={k.ink45} /></View>
               </Pressable>
             </View>
-          </Rise>
-        );
-      })}
-      {more.length ? <Head>More for your agents</Head> : null}
-      {more.map((id, i) => {
-        const m = INTEGRATION_META[id], c = cat.get(id), setup = c?.status === "needskey", canAdd = (c?.addable ?? m.addable !== false) && !setup;
-        return (
-          <Rise key={`more-${id}`} delay={Math.min(i, 10) * 40} y={12}>
-            <View testID={`card-${id}`} style={{ marginTop: 12, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, padding: 16 }}>
-              <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
-                <Logo id={id} />
-                <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={16}>{c?.name ?? m.name}</T><T s={11.5} c={k.ink45} style={{ marginTop: 3 }}>{m.chains}</T></View>
-                {canAdd ? <WToggle on={false} onChange={() => { tap(); setSheet({ kind: "consent", draft: { connector: id, agents: [], perTxUsd: LIMITS.perTx.def, dailyUsd: LIMITS.daily.def, maxSlippageBps: LIMITS.slippageBps.def } }); }} label={`Turn on ${m.name}`} /> : null}
-              </View>
-              {c?.blurb ? <T s={13.5} c={k.ink75} style={{ marginTop: 10, lineHeight: 19 }}>{c.blurb}</T> : null}
-              <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
-                {setup ? <Chip label="Setup needed" color="#9a6700" bg="rgba(245,165,36,0.16)" /> : <Chip label={m.moves ? "Asks before moving money" : "Read only"} color={k.ink60} bg={k.tint} />}
-                {id === "mera" ? <Chip label="In Settings, Security" color={k.ink60} bg={k.tint} /> : null}
-              </View>
-            </View>
-          </Rise>
-        );
-      })}
-      <T s={12.5} c={k.ink45} style={{ marginTop: 16, lineHeight: 18 }}>Trades and transfers run on Solana devnet with test funds only, and each one waits for your Confirm in chat. Market data is read only.</T>
-
+        </WSheet>
+      ); })() : null}
+      {info ? (
+        <WSheet open title={cat.get(info)?.name ?? INTEGRATION_META[info].name} sub={INTEGRATION_META[info].chains} onClose={() => setInfo(null)}>
+          <T s={14} c={k.ink75} style={{ lineHeight: 20 }}>{cat.get(info)?.blurb ?? ""}</T>
+          <View style={{ marginTop: 12, borderRadius: 16, backgroundColor: k.tint, padding: 12 }}><T s={12.5} c={k.ink60}>{info === "mera" ? "Link a passkey in Settings, Security." : cat.get(info)?.status === "needskey" ? "This one needs setting up on the server before agents can use it." : "Always on for your agents."}</T></View>
+        </WSheet>
+      ) : null}
       {sheet?.kind === "add" ? (
         <WSheet open title="Add an integration" sub="Pick a tool, then choose which agents can use it." icon="plug" onClose={() => setSheet(null)}>
           {addable.map((id, i) => (

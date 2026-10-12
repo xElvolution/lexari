@@ -43,7 +43,7 @@ export function agentKey(prf: Uint8Array, slug: string) {
   return { address: getEvmAddress(s.publicKey), account: toViemAccount(s) };
 }
 
-/** Sign in with a passkey: a linked passkey opens your account; a new one opens a fresh account. */
+/** Sign in with a passkey that is already linked to an account. Never creates an account. */
 export async function passkeySignIn(create: boolean) {
   const { prf } = await passkeyRoot(create);
   const bridge = signInBridge(prf);
@@ -53,8 +53,8 @@ export async function passkeySignIn(create: boolean) {
     const signature = b64(await bridge.signMessage(new TextEncoder().encode(ch.message)));
     return api<{ wallet: string }>("/api/mera/signin", { body: { address, message: ch.message, signature } });
   }
-  const { signInWithWallet } = await import("./session");
-  return signInWithWallet(bridge);
+  // Accounts are only ever created with Google or email. A passkey only opens an account it was linked to.
+  throw new Error("Account doesn't exist. Create an account with Google or email first, then add a passkey in Settings, Security.");
 }
 
 /** Link a passkey to this account and give every agent its own passkey key. */
