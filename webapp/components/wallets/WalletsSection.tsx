@@ -25,7 +25,7 @@ function WalletTile({ w, size = 40 }: { w: LinkedWallet; size?: number }) {
   );
 }
 
-/** Settings > Wallets: wallets you linked, the active wallet and chain, and the withdraw-only-here rule. */
+/** Settings > Wallets: wallets you linked and the withdraw-only-here rule. Chains are routes, so the chain picker is an advanced detail. */
 export function WalletsPanel({ w, a }: { w: WalletsState; a: WalletActions }) {
   const [switching, setSwitching] = useState<string | null>(null);
   const [ask, setAsk] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export function WalletsPanel({ w, a }: { w: WalletsState; a: WalletActions }) {
         <div className="relative flex items-start gap-4">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><Icon name="wallet" size={24} /></span>
           <div className="min-w-0 flex-1">
-            <div className="label text-[9.5px] text-white/70">Active wallet</div>
+            <div className="label text-[9.5px] text-white/70">Withdrawals go to</div>
             {active ? (
               <div key={active.address + w.active?.chain} className="price-in">
                 <div data-wallet-active className="display mt-1 truncate text-[26px] leading-none">{active.login ? "Sign-in wallet" : clientName(active.client)}</div>
@@ -68,6 +68,7 @@ export function WalletsPanel({ w, a }: { w: WalletsState; a: WalletActions }) {
             ) : <div className="display mt-1 text-[26px] leading-none">{w.loaded ? "None yet" : "…"}</div>}
           </div>
         </div>
+        <details className="mt-3 text-white/80"><summary className="cursor-pointer text-[12.5px] font-semibold">Advanced: where funds sit</summary>
         <div ref={rail} data-chain-switch className="no-bar relative -mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-0.5" role="radiogroup" aria-label="Active chain">
           {WALLET_CHAINS.map((c) => {
             const on = w.active?.chain === c.id;
@@ -81,6 +82,7 @@ export function WalletsPanel({ w, a }: { w: WalletsState; a: WalletActions }) {
             );
           })}
         </div>
+        </details>
       </section>
 
       <section className="mt-6">

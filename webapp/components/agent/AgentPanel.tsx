@@ -24,6 +24,7 @@ import AgentModelRow from "../billing/AgentModelRow";
 import AgentEmailRow from "../email/AgentEmailRow";
 import BudgetRow from "../agentpay/BudgetRow";
 import TempoCardRow from "../agentpay/TempoCardRow";
+import UnifiedBalance from "../agentpay/UnifiedBalance";
 import MinerRow from "../miner/MinerRow";
 import { lookVariant } from "@shared/components/avatar";
 import type { AgentLook } from "@/lib/store";
@@ -152,6 +153,7 @@ function Panel({ s, id }: { s: State; id: string }) {
                 <AgentModelRow agent={id} name={info.name} />
                 <AgentEmailRow agent={id} name={info.name} />
                 {id === "ore" && <MinerRow />}
+                <UnifiedBalance agent={id} name={info.name} />
                 <BudgetRow agent={id} name={info.name} />
                 <TempoCardRow agent={id} name={info.name} />
                 <AgentMoney s={s} id={id} name={info.name} />

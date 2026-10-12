@@ -9,6 +9,7 @@ import { AgentTile, GRAPE, Label, T, useC } from "@/web/kit";
 import { useSession } from "@/state/session";
 import { useData, youName } from "@/web/data";
 import TempoCard from "@/components/TempoCard";
+import UnifiedBalance from "@/components/UnifiedBalance";
 
 
 export default function AgentPage() {
@@ -83,6 +84,7 @@ export default function AgentPage() {
                 </View>
               </View>
             ) : null}
+            <UnifiedBalance slug={slug} name={name} token={token} />
             <TempoCard slug={slug} name={name} token={token} />
           </View>
         </ScrollView>
