@@ -1,5 +1,6 @@
 "use client";
 
+import Capped from "../Capped";
 import { useEffect, useState } from "react";
 import { INTEGRATIONS, SCOPE_INFO, STATUS_LABEL, integrationById, type ActivityRow, type AddedIntegration, type IntegrationInfo } from "@/content/integrations";
 import { loadIntegrations, removeIntegration, revokeAllIntegrations, updateIntegration, useIntegrations, type IntegrationsState } from "@/lib/integrations";
@@ -256,7 +257,7 @@ function AddedCard({ g, st, s, fresh, onEdit, onConsent, onAudit }: { g: AddedIn
           <button data-int-card-audit onClick={onAudit} className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-[13px] font-semibold text-brand-ink hover:bg-tint"><Icon name="list" size={13} />Audit log</button>
         </div>
         {g.activity.length ? (
-          <ul data-int-activity className="mt-1 divide-y divide-[var(--line)]">{g.activity.map((r, i) => <Activity key={r.id} r={r} i={i} who={nameOf(r.agent)} />)}</ul>
+          <Capped className="mt-1"><ul data-int-activity className="divide-y divide-[var(--line)]">{g.activity.map((r, i) => <Activity key={r.id} r={r} i={i} who={nameOf(r.agent)} />)}</ul></Capped>
         ) : <p className="mt-1.5 text-[13px] leading-snug text-ink/55">Nothing yet. Try asking an agent in chat: {TRY[g.connector] || "ask it to use this"}</p>}
       </div>
 

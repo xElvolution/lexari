@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { HOUSE, LAMINA, PREMIUM, type ModelInfo } from "@/content/models";
+import { HOUSE, LAMINA, type ModelInfo } from "@/content/models";
 import type { PlanId } from "@/content/appData";
 import { CREDITS_ON_FREE } from "@/content/billing";
 import { billingBlocked, closeBillingSheet, enabledModels, modelFor, openTopUp, setModel, useBilling, type BillingState } from "@/lib/billing";
@@ -70,25 +70,11 @@ export default function ModelSheet({ convo, agent, group }: { convo: string; age
           <Row m={LAMINA} on={selected === LAMINA.id} busy={busy === LAMINA.id} onPick={pick} note="Lexari's own model. Fast, tuned for your agents." />
           {enabledModels(state).filter((m) => m.id !== LAMINA.id && m.pool !== "premium" && !m.house).map((m) => <Row key={m.id} m={m} on={selected === m.id} busy={busy === m.id} onPick={pick} />)}
           <div className="mt-3 flex items-center justify-between px-1">
-            <h3 className="label text-[9.5px] text-ink/50">Open models</h3>
+            <h3 className="label text-[9.5px] text-ink/50">More models</h3>
             <span className="text-[11.5px] text-ink/45">Included · falls back if busy</span>
           </div>
           {HOUSE.filter((m) => !state.models.available[m.id] || enabledModels(state).some((x) => x.id === m.id)).map((m) => <Row key={m.id} m={m} on={selected === m.id} busy={busy === m.id} onPick={pick} locked={lockedWhy(state, m)} />)}
           <Link href="/settings#models" onClick={closeBillingSheet} data-add-own-model className="mt-1 inline-flex items-center gap-1.5 self-start px-1 text-[12.5px] font-bold text-brand-ink hover:underline"><Icon name="key" size={13} />{state.models.keys.length ? "Manage models and API keys" : "Use your own API keys"}</Link>
-          <div className="mt-3 flex items-center justify-between px-1">
-            <h3 className="label text-[9.5px] text-ink/50">Premium</h3>
-            <span className="text-[11.5px] text-ink/45">Uses premium usage at API price + 20%</span>
-          </div>
-          {!state.models.gateway && (
-            <div data-premium-soon className="flex items-start gap-3 rounded-2xl bg-grape/8 p-3.5 ring-1 ring-grape/25">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-grape/15 text-brand-ink"><Icon name="spark" size={17} /></span>
-              <div className="min-w-0"><p className="text-[14px] font-bold text-ink">Premium models are coming soon</p><p className="mt-0.5 text-[12.5px] leading-snug text-ink/65">Claude, Grok and Gemini switch on here shortly. Lamina is ready for every agent right now.</p></div>
-            </div>
-          )}
-          {PREMIUM.filter((m) => !state.models.available[m.id] || enabledModels(state).some((x) => x.id === m.id)).map((m) => <Row key={m.id} m={m} on={selected === m.id} busy={busy === m.id} onPick={pick} locked={lockedWhy(state, m)} />)}
-          {state.plan.id === "free" && state.models.gateway && (
-            <p className="mt-1 px-1 text-[12.5px] leading-snug text-ink/55">{CREDITS_ON_FREE ? "On Free, premium models run on extra credits. Pro includes $20 of premium usage every month." : "Premium models come with Pro."}</p>
-          )}
         </div>
       )}
     </Sheet>

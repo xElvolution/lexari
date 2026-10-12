@@ -38,8 +38,8 @@ test("Qwen on DashScope: OpenAI-compatible target from env, with overrides", () 
 test("fallback chain keeps only ready providers, the picked model first", () => {
   withEnv({ DASHSCOPE_API_KEY: "a", ZG_COMPUTE_API_KEY: "b" }, () => {
     // with a 0G key, Kimi is ready too (it runs on 0G when MOONSHOT_API_KEY is missing)
-    assert.deepEqual(houseChain(modelById("qwen")!).map((m) => m.id), ["qwen", "zg", "kimi"]);
-    assert.deepEqual(houseChain(modelById("kimi")!).map((m) => m.id), ["kimi", "qwen", "zg"]);
+    assert.deepEqual(houseChain(modelById("qwen")!).map((m) => m.id), ["qwen", "kimi", "openai"]);
+    assert.deepEqual(houseChain(modelById("kimi")!).map((m) => m.id), ["kimi", "qwen", "openai"]);
   });
 });
 

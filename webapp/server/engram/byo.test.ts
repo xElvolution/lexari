@@ -101,7 +101,7 @@ test("model catalog: key models appear only with a key, switches and defaults", 
   const none = modelCatalog([], {}, { lamina: true });
   // Open models (Kimi, Qwen, 0G) are always listed; without their server key they're unavailable and off.
   assert.deepEqual(none.filter((r) => !r.unavailable).map((r) => r.m.id), ["lamina"]);
-  assert.deepEqual(none.filter((r) => r.unavailable).map((r) => r.m.id), ["kimi", "qwen", "zg"]);
+  assert.deepEqual(none.filter((r) => r.unavailable).map((r) => r.m.id), ["kimi", "qwen", "openai", "claude"]);
   assert.deepEqual([...enabledIds(none)], ["lamina"]);
   const rows = modelCatalog(["openai"], { off: ["key:openai:gpt-6-astra"], on: ["key:openai:gpt-5.6-sol"], extra: ["key:openai:my-ft-model", "key:anthropic:claude-x"] }, { lamina: true, "grok-fast": true });
   const on = enabledIds(rows);
