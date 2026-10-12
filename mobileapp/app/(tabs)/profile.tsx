@@ -1,5 +1,5 @@
 /** Port of webapp/app/(app)/profile/page.tsx at phone width: cover + picture, Edit profile / Sign out, name with plan badge, stats, Account / Security / Preferences tabs. */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import Icon from "@/components/Icon";
@@ -9,6 +9,8 @@ import { useSession } from "@/state/session";
 import { usePrefs } from "@/state/prefs";
 import { AgentTile, F, GRAPE, Grad, Label, Pill, T, WSheet, short, useC } from "@/web/kit";
 import { useData, youName } from "@/web/data";
+
+const SOCIAL_NAME: Record<string, string> = { twitter: "X", discord: "Discord", telegram: "Telegram" };
 
 function Card({ title, right, children }: { title: string; right?: ReactNode; children: ReactNode }) {
   const k = useC();
@@ -40,6 +42,8 @@ export default function Profile() {
   const { theme, setTheme } = usePrefs() as ReturnType<typeof usePrefs> & { theme?: string };
   const [tab, setTab] = useState<"account" | "security" | "prefs">("account");
   const [edit, setEdit] = useState(false);
+  const [social, setSocial] = useState<{ links: { provider: string; handle: string | null }[] } | null>(null);
+  useEffect(() => { if (token) api<{ links: { provider: string; handle: string | null }[] }>("/api/social", {}, token).then(setSocial, () => setSocial({ links: [] })); }, [token]);
   const p = me?.profile ?? {};
   const name = youName(me);
   const plan = me?.plan ?? { id: "free", name: "Free", seats: 1 };
@@ -70,8 +74,15 @@ export default function Profile() {
           </View>
           <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 6 }}>
             {p.username ? <T f="semi" s={15} c={k.ink45}>{`@${p.username}`}</T> : <Pressable onPress={() => setEdit(true)}><T f="semi" s={14} c={k.brandInk}>Add a username</T></Pressable>}
-            <Pressable onPress={() => router.navigate("/(tabs)/settings")} style={{ height: 32, borderRadius: 16, backgroundColor: k.tint, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="link" size={14} color={k.ink75} /><T f="semi" s={13} c={k.ink75}>Link X, Discord or Telegram</T></Pressable>
           </View>
+          {/* as on the web: linked accounts as badges, or (once we know there are none) a pill to link one */}
+          {social?.links.length ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
+              {social.links.map((l) => <View key={l.provider} style={{ height: 32, borderRadius: 16, backgroundColor: k.tint, paddingLeft: 10, paddingRight: 12, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="verified" size={13} color={k.ink} /><T f="semi" s={13}>{l.handle ? `@${l.handle}` : SOCIAL_NAME[l.provider] ?? l.provider}</T></View>)}
+            </View>
+          ) : social ? (
+            <Pressable onPress={() => router.navigate("/(tabs)/settings")} style={{ marginTop: 12, alignSelf: "flex-start", height: 32, borderRadius: 16, backgroundColor: k.tint, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="link" size={14} color={k.ink75} /><T f="semi" s={13} c={k.ink75}>Link X, Discord or Telegram</T></Pressable>
+          ) : null}
           <View style={{ flexDirection: "row", gap: 22, marginTop: 14 }}>
             {[[team.length, "agents"], [groups, "groups"], [me?.memories?.length ?? 0, "memories"]].map(([n, l]) => <T key={String(l)} s={14} c={k.ink60}><T f="bold" s={14}>{String(n)}</T>{` ${l}`}</T>)}
           </View>

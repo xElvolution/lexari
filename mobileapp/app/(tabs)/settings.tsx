@@ -304,10 +304,18 @@ function Accounts() {
 }
 
 function Social() {
+  const { token } = useSession();
+  const [links, setLinks] = useState<{ provider: string; handle: string | null }[] | null>(null);
+  useEffect(() => { if (token) api<{ links: { provider: string; handle: string | null }[] }>("/api/social", {}, token).then((r) => setLinks(r.links), () => setLinks([])); }, [token]);
+  const NETS: [string, string][] = [["twitter", "X"], ["discord", "Discord"], ["telegram", "Telegram"]];
   return (
     <>
       <Group title="Accounts">
-        {["X", "Discord", "Telegram"].map((n, i) => <Row key={n} last={i === 2} title={n} desc={n === "Telegram" ? "Telegram linking opens once our Telegram sign-in is switched on." : "Not linked"}>{n !== "Telegram" ? <Small icon="link" label="Link" onPress={() => Linking.openURL("https://app.lexari.ai/settings#social")} /> : null}</Row>)}
+        {NETS.map(([id, n], i) => {
+          const l = links?.find((x) => x.provider === id);
+          // linking runs through Privy on lexari.ai (the same account), then shows here
+          return <Row key={id} last={i === 2} title={n} desc={!links ? "Checking…" : l ? (l.handle ? `Linked · @${l.handle}` : "Linked") : id === "telegram" ? "Telegram linking opens once our Telegram sign-in is switched on." : "Not linked"}>{!l && id !== "telegram" ? <Small icon="link" label="Link" onPress={() => Linking.openURL("https://app.lexari.ai/settings#social")} /> : null}</Row>;
+        })}
       </Group>
       <Group><Row last title="Privacy" desc="Privy checks the account and Lexari keeps only its ID and username. Lexari never posts for you or reads your messages." /></Group>
     </>
