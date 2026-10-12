@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lexari waitlist. Your own agent. Your rules. Onchain.</title>
+<meta name="description" content="Lexari is your personalized AI agent: your own agent with its own memory, wallet and computer, acting for you across chains and apps. Join the waitlist.">
+<meta property="og:title" content="I just claimed my Lexari agent pass">
+<meta property="og:description" content="Your personalized AI agent is almost ready. Get in line.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,600..800&family=Figtree:wght@400;500;600;700&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="glow" aria-hidden="true"></div>
+<header class="top">
+  <a class="logo" href="https://lexari.ai" aria-label="Lexari home"><span class="mark"><span></span></span><span class="word">lexari</span></a>
+  <div class="top-r"><a class="ghost sm dash-link" href="/dashboard">Dashboard</a><span class="count label" id="count"><i></i><b id="countN">0</b> in line</span></div>
+</header>
+
+<main class="stage" id="stage" data-mood="idle">
+  <div class="crew" aria-hidden="true" id="crew"></div>
+
+  <div class="bot-wrap" id="botWrap">
+    <svg class="bot" id="bot" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><clipPath id="headClip"><rect x="20" y="20" width="160" height="160" rx="40"/></clipPath></defs>
+      <g id="botBody">
+        <rect class="shadowbox" x="20" y="30" width="160" height="160" rx="40"/>
+        <rect class="head" x="20" y="20" width="160" height="160" rx="40"/>
+        <g class="blush"><ellipse cx="52" cy="122" rx="12" ry="7"/><ellipse cx="148" cy="122" rx="12" ry="7"/></g>
+        <g id="brows" class="brows"><rect id="browL" x="54" y="54" width="26" height="6" rx="3"/><rect id="browR" x="120" y="54" width="26" height="6" rx="3"/></g>
+        <g id="eyesOpen">
+          <g id="eyeL"><ellipse class="sclera" cx="70" cy="92" rx="17" ry="23"/><circle class="pupil" id="pupL" cx="70" cy="94" r="8"/></g>
+          <g id="eyeR"><ellipse class="sclera" cx="130" cy="92" rx="17" ry="23"/><circle class="pupil" id="pupR" cx="130" cy="94" r="8"/></g>
+        </g>
+        <g id="eyesHappy" class="eyes-happy">
+          <path d="M52 98 Q70 70 88 98"/><path d="M112 98 Q130 70 148 98"/>
+        </g>
+        <path id="mouth" class="mouth" d="M70 134 Q100 158 130 134"/>
+        <path id="mouthBig" class="mouth-big" d="M64 130 Q100 134 136 130 Q134 168 100 168 Q66 168 64 130 Z"/>
+      </g>
+      <g class="sparks" id="sparks"><path d="M178 34 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z"/><path d="M22 150 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/></g>
+    </svg>
+    <div class="slot" id="slot" aria-hidden="true"><span></span></div>
+  </div>
+
+  <section class="intro" id="intro">
+    <h1 class="display">Your own agent.<br>Your rules.<br>Onchain.</h1>
+    <p class="sub">Your own agent, with its own memory, wallet and computer. Personalize it, and it acts for you onchain and across apps. Get in line.</p>
+    <form id="form" class="form" novalidate autocomplete="on">
+      <label class="sr" for="email">Email</label>
+      <div class="field" id="field">
+        <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com" spellcheck="false" autocapitalize="off" required>
+        <button id="go" type="submit"><span class="t">Claim my agent</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></button>
+      </div>
+      <div class="hp" aria-hidden="true"><label>Company <input id="company" name="company" tabindex="-1" autocomplete="off"></label></div>
+      <p class="hint label" id="hint" role="status" aria-live="polite">One email. Your agent, your rules.</p>
+    </form>
+  </section>
+
+  <section class="done" id="done" hidden>
+    <div class="badge-drop" id="badgeDrop">
+      <div class="badge" id="badge">
+        <div class="clip"></div>
+        <div class="b-top"><span class="label">Lexari / Agent pass</span><span class="label" id="bDate"></span></div>
+        <div class="b-mid">
+          <div class="b-face" id="bFace"></div>
+          <div class="b-info">
+            <span class="label dim">Waitlist no.</span>
+            <strong class="display b-num" id="bNum">#0000</strong>
+            <span class="b-mail" id="bMail"></span>
+          </div>
+        </div>
+        <div class="b-bar" id="bBar"></div>
+      </div>
+    </div>
+    <div class="after" id="after">
+      <h2 class="display" id="place">You're #1 in line.</h2>
+      <p class="sub small" id="placeSub">Share your link. Every friend who joins moves you up.</p>
+      <div class="share">
+        <input id="shareUrl" readonly aria-label="Your share link">
+        <button id="copy" type="button">Copy</button>
+      </div>
+      <a id="openDash" class="dash-cta" href="/dashboard">Open my dashboard<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg></a>
+      <div class="share-row">
+        <a id="shareX" class="ghost" target="_blank" rel="noopener">Post on X</a>
+        <button id="shareNative" class="ghost" type="button">Share</button>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="foot label"><span>Personalized agents, onchain</span><a href="https://lexari.ai">lexari.ai</a></footer>
+<script src="/app.js" defer></script>
+</body>
+</html>

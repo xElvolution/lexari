@@ -9,6 +9,7 @@ Two Next.js apps, plus the contracts. `npm run dev` starts both.
 | `shared/` | Faces, logo, theme, and ID-card backgrounds used by both apps | |
 | `contracts/solana/` | The Lexari Anchor program: agent registry, memory records, Hub coins, quests and referrals | |
 | `mobileapp/` | Reserved for the phone app. Nothing is built here yet | |
+| `waitlist/` | Standalone waitlist for waitlist.lexari.ai: signup, points dashboard with Privy email sign-in, and X share banners. Own `package.json`, not in the npm workspaces | |
 
 A personalized AI agent with its own persistent computer and memory, a roster of specialist agents you hire into seats, and sign in with Phantom, Solflare or Backpack. Google sign-in is still a preview.
 
