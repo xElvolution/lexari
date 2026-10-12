@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { INTEGRATIONS, SCOPE_INFO, integrationById, type ActivityRow, type AddedIntegration, type IntegrationInfo } from "@/content/integrations";
+import { INTEGRATIONS, SCOPE_INFO, STATUS_LABEL, integrationById, type ActivityRow, type AddedIntegration, type IntegrationInfo } from "@/content/integrations";
 import { loadIntegrations, removeIntegration, revokeAllIntegrations, updateIntegration, useIntegrations, type IntegrationsState } from "@/lib/integrations";
 import { friendly } from "@/lib/api";
 import { toast, type State } from "@/lib/store";
@@ -123,6 +123,29 @@ export default function IntegrationsSection({ s }: { s: State }) {
             onAudit={() => setSheet({ kind: "audit", connector: g.connector })} />)}
         </div>
       )}
+      <h3 className="label mt-7 text-[10px] text-ink/50">More for your agents</h3>
+      <div data-int-more className="mt-2 grid gap-3 sm:grid-cols-2">
+        {INTEGRATIONS.filter((i) => !i.builtin && i.status !== "soon" && !st.added.some((g) => g.connector === i.id)).map((i) => {
+          const setup = i.status === "needskey";
+          return (
+            <article key={i.id} data-int-card={i.id} className="rounded-[22px] bg-card p-4 ring-1 ring-line">
+              <div className="flex items-start gap-3">
+                <IntegrationLogo id={i.id} size={44} />
+                <div className="min-w-0 flex-1"><h4 className="text-[15.5px] font-bold text-ink">{i.name}</h4><p className="text-[11.5px] text-ink/50">{i.chains.join(", ")}</p></div>
+                {i.addable && !setup ? (
+                  <button role="switch" aria-checked={false} aria-label={`Turn on ${i.name}`} onClick={() => pick(i)} className="relative h-7 w-12 shrink-0 rounded-full bg-ink/15 transition hover:bg-ink/25"><span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow" /></button>
+                ) : null}
+              </div>
+              <p className="mt-2.5 text-[13.5px] leading-snug text-ink/75">{i.blurb}</p>
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${setup ? "bg-[rgba(245,165,36,.16)] text-[#9a6700]" : "bg-tint text-ink/65"}`}>{STATUS_LABEL[i.status]}</span>
+                {i.moves ? <span className="rounded-full bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-ink/65">Asks before moving money</span> : <span className="rounded-full bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-ink/65">Read only</span>}
+                {i.id === "mera" && <span className="rounded-full bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-ink/65">In Settings, Security</span>}
+              </div>
+            </article>
+          );
+        })}
+      </div>
       <p className="mt-5 text-[12.5px] leading-snug text-ink/50">Trades and transfers run on Solana devnet with test funds only, and each one waits for your Confirm in chat. Market data is read only.</p>
 
       {sheet?.kind === "catalog" && <CatalogSheet added={st.added} onPick={pick} onClose={() => setSheet(null)} />}

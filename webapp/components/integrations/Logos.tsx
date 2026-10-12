@@ -85,6 +85,10 @@ export function IntegrationLogo({ id, size = 44, className = "" }: { id: Integra
       return tile("linear-gradient(140deg,#70d44b,#1f7a3c)", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 3 20h18z" /><path d="M8.5 14h7" /></svg>
       ));
+    case "mera":
+    case "agora":
+    case "alchemy":
+      return tile("#ffffff", <img src={`https://www.google.com/s2/favicons?domain=${({ mera: "category.xyz", agora: "agora.finance", alchemy: "alchemy.com" } as Record<string, string>)[id]}&sz=128`} alt="" width={g} height={g} style={{ borderRadius: Math.round(g * 0.2) }} />);
     default:
       return tile("linear-gradient(140deg,#5b2bff,#8f6bff)", <span style={{ color: "#fff", fontWeight: 800, fontSize: Math.round(size * 0.4) }}>{String(id).slice(0, 1).toUpperCase()}</span>);
     case "prices":
