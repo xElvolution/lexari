@@ -1,6 +1,6 @@
 /**
- * Integrations a person added (integration_grants): which agents may use each one and its limits. Adding or changing
- * one needs a linked X, Discord or Telegram account (the same gate as the badge); removing never does.
+ * Integrations a person added (integration_grants): which agents may use each one and its limits. Open to everyone:
+ * adding, changing or removing one needs no linked account.
  */
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { INTEGRATIONS, LIMITS, integrationById, type ActivityRow, type AddedIntegration, type IntegrationId } from "@/content/integrations";
@@ -8,7 +8,6 @@ import { db } from "../db";
 import { agents } from "../db/schema";
 import { integrationActions, integrationGrants } from "../db/integrationsSchema";
 import { HttpError } from "../http";
-import { hasVerifiedSocial, requireSocial } from "../social";
 import { solanaKeypair } from "../agentWallets";
 import { EVM, evmAddress } from "./evm";
 import { TEMPO } from "./tempo";
@@ -51,8 +50,7 @@ function addressesFor(userId: string, g: Grant, team: { slug: string; kind: stri
 
 export async function listIntegrations(userId: string) {
   const database = db();
-  const [unlocked, grants, team] = await Promise.all([
-    hasVerifiedSocial(userId),
+  const [grants, team] = await Promise.all([
     database.select().from(integrationGrants).where(eq(integrationGrants.userId, userId)).orderBy(integrationGrants.createdAt),
     teamOf(userId),
   ]);
@@ -68,7 +66,7 @@ export async function listIntegrations(userId: string) {
     }),
     at: g.createdAt.getTime(),
   })));
-  return { locked: !unlocked, added, agents: team };
+  return { added, agents: team };
 }
 
 export type GrantInput = { agents?: string[]; enabled?: boolean; perTxUsd?: number; dailyUsd?: number; maxSlippageBps?: number };
@@ -93,7 +91,6 @@ async function cleanInput(userId: string, input: GrantInput, current?: Grant) {
 }
 
 export async function addIntegration(userId: string, connector: string, input: GrantInput) {
-  await requireSocial(userId, "add integrations");
   const info = integrationById(connector);
   if (!info) throw new HttpError(404, "There's no integration with that name.");
   if (!info.addable) throw new HttpError(409, `${info.name} is coming soon, so it can't be added yet.`);
@@ -111,7 +108,6 @@ async function ownGrant(userId: string, id: string) {
 }
 
 export async function updateIntegration(userId: string, id: string, input: GrantInput) {
-  await requireSocial(userId, "change integrations");
   const g = await ownGrant(userId, id);
   const clean = await cleanInput(userId, input, g);
   const [row] = await db().update(integrationGrants).set({ ...clean, updatedAt: new Date() }).where(eq(integrationGrants.id, g.id)).returning();
@@ -129,13 +125,11 @@ export async function removeIntegration(userId: string, id: string) {
   return { removed: g.connector };
 }
 
-/** Integrations this agent can use right now: you linked a social account, added it, switched it on and granted it this agent. */
+/** Integrations this agent can use right now: you added it, switched it on and granted it this agent. */
 export async function usableGrants(userId: string, slug: string) {
   const own = builtinGrants(userId, slug);
-  // Built-ins don't need the social gate: agent payments spend only what you funded the agent with, inside its budget.
-  if (!(await hasVerifiedSocial(userId))) return { social: false, grants: own };
   const rows = await db().select().from(integrationGrants).where(and(eq(integrationGrants.userId, userId), eq(integrationGrants.enabled, true), sql`${slug} = any(${integrationGrants.agentSlugs})`));
-  return { social: true, grants: [...rows.filter((g) => INTEGRATIONS.some((i) => i.id === g.connector && i.addable)), ...own] };
+  return { grants: [...rows.filter((g) => INTEGRATIONS.some((i) => i.id === g.connector && i.addable)), ...own] };
 }
 
 /** Built-in connectors this agent always has (agent payments for everyone, the ORE Miner's servers): never in the

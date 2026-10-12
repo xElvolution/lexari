@@ -1,6 +1,6 @@
 /**
  * Integrations inside a chat turn. The agent only hears about (and can only use) integrations the person added,
- * switched on and granted to THIS agent, behind a linked social account. It calls one with a tag:
+ * switched on and granted to THIS agent. It calls one with a tag:
  *   <tool name="orca.swap">{"sell":"USDC","buy":"SOL","amount":1}</tool>
  * Read tools answer the agent with live data; sign tools become a confirm card the person approves.
  */
@@ -16,14 +16,14 @@ const MAX_CALLS = 2;
 
 const ORE_HINT = "You are the ORE Miner. Facts: ORE (ore.supply) is a Solana mainnet token; today it's mined by deploying SOL on a 5x5 board each round (the old CPU proof-of-work miner, ore-cli legacy, is retired). Lexari never mines on its own machines: the person connects a server they own (your profile > Mining > Connect a server gives a one-line install), and you install, start, stop and watch the miner there with ore.control and ore.servers. ore.control runs right away on their server (there is no Confirm card for it), so report the result it gives you. On devnet the miner runs in practice mode: real keccak hashing on their CPU with real hashrate and best difficulty, but no ORE rewards; mainnet mining comes later. Never claim ORE was earned. Always check ore.servers before saying how a miner is doing.";
 
-export type TurnTools = { social: boolean; grants: Grant[]; hint: string };
+export type TurnTools = { grants: Grant[]; hint: string };
 
 /** What this agent may use this turn, and the prompt lines that tell it so. */
 export async function turnTools(userId: string, slug: string): Promise<TurnTools> {
-  const { social, grants } = await usableGrants(userId, slug).catch(() => ({ social: false, grants: [] as Grant[] }));
+  const { grants } = await usableGrants(userId, slug).catch(() => ({ grants: [] as Grant[] }));
   const tools = TOOLS.filter((t) => grants.some((g) => g.connector === t.connector));
   const none = "If the person asks you to trade, swap, send crypto, check prediction markets, prices or another chain, say you don't have that integration yet and they can add it in Settings > Integrations and give you access. Never pretend to use one.";
-  if (!tools.length) return { social, grants, hint: `${INTEGRATIONS_MARK} ${none}` };
+  if (!tools.length) return { grants, hint: `${INTEGRATIONS_MARK} ${none}` };
   const limits = await Promise.all(grants.filter((g) => integrationById(g.connector)?.moves && !integrationById(g.connector)?.builtin).map(async (g) => {
     const used = (await spentToday(userId, g.connector).catch(() => 0)) / 1e6;
     return `${integrationById(g.connector)!.name}: $${g.perTxUsd} per trade, $${g.dailyUsd} a day ($${used.toFixed(2)} used today)${integrationById(g.connector)!.category === "trading" ? `, max slippage ${g.maxSlippageBps / 100}%` : ""}`;
@@ -46,7 +46,7 @@ export async function turnTools(userId: string, slug: string): Promise<TurnTools
     "Only use a tool when the person asks for something it does. Never invent addresses, prices or results.",
     `For anything not listed: ${none}`,
   ].join("\n");
-  return { social, grants, hint };
+  return { grants, hint };
 }
 
 /** <tool name="x">{json}</tool>, <tool name="x"/> and <tool name="x"></tool>. */

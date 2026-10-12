@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { INTEGRATIONS, integrationById, type ActivityRow, type AddedIntegration, type IntegrationInfo } from "@/content/integrations";
 import { loadIntegrations, removeIntegration, updateIntegration, useIntegrations, type IntegrationsState } from "@/lib/integrations";
-import { loadSocial, useSocial } from "@/lib/social";
-import { SOCIALS, SOCIAL_NAME } from "@/lib/socialInfo";
 import { friendly } from "@/lib/api";
 import { toast, type State } from "@/lib/store";
 import { AgentTile } from "../faces";
 import Icon from "../Icon";
-import { SocialConnect, SocialMark, TILE } from "../social/SocialLinks";
 import { IntegrationLogo, StatusPill } from "./Logos";
 import { CatalogSheet, GrantSheet, IntToggle } from "./Sheets";
 import { STATUS_CHIP } from "./ChatCards";
@@ -38,13 +35,9 @@ const TRY: Partial<Record<string, string>> = {
 /** Settings > Integrations: the tools you added, who may use them, their limits and what they did. */
 export default function IntegrationsSection({ s }: { s: State }) {
   const st = useIntegrations();
-  const social = useSocial();
   const [sheet, setSheet] = useState<Sheet>(null);
   const [fresh, setFresh] = useState<string | null>(null);
-  useEffect(() => { void loadSocial(true); void loadIntegrations(true); }, []);
-  // Linking (or unlinking) an account here or in another tab opens or locks the section right away.
-  const linked = social.links.length;
-  useEffect(() => { if (social.loaded) void loadIntegrations(true); }, [linked, social.loaded]);
+  useEffect(() => { void loadIntegrations(true); }, []);
   useEffect(() => { if (!fresh) return; const t = setTimeout(() => setFresh(null), 2200); return () => clearTimeout(t); }, [fresh]);
 
   if (!st.loaded) return (
@@ -53,13 +46,12 @@ export default function IntegrationsSection({ s }: { s: State }) {
       <div className="h-[120px] animate-pulse rounded-[22px] bg-tint" />
     </div>
   );
-  if (st.error && !st.added.length && st.locked) return (
+  if (st.error && !st.added.length) return (
     <div className="rounded-[22px] bg-card p-5 ring-1 ring-line">
       <p className="text-[14px] text-ink/70">Integrations didn&apos;t load. {st.error}</p>
       <button onClick={() => void loadIntegrations(true)} className="btn btn-line btn-sm mt-3 text-ink">Try again</button>
     </div>
   );
-  if (st.locked) return <Locked s={s} />;
 
   const pick = (info: IntegrationInfo) => {
     const g = st.added.find((a) => a.connector === info.id);
@@ -105,48 +97,6 @@ export default function IntegrationsSection({ s }: { s: State }) {
           onClose={() => setSheet(null)}
           onSaved={(id) => { setSheet(null); setFresh(id); }} />
       )}
-    </div>
-  );
-}
-
-/** Locked until a social account is linked: one-tap link buttons, the same linking as Connected accounts. */
-function Locked({ s }: { s: State }) {
-  return (
-    <div data-integrations data-int-state="locked">
-      <section className="grain relative overflow-hidden rounded-[22px] bg-[linear-gradient(130deg,#1b0b5e,#3d1fc4_60%,#6a47ff)] p-5 text-white">
-        <div className="flex items-start gap-4">
-          <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><Icon name="lock" size={23} /><span aria-hidden className="absolute inset-0 animate-ping rounded-2xl bg-white/10 [animation-duration:2.4s]" /></span>
-          <div className="min-w-0 flex-1">
-            <div className="label text-[9.5px] text-white/70">Locked</div>
-            <div className="display mt-1 text-[27px] leading-[1.05] max-[430px]:text-[24px]">Link a social account to unlock</div>
-            <p className="mt-2 text-[13.5px] leading-snug text-white/80">Integrations let your agents use real tools with their own wallets. Link X, Discord or Telegram first so every agent is tied to a real person.</p>
-          </div>
-        </div>
-        <div className="mt-4 flex items-center gap-2">
-          <div className="flex -space-x-2">{INTEGRATIONS.filter((i) => !i.builtin).slice(0, 6).map((i) => <span key={i.id} className="rounded-[12px] ring-2 ring-[#3d1fc4]"><IntegrationLogo id={i.id} size={30} /></span>)}</div>
-          <span className="text-[12.5px] font-semibold text-white/75">{INTEGRATIONS.filter((i) => !i.builtin).length} integrations waiting</span>
-        </div>
-      </section>
-      <SocialConnect s={s}>
-        {(a, enabled) => (
-          <section className="mt-5">
-            <h3 className="label mb-2 text-[9.5px] text-ink/50">Link one to continue</h3>
-            <div className="grid gap-2">
-              {SOCIALS.map((p, n) => {
-                const on = enabled.includes(p);
-                return (
-                  <button key={p} data-int-link={p} disabled={!on || !a.ready || !!a.busy} onClick={() => a.link(p)} className="row-in group flex h-14 items-center gap-3 rounded-2xl bg-card px-3 text-left ring-1 ring-line transition enabled:hover:ring-grape disabled:opacity-55" style={{ animationDelay: `${n * 60}ms` }}>
-                    <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${on ? TILE[p] : "bg-tint text-ink/40"}`}><SocialMark provider={p} size={p === "twitter" ? 15 : 18} /></span>
-                    <span className="min-w-0 flex-1 text-[15px] font-semibold text-ink">{a.busy === p ? "Linking…" : `Link ${SOCIAL_NAME[p]}`}</span>
-                    <span className="text-[12.5px] text-ink/45">{on ? <Icon name="right" size={17} className="transition group-enabled:group-hover:translate-x-0.5" /> : "Not available yet"}</span>
-                  </button>
-                );
-              })}
-            </div>
-            {a.note && <p className="mt-3 text-[12.5px] leading-snug text-ink/55">{a.note}</p>}
-          </section>
-        )}
-      </SocialConnect>
     </div>
   );
 }
