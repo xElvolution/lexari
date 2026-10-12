@@ -638,6 +638,7 @@ Lexari gives everyone personalized AI agents that act onchain. These partners an
 
 | | Partner | Role in Lexari | Where it sits in the architecture |
 | --- | --- | --- | --- |
+| <img src="https://www.google.com/s2/favicons?domain=solanamobile.com&sz=64" width="20" height="20" alt="" /> | **SKR (Solana Mobile)** | Top up coin. SKR (mint `SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3`) sent to your own Solana deposit address is priced live and converted into your USD balance once, with a 5% SKR bonus. Plans and agent hires can be paid with SKR from the same Confirm sheet. | Top up rails and billing |
 | <img src="https://www.google.com/s2/favicons?domain=intents.aurora.dev&sz=64" width="20" height="20" alt="" /> | **Aurora Intents** | Cross-chain engine for the one balance. When a trade needs funds on another chain, the agent routes them through the Aurora Intents Swap API in a single Confirm card. | Signer layer to Adapter Registry (routing) |
 | <img src="https://www.google.com/s2/favicons?domain=nansen.ai&sz=64" width="20" height="20" alt="" /> | **Nansen** | Smart money flows and wallet profiles. Every trade Confirm card carries a Nansen check line, and agents consult it before proposing a trade. | Adapter Registry: data |
 | <img src="https://www.google.com/s2/favicons?domain=kuru.io&sz=64" width="20" height="20" alt="" /> | **Kuru** | Orderbook routes and swaps on Monad testnet through the Kuru SDK, behind Confirm cards. | Adapter Registry: Monad |

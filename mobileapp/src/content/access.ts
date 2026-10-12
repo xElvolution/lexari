@@ -48,9 +48,10 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   agora: { name: "Agora AUSD", color: "#0b3d91", moves: true, chains: "Monad testnet" },
   alchemy: { name: "Alchemy", color: "#363ff9", moves: false, chains: "Monad testnet" },
   mera: { name: "Mera", color: "#111111", moves: false, chains: "Passkeys", addable: false },
+  skr: { name: "SKR", color: "#14F1D9", moves: false, chains: "Solana", addable: false },
 };
 /** Each partner's site, for its logo. */
-export const INTEGRATION_DOMAIN: Record<string, string> = { solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", metamask: "metamask.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com" };
+export const INTEGRATION_DOMAIN: Record<string, string> = { skr: "solanamobile.com", solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", metamask: "metamask.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com" };
 
 export type AddedIntegration = {
   id: string; connector: string; enabled: boolean; agents: string[]; perTxUsd: number; dailyUsd: number; maxSlippageBps: number;

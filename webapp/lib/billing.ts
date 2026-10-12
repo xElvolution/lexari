@@ -19,7 +19,7 @@ import { moneyChanged, onMoneyChanged } from "./money";
 export type { BillingState };
 export type OutInfo = (Blocked | { reason: "model_unavailable"; model: string; modelLabel: string }) & { convo?: string; agent?: string };
 /** need: a purchase was short, so the sheet shows the shortfall; then: runs after the top up lands (the purchase goes on). */
-export type TopUpIntent = { product: "plan" | "credits"; id?: string; need?: { needMicros: number; haveMicros: number; shortMicros: number; what: string }; then?: () => void; cancel?: () => void };
+export type TopUpIntent = { product: "plan" | "credits"; id?: string; need?: { needMicros: number; haveMicros: number; shortMicros: number; what: string }; then?: () => void; cancel?: () => void; coin?: "SKR" };
 export type BillingSheet =
   | { kind: "models"; convo: string; agent: string | null; group: boolean }
   | { kind: "topup"; intent: TopUpIntent }

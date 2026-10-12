@@ -202,7 +202,7 @@ type Sheet = null | { kind: "consent"; draft: Draft } | { kind: "audit"; connect
 /** Same groups as the web page (webapp/components/integrations/IntegrationsSection.tsx). */
 const GROUPS: [string, string[]][] = [
   ["Trading", ["orca", "jupiter", "kuru", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
-  ["Wallets & Payments", ["solana", "base", "ethereum", "monad", "tempo", "agora", "metamask", "mera", "payments"]],
+  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "monad", "tempo", "agora", "metamask", "mera", "payments"]],
   ["Data", ["prices", "nansen", "alchemy", "ore", "solami"]],
   ["AI", ["self"]],
 ];

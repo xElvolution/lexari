@@ -21,8 +21,8 @@ export function shortOf(e: unknown): Short | null {
 export { packFor };
 
 /** Opens Top up for a shortfall. `then` runs once the top up lands; `cancel` if the sheet is closed first. */
-export function topUpFor(short: Short, what: string, then: () => void, cancel?: () => void) {
-  openTopUp({ product: "credits", id: String(packFor(short.shortMicros)), need: { ...short, what }, then, cancel });
+export function topUpFor(short: Short, what: string, then: () => void, cancel?: () => void, coin?: "SKR") {
+  openTopUp({ product: "credits", id: String(packFor(short.shortMicros)), need: { ...short, what }, then, cancel, coin });
 }
 
 export type PayReq = {

@@ -57,6 +57,9 @@ export function IntegrationLogo({ id, size = 44, className = "" }: { id: Integra
       return tile("linear-gradient(140deg,#5b2bff,#8f6bff)", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="9" r="3.5" /><path d="M5.5 19.5c1.2-3 3.7-4.5 6.5-4.5s5.3 1.5 6.5 4.5" /><path d="m17.5 4 1.2 1.2M19.8 7.4h1.7" /></svg>
       ));
+    case "skr":
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src="/logos/coins/SKR.png" alt="" width={size} height={size} className="shrink-0 rounded-[30%]" style={{ width: size, height: size }} />;
     case "ore":
       return tile("#1a1206", (
         <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#f5a524" d="m12 3 7.5 4.5v9L12 21l-7.5-4.5v-9z" /><path fill="#1a1206" d="m12 7.2 3.8 2.3v4.9L12 16.8l-3.8-2.4V9.5z" /></svg>

@@ -8,7 +8,7 @@
  */
 import QR from "qrcode";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CHAINS, COINS, TOPUP_MIN_USD, coinById, coinDigits, railId, RAILS, type Rail } from "@/content/topup";
+import { CHAINS, COINS, SKR_BONUS, TOPUP_MIN_USD, coinById, coinDigits, railId, RAILS, type Rail } from "@/content/topup";
 import { api, friendly } from "@/lib/api";
 import { depositAddress, topupInChat, type DepositView } from "@/lib/topup";
 import { toast } from "@/lib/store";
@@ -203,6 +203,7 @@ export function RailPay({ usd, railKey }: { usd: number; railKey: string }) {
       <Warn symbol={c.symbol} network={ch.network} tag={!!r.tag} />
       <div className="mt-3">{v ? <AddressBox address={v.address} memo={v.tag !== undefined ? String(v.tag) : null} label={r.tag ? "Lexari XRP address" : `Your ${ch.name} deposit address`} /> : <div className="flex items-center gap-2 rounded-2xl bg-tint p-4 text-[13px] text-ink/55"><Spinner />Making your address…</div>}</div>
       {amount && <Exact amount={amount} symbol={c.symbol} usd={usd} />}
+      {r.coin === "SKR" && <p data-skr-perk className="mt-2 flex items-center gap-2 rounded-2xl bg-[#14F1D9]/10 px-3 py-2 text-[12.5px] font-semibold text-ink/80">SKR perk: you get {Math.round(SKR_BONUS * 100)}% extra credit, ${(usd * (1 + SKR_BONUS)).toFixed(2)} for this deposit.</p>}
       <Status v={v} added={added} symbol={c.symbol} fmt={fmt} />
       {err && <p role="alert" className="mt-2 text-[12.5px] text-[#e5484d]">{err}</p>}
       {!added && <button data-deposit-check onClick={async () => { setChecking(true); await check(); setChecking(false); }} disabled={checking || !v} className="btn btn-ghost btn-sm mt-3 w-full !h-10">{checking ? <><Spinner className="mr-2" />Checking {ch.name}…</> : "I've sent it, check now"}</button>}
