@@ -29,7 +29,7 @@ export default function DepositPicker({ agent, name, onClose }: { agent: string;
   const go = async () => {
     if (!chain) return;
     setBusy(true); setErr("");
-    try { setAddr(await api<Addr>("/api/agents/deposit", { method: "POST", body: JSON.stringify({ agent, assetId: chain.assetId, amount: Number(amount) }) })); }
+    try { setAddr(await api<Addr>("/api/agents/deposit", { body: { agent, assetId: chain.assetId, amount: Number(amount) } })); }
     catch (e) { setErr(e instanceof Error ? e.message : "Couldn't get an address."); }
     setBusy(false);
   };
