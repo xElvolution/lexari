@@ -10,7 +10,7 @@
  *    balance pays for real AI usage). Anything over waits and is credited on a later check.
  */
 import { and, eq, gt, sql } from "drizzle-orm";
-import { CHAINS, TESTNET_TOPUP_DAILY_USD, TOPUP_MIN_USD, coinById, payKind, railById, railId, type Rail } from "@/content/topup";
+import { CHAINS, TESTNET_TOPUP_DAILY_USD, TOPUP_MIN_USD, SKR_BONUS, coinById, payKind, railById, railId, type Rail } from "@/content/topup";
 import { db } from "../db";
 import { topupCredits, topupWatches, topupXrpTags } from "../db/topupSchema";
 import { HttpError } from "../http";
@@ -104,8 +104,9 @@ export async function checkDeposit(userId: string, id: string): Promise<DepositV
       if (delta < minAtoms(r)) status = "below";
       else if (price === null) status = "incoming"; // priced on the next check
       else {
-        const micros = usdMicrosOf(delta, r, price);
-        if (micros < TOPUP_MIN_USD * MICROS) status = "below";
+        const base = usdMicrosOf(delta, r, price);
+        const micros = r.coin === "SKR" ? Math.round(base * (1 + SKR_BONUS)) : base;
+        if (base < TOPUP_MIN_USD * MICROS) status = "below";
         else if (micros > capLeft && r.chain !== "solmain") status = "capped";
         else if (micros > 0) {
           const ref = `dep:${railId(r)}:${userId}:${h.confirmed.toString()}`;

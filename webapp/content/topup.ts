@@ -131,6 +131,8 @@ export const COINS: CoinInfo[] = [
   { id: "ALPHAUSD", symbol: "AlphaUSD", name: "AlphaUSD", stable: true, price: { usd: 1 }, color: "#4B5563", tags: "alphausd tempo stablecoin test" },
 ];
 
+/** Official SKR mint (Solana Mobile). */
+export const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
 const SOL_DEVNET_TEST = {
   SKR: "ExGnANupZkiSRMDQXiTY9JEwPZa33m8ZfA5kKDuf3n68",
   ORE: "GzWiT2UiYA4hiTnkJYseNMcwXdF2sacf3drgthCHMoBD",
@@ -147,7 +149,8 @@ export const RAILS: Rail[] = [
   { coin: "SOL", chain: "solana", decimals: 9, min: 0.005, test: false, live: true },
   { coin: "USDC", chain: "solana", token: SOLANA_DEVNET_USDC, decimals: 6, min: 1, test: false, live: true },
   { coin: "USDT", chain: "solana", token: SOL_DEVNET_TEST.USDT, decimals: 6, min: 1, test: true, live: true }, // MAINNET: Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB
-  { coin: "SKR", chain: "solana", token: SOL_DEVNET_TEST.SKR, decimals: 6, min: 20, test: true, live: true }, // MAINNET: SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3
+  // SKR, the Solana Mobile token (mint verified at docs.solanamobile.com/solana-mobile-stack/skr), on Solana mainnet.
+  { coin: "SKR", chain: "solmain", token: SKR_MINT, decimals: 6, min: 1, test: false, live: true },
   { coin: "ORE", chain: "solana", token: SOL_DEVNET_TEST.ORE, decimals: 11, min: 0.005, test: true, live: true }, // MAINNET: oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp
   { coin: "BONK", chain: "solana", token: SOL_DEVNET_TEST.BONK, decimals: 5, min: 20_000, test: true, live: true },
   { coin: "JUP", chain: "solana", token: SOL_DEVNET_TEST.JUP, decimals: 6, min: 1, test: true, live: true },
@@ -187,6 +190,8 @@ export const railsFor = (coin: CoinId) => RAILS.filter((r) => r.coin === coin);
 export const payKind = (_r: Rail): "wallet" | "deposit" => "deposit";
 /** Smallest top up, in dollars. */
 export const TOPUP_MIN_USD = 5;
+/** SKR perk: top-ups paid in SKR are credited with a bonus, so anything paid from them costs less. */
+export const SKR_BONUS = 0.05;
 /** What the sheet calls it: "USDT on Tron", "test SKR on Solana devnet". */
 export const railLabel = (r: Rail) => `${r.test ? "test " : ""}${coinById(r.coin)?.symbol || r.coin} on ${CHAINS[r.chain].name}`;
 /** Display decimals for an amount of this coin. */

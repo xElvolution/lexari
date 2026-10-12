@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { friendly } from "@/lib/api";
+import { SKR_BONUS } from "@/content/topup";
+import { coinLogoSrc } from "@/lib/logos";
 import { parkPay, resumePay, shortOf, topUpFor, usePayReq } from "@/lib/balance";
 import { refreshBilling, useBilling } from "@/lib/billing";
 import { moneyChanged } from "@/lib/money";
@@ -30,11 +32,13 @@ function PaySheetBody() {
   const fired = useRef(false);
   const mask = useMask();
 
-  const toTopUp = (s: { needMicros: number; haveMicros: number; shortMicros: number }) => {
+  const toTopUp = (s: { needMicros: number; haveMicros: number; shortMicros: number }, coin?: "SKR") => {
     const parked = parkPay();
     if (!parked) return;
-    topUpFor(s, req.doing || req.title, () => { void refreshBilling().then(() => resumePay(parked, usd)); }, () => parked.done({ ok: false }));
+    topUpFor(s, req.doing || req.title, () => { void refreshBilling().then(() => resumePay(parked, usd)); }, () => parked.done({ ok: false }), coin);
   };
+  // Pay with SKR: send SKR to your deposit address (credited with the SKR bonus), then this same sheet confirms the purchase.
+  const paySkr = () => { const have = balance ?? 0; const need = have < price ? price - have : price; toTopUp({ needMicros: price, haveMicros: have, shortMicros: Math.max(Math.ceil(need / (1 + SKR_BONUS)), 1) }, "SKR"); };
   const pay = async () => {
     setErr("");
     if (short && balance !== null) { toTopUp({ needMicros: price, haveMicros: balance, shortMicros: price - balance }); return; }
@@ -58,11 +62,12 @@ function PaySheetBody() {
 
   return (
     <Sheet label="pay-balance" title={req.title} sub={req.what} icon={<Icon name="wallet" size={20} />} onClose={() => !busy && open.done({ ok: false })} closable={!busy}
-      footer={
+      footer={<>
         <button data-pay-balance onClick={() => void pay()} disabled={busy || balance === null} className="btn btn-brand btn-sm w-full disabled:opacity-60">
           {busy ? <><Spinner className="mr-2" />Paying…</> : short ? `Top up and ${req.kind === "fund" ? "fund" : "continue"}` : req.cta ? req.cta(usd) : `Pay ${money(price, { cents: !Number.isInteger(usd) })} from balance`}
         </button>
-      }>
+        {req.kind !== "fund" ? <button data-pay-skr onClick={paySkr} disabled={busy} className="btn btn-ghost btn-sm mt-2 w-full"><img src={coinLogoSrc("SKR") || ""} alt="" className="mr-2 h-5 w-5 rounded-full" />Pay with SKR · {Math.round(SKR_BONUS * 100)}% bonus</button> : null}
+      </>}>
       {/* room above and below for the primary agent's gold ring, its glow and the status dot: the sheet body scrolls, so anything past its edge is clipped */}
       {req.art && <div data-pay-art className="mb-1 flex justify-center pb-5 pt-7">{req.art}</div>}
       {req.amounts && (

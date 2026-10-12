@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora" | "alchemy";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora" | "alchemy" | "skr";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -204,6 +204,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     about: "Connect your own server with a one-line install. The ORE Miner installs, starts, stops and watches the miner there. Nothing mines on Lexari's machines.",
     can: [{ text: "Install, start, stop and monitor on your server", live: true }, { text: "ORE rewards (mainnet)", live: false }],
     tags: "ore mining miner server",
+  },
+  {
+    id: "skr", name: "SKR", category: "chains", status: "live", addable: false, moves: false, chains: ["Solana"],
+    blurb: "Top up and pay with SKR, the Solana Mobile token.",
+    about: "SKR (mint SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3) is a top up coin. Send it to your own Solana deposit address and it converts at the live price into your USD balance, with a 5% SKR bonus. Plans and agent hires can be paid with SKR from the same Confirm sheet. Your balance always shows in dollars.",
+    can: [{ text: "Top up your balance with SKR on Solana", live: true }, { text: "Pay for plans and hires with SKR, 5% bonus", live: true }],
+    tags: "skr seeker solana mobile saga token",
   },
   {
     id: "self", name: "Its own settings", category: "data", status: "live", addable: false, moves: false, chains: ["Lexari"], builtin: "all",

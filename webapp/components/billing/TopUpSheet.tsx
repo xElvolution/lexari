@@ -30,8 +30,8 @@ export default function TopUpSheet({ intent }: { intent: TopUpIntent }) {
   const usd = Math.round(Number(amt) * 100) / 100;
   const okAmt = usd >= TOPUP_MIN_USD && usd <= TOPUP_MAX_USD;
   const cardReady = !!state?.rails.card.ready;
-  const [rail, setRail] = useState<Rail>(() => (state?.rails.card.ready ? "card" : "crypto"));
-  const [opt, setOpt] = useState<{ o: Opt; symbol: string } | null>(null);
+  const [rail, setRail] = useState<Rail>(() => (intent.coin ? "crypto" : state?.rails.card.ready ? "card" : "crypto"));
+  const [opt, setOpt] = useState<{ o: Opt; symbol: string } | null>(() => intent.coin === "SKR" ? { o: { kind: "rail", key: "SKR:solmain", chainName: "Solana", chain: "solmain" }, symbol: "SKR" } : null);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const close = () => { closeBillingSheet(); intent.cancel?.(); };
