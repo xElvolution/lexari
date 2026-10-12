@@ -1,4 +1,4 @@
-# mm-plugin-lexari
+# @xelvolution/mm-plugin-lexari
 
 A MetaMask Agent Wallet (`mm`) plugin for Lexari, personalized AI agents that act onchain.
 
@@ -10,6 +10,12 @@ A MetaMask Agent Wallet (`mm`) plugin for Lexari, personalized AI agents that ac
 
 Every transaction goes through the Agent Wallet executor, so you approve it in Agent Wallet. Nothing signs on its own.
 `lexari trade` needs `AURORA_INTENTS_API_KEY` (from studio.aurora.dev) in the environment.
+
+## Install
+
+```
+mm plugins install @xelvolution/mm-plugin-lexari
+```
 
 ## Build and try it
 
@@ -23,3 +29,5 @@ mm lexari balance --chain-id 10143
 ```
 
 Requires Node.js 22.18 or later and `@metamask/agent-wallet` ^6.2.0.
+
+License: MIT.

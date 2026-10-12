@@ -1,6 +1,6 @@
 {
-  "name": "mm-plugin-lexari",
-  "version": "0.1.0",
+  "name": "@xelvolution/mm-plugin-lexari",
+  "version": "1.0.0",
   "description": "Lexari for MetaMask Agent Wallet: fund your personalized AI agents, hold and send Agora AUSD on Monad, and trade across chains through Aurora Intents.",
   "license": "MIT",
   "type": "module",
@@ -15,7 +15,9 @@
   ],
   "files": [
     "dist",
-    "oclif.manifest.json"
+    "oclif.manifest.json",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && oclif manifest",
@@ -100,5 +102,14 @@
     "@metamask/agent-wallet": "^6.2.0",
     "oclif": "^4",
     "typescript": "^5"
+  },
+  "author": "Elvolution",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xElvolution/lexari-web.git",
+    "directory": "mm-plugin-lexari"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
