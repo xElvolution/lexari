@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 
-type Chain = { assetId: string; chain: string; chainName: string; decimals: number };
+type Chain = { assetId: string; chain: string; chainName: string; decimals: number; direct?: boolean; network?: string; note?: string };
 type Coin = { symbol: string; name: string; price: number; logo: string | null; chains: Chain[] };
-type Addr = { ready: boolean; coin: string; chain: string; address?: string; memo?: string | null; receive?: string; deadline?: string | null; qr?: string };
+type Addr = { ready: boolean; coin: string; chain: string; address?: string; memo?: string | null; receive?: string; deadline?: string | null; qr?: string; direct?: boolean; note?: string };
 
 function CoinLogo({ c, size = 32 }: { c: Coin; size?: number }) {
   const [bad, setBad] = useState(false);
@@ -58,20 +58,20 @@ export default function DepositPicker({ agent, name, onClose }: { agent: string;
             <div className="flex items-center gap-3"><CoinLogo c={coin} size={40} /><div><div className="font-bold text-ink">{coin.name}</div><div className="text-[12px] text-ink/55">About ${coin.price.toLocaleString("en-US", { maximumFractionDigits: 4 })}</div></div></div>
             <label className="block text-[12px] font-semibold text-ink/60">Sending from
               <select value={chain?.assetId} onChange={(e) => { setChain(coin.chains.find((x) => x.assetId === e.target.value) || null); setAddr(null); }} className="mt-1 w-full rounded-2xl bg-tint px-3 py-2.5 text-[14px] text-ink">
-                {coin.chains.map((x) => <option key={x.assetId} value={x.assetId}>{x.chainName}</option>)}
+                {coin.chains.map((x) => <option key={x.assetId} value={x.assetId}>{x.direct ? `${x.network} (direct to ${name}'s wallet)` : `${x.chainName} (converts via Aurora Intents)`}</option>)}
               </select>
             </label>
-            <label className="block text-[12px] font-semibold text-ink/60">Amount of {coin.symbol}
+            {chain?.direct ? <p className="rounded-2xl bg-tint p-3 text-[12.5px] text-ink/70"><b>{chain.network}.</b> {chain.note}</p> : <label className="block text-[12px] font-semibold text-ink/60">Amount of {coin.symbol}
               <input value={amount} onChange={(e) => { setAmount(e.target.value.replace(/[^0-9.]/g, "")); setAddr(null); }} inputMode="decimal" placeholder="0.00" className="mt-1 w-full rounded-2xl bg-tint px-3 py-2.5 text-[14px] text-ink outline-none" />
-            </label>
-            {!ready && <p className="rounded-2xl bg-tint p-3 text-[12.5px] text-ink/70"><b>Setup needed.</b> Deposit addresses come from Aurora Intents, which isn&apos;t set up on this server yet.</p>}
-            <button disabled={!ready || busy || !(Number(amount) > 0)} onClick={go} className="w-full rounded-2xl bg-grape py-3 text-[14px] font-bold text-white disabled:opacity-40">{busy ? "Getting address…" : "Get deposit address"}</button>
+            </label>}
+            {!ready && !chain?.direct && <p className="rounded-2xl bg-tint p-3 text-[12.5px] text-ink/70"><b>Setup needed.</b> Deposit addresses come from Aurora Intents, which isn&apos;t set up on this server yet.</p>}
+            <button disabled={busy || (!chain?.direct && (!ready || !(Number(amount) > 0)))} onClick={go} className="w-full rounded-2xl bg-grape py-3 text-[14px] font-bold text-white disabled:opacity-40">{busy ? "Getting address…" : chain?.direct ? `Show ${name}'s ${chain.network} address` : "Get deposit address"}</button>
             {addr?.address && (
               <div className="rounded-2xl bg-tint p-4 text-center">
                 <div className="mx-auto w-[180px] rounded-xl bg-white p-2" dangerouslySetInnerHTML={{ __html: addr.qr || "" }} />
                 <button onClick={() => navigator.clipboard?.writeText(addr.address!)} className="mt-2 break-all font-mono text-[12px] text-ink/80">{addr.address}</button>
                 {addr.memo && <p className="mt-1 text-[12px] font-bold text-ink">Memo (required): {addr.memo}</p>}
-                <p className="mt-2 text-[12px] text-ink/60">Send exactly {amount} {coin.symbol} on {addr.chain}. {name} gets about {addr.receive} USDC. This address is for this deposit only.</p>
+                {addr.direct ? <p className="mt-2 text-[12px] text-ink/60"><b>Network: {addr.chain}.</b> {addr.note}</p> : <p className="mt-2 text-[12px] text-ink/60">Send exactly {amount} {coin.symbol} on {addr.chain}. {name} gets about {addr.receive} USDC. This address is for this deposit only.</p>}
               </div>
             )}
           </div>
