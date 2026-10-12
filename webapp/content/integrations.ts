@@ -136,7 +136,7 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "kuru monad orderbook clob dex swap quote",
   },
   {
-    id: "metamask", name: "MetaMask Delegation", category: "chains", status: "testnet", addable: true, moves: true, chains: ["Monad testnet"],
+    id: "metamask", name: "MetaMask Delegation", category: "chains", status: "live", addable: true, moves: true, chains: ["Monad testnet"],
     blurb: "Capped spending from your MetaMask smart account.",
     about: "You delegate from your MetaMask smart account to an agent with ERC-7710 caveats: a MON cap and an expiry, checked onchain by MetaMask's DelegationManager. The agent never holds your funds, sends only go to your linked wallets, and every send waits for your Confirm. Set it up in Settings > Wallets.",
     can: [{ text: "See the delegation and what's left", live: true }, { text: "Send MON to your linked wallets, after you confirm", live: true }, { text: "Token and contract call scopes", live: false }],
@@ -271,6 +271,7 @@ export function scopeOfTool(tool: string, risk: "read" | "sign"): Scope {
   if (risk === "read") return "read";
   if (/\.transfer$/.test(tool)) return "transfer";
   if (tool === "panta.position") return "bet";
+  if (tool === "metamask.send") return "withdraw";
   return "trade";
 }
 /** How long a grant lasts. */
