@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useMask } from "@/lib/privacy";
+import DepositPicker from "./DepositPicker";
 
 type B = { totalUsd: number; assets: { asset: string; amount: number; usd: number; where: string[] }[]; partial: boolean };
 const fmt = (n: number) => (+n.toFixed(n < 1 ? 6 : 4)).toLocaleString("en-US", { maximumFractionDigits: 6 });
@@ -11,6 +12,7 @@ const fmt = (n: number) => (+n.toFixed(n < 1 ? 6 : 4)).toLocaleString("en-US", {
 export default function UnifiedBalance({ agent, name }: { agent: string; name: string }) {
   const mask = useMask();
   const [b, setB] = useState<B | null>(null);
+  const [dep, setDep] = useState(false);
   useEffect(() => { void api<B>(`/api/agents/balance?agent=${encodeURIComponent(agent)}`).then(setB).catch(() => setB(null)); }, [agent]);
   if (!b) return null;
   return (
@@ -24,6 +26,8 @@ export default function UnifiedBalance({ agent, name }: { agent: string; name: s
         ))}
         {!b.assets.some((x) => x.amount > 0) && <li className="py-2 text-[13px] text-ink/60">Nothing here yet. Fund {name} from your Lexari balance.</li>}
       </ul>
+      <button onClick={() => setDep(true)} className="mt-3 w-full rounded-2xl bg-grape py-2.5 text-[14px] font-bold text-white">Deposit any coin</button>
+      {dep && <DepositPicker agent={agent} name={name} onClose={() => setDep(false)} />}
       <details className="mt-2 text-[12.5px] text-ink/60">
         <summary className="cursor-pointer font-semibold">Advanced: where funds sit</summary>
         <ul className="mt-1">{b.assets.filter((x) => x.amount > 0).map((x) => <li key={x.asset}>{x.asset}: {x.where.join(", ")}</li>)}</ul>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { api } from "@/lib/api";
-import { Label, T, useC } from "@/web/kit";
+import { Btn, Label, T, useC } from "@/web/kit";
+import DepositPicker from "./DepositPicker";
 
 type B = { totalUsd: number; assets: { asset: string; amount: number; usd: number; where: string[] }[]; partial: boolean };
 const fmt = (n: number) => (+n.toFixed(n < 1 ? 6 : 4)).toLocaleString("en-US", { maximumFractionDigits: 6 });
@@ -11,6 +12,7 @@ export default function UnifiedBalance({ slug, name, token }: { slug: string; na
   const k = useC();
   const [b, setB] = useState<B | null>(null);
   const [open, setOpen] = useState(false);
+  const [dep, setDep] = useState(false);
   useEffect(() => { void api<B>(`/api/agents/balance?agent=${encodeURIComponent(slug)}`, {}, token).then(setB).catch(() => setB(null)); }, [slug, token]);
   if (!b) return null;
   const held = b.assets.filter((x) => x.amount > 0);
@@ -24,6 +26,8 @@ export default function UnifiedBalance({ slug, name, token }: { slug: string; na
           <T f="bold" s={13.5}>{x.asset}</T><T s={13.5} c={k.ink75}>{fmt(x.amount)} · ${x.usd.toFixed(2)}</T>
         </View>
       )) : <T s={13} c={k.ink60} style={{ marginTop: 6 }}>Nothing here yet. Fund {name} from your Lexari balance.</T>}
+      <Btn label="Deposit any coin" h={44} style={{ marginTop: 10 }} onPress={() => setDep(true)} />
+      <DepositPicker open={dep} slug={slug} name={name} token={token} onClose={() => setDep(false)} />
       <T f="semi" s={12.5} c={k.ink60} style={{ marginTop: 6 }} onPress={() => setOpen(!open)}>Advanced: where funds sit</T>
       {open ? held.map((x) => <T key={x.asset} s={12} c={k.ink60}>{x.asset}: {x.where.join(", ")}</T>) : null}
     </View>
