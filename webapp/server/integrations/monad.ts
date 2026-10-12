@@ -2,16 +2,16 @@
  * Monad testnet (chain 10143) plus the Monad sponsor data and trading venues:
  *  - monad.wallet: the agent's EVM address on Monad testnet and its MON balance (public RPC, no key).
  *  - nansen.wallet: Nansen wallet profile (balances and labels) for any address. Needs NANSEN_API_KEY.
- *  - kuru.quote: a Kuru orderbook quote on Monad testnet. Needs KURU_API_URL (Kuru's API base).
- * All three are reads. Nothing here signs, and without the key each tool says plainly that it is not set up.
+ *  - kuru.quote / kuru.swap: Kuru routes and swaps on Monad testnet through @kuru-labs/kuru-sdk. The swap is a sign
+ *    tool: it only prepares a Confirm card, and only your Confirm sends it. Needs KURU_API_URL and KURU_ROUTER_ADDRESS.
  *
  * Env: MONAD_RPC (default https://testnet-rpc.monad.xyz), NANSEN_API_KEY, NANSEN_API_URL (default
- * https://api.nansen.ai/api/v1), KURU_API_URL, KURU_API_KEY (optional).
+ * https://api.nansen.ai/api/v1), KURU_API_URL, KURU_ROUTER_ADDRESS, KURU_TOKENS (optional JSON list).
  */
 import { z } from "zod";
-import { evmAddress } from "./evm";
+import { evmAddress, evmKey } from "./evm";
 import { Reject } from "./reject";
-import type { AgentRef, ToolDef } from "./registry";
+import type { AgentRef, Executed, GrantLimits, Prepared, ToolDef } from "./registry";
 
 export const MONAD = {
   name: "Monad", network: "Monad testnet", chainId: 10143,
@@ -73,24 +73,88 @@ const nansenWallet: ToolDef = {
   },
 };
 
-/* ---------- Kuru ---------- */
+/* ---------- Kuru (@kuru-labs/kuru-sdk, Monad testnet) ---------- */
+// Pools come from Kuru's API (KURU_API_URL, the base the SDK's PoolFetcher takes). Swaps go through Kuru's router
+// (KURU_ROUTER_ADDRESS). Without them the tools say so and do nothing.
 export const kuruReady = () => !!process.env.KURU_API_URL;
-const kuruIn = z.object({ sell: z.string().trim().toUpperCase(), buy: z.string().trim().toUpperCase(), amount: z.coerce.number().positive() });
+export const kuruTradeReady = () => kuruReady() && /^0x[0-9a-fA-F]{40}$/.test(process.env.KURU_ROUTER_ADDRESS || "");
+type KToken = { symbol: string; address: string; decimals: number };
+const ZERO = "0x0000000000000000000000000000000000000000";
+export function kuruTokens(): KToken[] {
+  try { if (process.env.KURU_TOKENS) return JSON.parse(process.env.KURU_TOKENS) as KToken[]; } catch { /* fall through */ }
+  return [
+    { symbol: "MON", address: ZERO, decimals: 18 },
+    { symbol: "WMON", address: "0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701", decimals: 18 },
+    { symbol: "USDC", address: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea", decimals: 6 },
+  ];
+}
+const kTok = (s: string) => {
+  const t = kuruTokens().find((x) => x.symbol.toUpperCase() === s.toUpperCase());
+  if (!t) throw new Reject(`Kuru on Monad testnet: I only know ${kuruTokens().map((x) => x.symbol).join(", ")}.`);
+  return t;
+};
+async function kuruSdk() {
+  const [sdk, { ethers }] = await Promise.all([import("@kuru-labs/kuru-sdk"), import("ethers")]);
+  return { sdk, ethers };
+}
+export async function kuruRoute(sell: string, buy: string, amount: number) {
+  if (!kuruReady()) throw new Reject("Kuru is not set up on this server yet (no Kuru API URL), so I can't quote on it.");
+  const a = kTok(sell), b = kTok(buy);
+  if (a.address === b.address) throw new Reject("Pick two different tokens.");
+  const { sdk, ethers } = await kuruSdk();
+  const provider = new ethers.providers.JsonRpcProvider(MONAD.rpc(), MONAD.chainId);
+  const fetcher = new sdk.PoolFetcher(process.env.KURU_API_URL!.replace(/\/+$/, ""));
+  let route;
+  try { route = await sdk.PathFinder.findBestPath(provider, a.address, b.address, amount, "amountIn", fetcher); }
+  catch (e) { throw new Reject(`Kuru couldn't find a route for ${a.symbol} to ${b.symbol} (${(e as Error).message.slice(0, 120)}).`); }
+  if (!(route.output > 0)) throw new Reject(`Kuru has no liquidity for ${a.symbol} to ${b.symbol} right now.`);
+  return { a, b, route, provider, sdk, ethers };
+}
+const kuruIn = z.object({ sell: z.string().trim(), buy: z.string().trim(), amount: z.coerce.number().positive(), slippage: z.coerce.number().positive().max(50).optional() });
 const kuruQuote: ToolDef = {
   name: "kuru.quote", connector: "kuru", risk: "read", input: kuruIn,
-  hint: 'kuru.quote {"sell":"MON","buy":"USDC","amount":1} : a Kuru orderbook quote on Monad testnet. Read only, nothing trades.',
+  hint: 'kuru.quote {"sell":"MON","buy":"USDC","amount":1} : the best Kuru route and output on Monad testnet. Read only, nothing trades.',
   run: async (i: never) => {
     const { sell, buy, amount } = i as z.infer<typeof kuruIn>;
-    if (!kuruReady()) throw new Reject("Kuru is not set up on this server yet (no Kuru API endpoint), so I can't quote on it.");
-    const base = process.env.KURU_API_URL!.replace(/\/+$/, "");
-    const q = new URLSearchParams({ tokenIn: sell, tokenOut: buy, amount: String(amount), chainId: String(MONAD.chainId) });
-    const r = await fetch(`${base}/quote?${q}`, { headers: process.env.KURU_API_KEY ? { authorization: `Bearer ${process.env.KURU_API_KEY}` } : {}, signal: AbortSignal.timeout(12000) });
-    if (!r.ok) throw new Reject(`Kuru didn't give a quote (HTTP ${r.status}).`);
-    const j = (await r.json()) as { amountOut?: number | string; output?: number | string; price?: number | string };
-    const out = Number(j.amountOut ?? j.output);
-    if (!(out > 0)) throw new Reject(`Kuru has no route for ${sell} to ${buy} right now.`);
-    return { summary: "Kuru quote", text: `Kuru on Monad testnet: ${amount} ${sell} gets about ${+out.toFixed(6)} ${buy}. This is a quote only; nothing traded.` };
+    const { a, b, route } = await kuruRoute(sell, buy, amount);
+    return { summary: "Kuru quote", text: `Kuru on Monad testnet: ${amount} ${a.symbol} gets about ${+route.output.toFixed(6)} ${b.symbol} over ${route.route.path.length} market(s)${route.priceImpact ? `, price impact ${(+route.priceImpact).toFixed(2)}%` : ""}. Quote only; nothing traded.` };
+  },
+};
+type KuruPlan = { kind: "kuru-swap"; sell: string; buy: string; amount: number; slippagePct: number; expected: number };
+async function usdOf(sym: string, amt: number) {
+  if (/USDC/i.test(sym)) return amt;
+  const { route } = await kuruRoute(sym, "USDC", amt);
+  return route.output;
+}
+const kuruSwap: ToolDef = {
+  name: "kuru.swap", connector: "kuru", risk: "sign", input: kuruIn,
+  hint: 'kuru.swap {"sell":"MON","buy":"USDC","amount":1,"slippage":1} : prepare a swap on Kuru (Monad testnet) from YOUR Monad wallet; the person confirms it.',
+  prepare: async (i: never, agent: AgentRef, limits: GrantLimits): Promise<Prepared> => {
+    const { sell, buy, amount, slippage } = i as z.infer<typeof kuruIn>;
+    if (!kuruTradeReady()) throw new Reject("Kuru trading is not set up on this server yet (no Kuru router address), so I can only quote.");
+    const slippagePct = slippage ?? Math.min(limits.maxSlippageBps / 100, 1);
+    if (slippagePct * 100 > limits.maxSlippageBps) throw new Reject(`That's ${slippagePct}% slippage, over your ${limits.maxSlippageBps / 100}% limit for Kuru.`);
+    const { a, b, route } = await kuruRoute(sell, buy, amount);
+    const usd = await usdOf(a.symbol, amount).catch(() => { throw new Reject("I couldn't price this trade in USD to check your limits, so nothing was prepared."); });
+    if (usd > limits.perTxUsd) throw new Reject(`That's about $${usd.toFixed(2)}, over your $${limits.perTxUsd} per trade limit for Kuru.`);
+    const addr = evmAddress(agent.userId, agent.slug);
+    const mon = await monBalance(addr);
+    if (mon <= 0) throw new Reject(`My Monad testnet wallet (${addr}) has no MON for gas yet. Send it test MON first.`);
+    const plan: KuruPlan = { kind: "kuru-swap", sell: a.symbol, buy: b.symbol, amount, slippagePct, expected: route.output };
+    return {
+      title: `Swap ${amount} ${a.symbol} for ${b.symbol} on Kuru`, chain: "monad", usdMicros: Math.round(usd * 1e6), summary: `Kuru swap ${a.symbol} to ${b.symbol}`, plan,
+      rows: [["Sell", `${amount} ${a.symbol}`], ["Expected", `About ${+route.output.toFixed(6)} ${b.symbol}`], ["Slippage", `${slippagePct}%`], ["Value", `About $${usd.toFixed(2)}`], ["Network", MONAD.network], ["Wallet", `${addr.slice(0, 6)}…${addr.slice(-4)}`]],
+    };
+  },
+  execute: async (p: never, agent: AgentRef): Promise<Executed> => {
+    const plan = p as KuruPlan;
+    if (plan.kind !== "kuru-swap") throw new Reject("That swap can't run any more.");
+    const { a, b, route, provider, sdk, ethers } = await kuruRoute(plan.sell, plan.buy, plan.amount);
+    if (route.output < plan.expected * (1 - plan.slippagePct / 100)) throw new Reject("The Kuru price moved past your slippage since you saw the card. Nothing was sent.");
+    const signer = new ethers.Wallet(Buffer.from(evmKey(agent.userId, agent.slug)).toString("hex"), provider);
+    const rc = await sdk.TokenSwap.swap(signer, process.env.KURU_ROUTER_ADDRESS!, route, plan.amount, a.decimals, b.decimals, plan.slippagePct, true, () => {});
+    return { sig: rc.transactionHash, confirmed: rc.status === 1, rows: [["Swapped", `${plan.amount} ${a.symbol} to ${b.symbol}`], ["Explorer", `https://testnet.monadexplorer.com/tx/${rc.transactionHash}`]] };
   },
 };
 
-export const MONAD_TOOLS: ToolDef[] = [monadWallet, nansenWallet, kuruQuote];
+export const MONAD_TOOLS: ToolDef[] = [monadWallet, nansenWallet, kuruQuote, kuruSwap];

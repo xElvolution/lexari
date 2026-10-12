@@ -194,13 +194,14 @@ const priceTool: ToolDef = {
 const orderInput = z.object({
   coin: z.string().min(1).max(16), side: z.string().max(8), size: num.optional(), usd: num.optional(),
   type: z.string().max(8).optional(), price: num.optional(), reduceOnly: z.boolean().optional(), slippage: num.optional(), slippageBps: num.optional(),
+  takeProfit: num.optional(), stopLoss: num.optional(), tp: num.optional(), sl: num.optional(),
 }).passthrough();
 type OrderIn = z.output<typeof orderInput>;
-type OrderPlan = { kind: "hl-order"; coin: string; asset: number; isBuy: boolean; px: string; sz: string; tif: "Ioc" | "Gtc"; reduceOnly: boolean; account: string; explorer: string };
+type OrderPlan = { kind: "hl-order"; coin: string; asset: number; isBuy: boolean; px: string; sz: string; tif: "Ioc" | "Gtc"; reduceOnly: boolean; account: string; explorer: string; tp?: string; sl?: string; tpPx?: string; slPx?: string };
 
 const orderTool: ToolDef = {
   name: "hyperliquid.order", connector: "hyperliquid", risk: "sign", input: orderInput,
-  hint: `hyperliquid.order {"coin":"ETH","side":"buy","usd":12,"type":"market"} : prepare a perp order on Hyperliquid testnet from YOUR account (side buy/sell, "usd" notional or "size" in coins, type market or limit with "price", optional "reduceOnly"); the person confirms it. Minimum $${MIN_ORDER_USD}.`,
+  hint: `hyperliquid.order {"coin":"ETH","side":"buy","usd":12,"type":"market"} : prepare a perp order on Hyperliquid testnet from YOUR account (side buy/sell, "usd" notional or "size" in coins, type market or limit with "price", optional "reduceOnly", optional "takeProfit" and "stopLoss" trigger prices that close the position); the person confirms it. Minimum $${MIN_ORDER_USD}.`,
   prepare: async (i: OrderIn, agent: AgentRef, limits: GrantLimits): Promise<Prepared> => {
     const side = i.side.toLowerCase();
     if (!["buy", "sell", "long", "short"].includes(side)) throw new Reject("Say buy (long) or sell (short).");
@@ -222,7 +223,15 @@ const orderTool: ToolDef = {
     const account = hlAccount(agent.userId, agent.slug);
     const cs = await info<Clearing>({ type: "clearinghouseState", user: account }).catch(() => null);
     if (!cs || Number(cs.marginSummary?.accountValue || 0) <= 0) throw new Reject(`My Hyperliquid testnet account (${account}) has no test USDC yet. Send some to it on Hyperliquid testnet, then ask again.`);
-    const plan: OrderPlan = { kind: "hl-order", coin: m.coin, asset: m.asset, isBuy, px: toWire(px), sz: toWire(sz), tif: limit ? "Gtc" : "Ioc", reduceOnly: !!i.reduceOnly, account, explorer: hlExplorer(account) };
+    const tpRaw = i.takeProfit ?? i.tp, slRaw = i.stopLoss ?? i.sl;
+    const tp = tpRaw !== undefined ? Number(tpRaw) : undefined, sl = slRaw !== undefined ? Number(slRaw) : undefined;
+    const ref = limit ? px : m.mid;
+    if (tp !== undefined && !(tp > 0 && (isBuy ? tp > ref : tp < ref))) throw new Reject(`Take profit has to be ${isBuy ? "above" : "below"} the entry price ($${toWire(ref)}).`);
+    if (sl !== undefined && !(sl > 0 && (isBuy ? sl < ref : sl > ref))) throw new Reject(`Stop loss has to be ${isBuy ? "below" : "above"} the entry price ($${toWire(ref)}).`);
+    if ((tp !== undefined || sl !== undefined) && i.reduceOnly) throw new Reject("Take profit and stop loss go with an opening order, not a reduce only one.");
+    const exitPx = (t: number) => toWire(roundPx(t * (isBuy ? 1 - slipBps / 1e4 : 1 + slipBps / 1e4), m.szDecimals));
+    const plan: OrderPlan = { kind: "hl-order", coin: m.coin, asset: m.asset, isBuy, px: toWire(px), sz: toWire(sz), tif: limit ? "Gtc" : "Ioc", reduceOnly: !!i.reduceOnly, account, explorer: hlExplorer(account),
+      ...(tp !== undefined ? { tp: toWire(roundPx(tp, m.szDecimals)), tpPx: exitPx(tp) } : {}), ...(sl !== undefined ? { sl: toWire(roundPx(sl, m.szDecimals)), slPx: exitPx(sl) } : {}) };
     const what = `${isBuy ? "Buy" : "Sell"} ${toWire(sz)} ${m.coin}`;
     return {
       title: `${what} on Hyperliquid`, chain: "hyperliquid", usdMicros: Math.round(notional * 1e6), summary: `${what} perp`,
@@ -231,6 +240,8 @@ const orderTool: ToolDef = {
         ["Size", `${toWire(sz)} ${m.coin} ≈ ${money(notional)}`],
         [limit ? "Limit price" : "Worst price", `$${toWire(px)}${limit ? "" : ` (${slipBps / 100}% slippage)`}`],
         ["Mid price", `$${toWire(m.mid)} (testnet)`],
+        ...(plan.tp ? [["Take profit", `$${plan.tp} (closes the position)`] as [string, string]] : []),
+        ...(plan.sl ? [["Stop loss", `$${plan.sl} (closes the position)`] as [string, string]] : []),
         ["Signed by", "Trade-only API wallet (can't withdraw)"],
         ["Account", `${account.slice(0, 6)}…${account.slice(-4)}`],
       ],
@@ -241,15 +252,20 @@ const orderTool: ToolDef = {
     if (p.kind !== "hl-order") throw new Reject("That order can't run any more.");
     await ensureApiWallet(agent.userId, agent.slug);
     const order = { a: p.asset, b: p.isBuy, p: p.px, s: p.sz, r: p.reduceOnly, t: { limit: { tif: p.tif } } };
-    const action = { type: "order", orders: [order], grouping: "na" };
+    const exits = [
+      ...(p.tp ? [{ a: p.asset, b: !p.isBuy, p: p.tpPx!, s: p.sz, r: true, t: { trigger: { isMarket: true, triggerPx: p.tp, tpsl: "tp" } } }] : []),
+      ...(p.sl ? [{ a: p.asset, b: !p.isBuy, p: p.slPx!, s: p.sz, r: true, t: { trigger: { isMarket: true, triggerPx: p.sl, tpsl: "sl" } } }] : []),
+    ];
+    const action = { type: "order", orders: [order, ...exits], grouping: exits.length ? "normalTpsl" : "na" };
     const nonce = Date.now();
     const r = await post<ExchangeReply>("exchange", { action, nonce, signature: await signL1(apiKeyOf(agent.userId, agent.slug), action, nonce), vaultAddress: null });
     if (r.status !== "ok" || typeof r.response === "string") throw new Reject(friendlyHl(typeof r.response === "string" ? r.response : "the order was refused", p.account));
     const st = r.response?.data?.statuses?.[0];
     if (!st || typeof st === "string") throw new Reject(friendlyHl(typeof st === "string" ? st : "no order status came back", p.account));
     if (st.error) throw new Reject(friendlyHl(st.error, p.account));
-    if (st.filled) return { sig: String(st.filled.oid), confirmed: true, rows: [["Filled", `${st.filled.totalSz} ${p.coin} @ $${st.filled.avgPx}`], ["Order id", String(st.filled.oid)]] };
-    if (st.resting) return { sig: String(st.resting.oid), confirmed: true, rows: [["Resting", `Limit order open at $${p.px}`], ["Order id", String(st.resting.oid)]] };
+    const exitRows: [string, string][] = [...(p.tp ? [["Take profit", `Set at $${p.tp}`] as [string, string]] : []), ...(p.sl ? [["Stop loss", `Set at $${p.sl}`] as [string, string]] : [])];
+    if (st.filled) return { sig: String(st.filled.oid), confirmed: true, rows: [...exitRows, ["Filled", `${st.filled.totalSz} ${p.coin} @ $${st.filled.avgPx}`], ["Order id", String(st.filled.oid)]] };
+    if (st.resting) return { sig: String(st.resting.oid), confirmed: true, rows: [...exitRows, ["Resting", `Limit order open at $${p.px}`], ["Order id", String(st.resting.oid)]] };
     throw new Reject("Hyperliquid didn't say what happened to the order. Check the account before trying again.");
   },
 };

@@ -129,10 +129,10 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "nansen smart money wallet profiler data labels",
   },
   {
-    id: "kuru", name: "Kuru", category: "trading", status: process.env.NEXT_PUBLIC_KURU_READY === "1" ? "live" : "needskey", addable: true, moves: false, chains: ["Monad testnet"],
-    blurb: "Orderbook quotes on Monad testnet.",
-    about: "Your agents get Kuru orderbook quotes on Monad testnet. Quotes only for now: trading on Kuru is next and will wait for your Confirm like every other trade.",
-    can: [{ text: "Live quotes on Monad testnet", live: true }, { text: "Orders, after you confirm", live: false }],
+    id: "kuru", name: "Kuru", category: "trading", status: process.env.NEXT_PUBLIC_KURU_READY === "1" ? "live" : "needskey", addable: true, moves: true, chains: ["Monad testnet"],
+    blurb: "Orderbook quotes and swaps on Monad testnet.",
+    about: "Your agents get Kuru routes on Monad testnet and swap from their own Monad wallet. Every swap waits for your Confirm inside your per-trade and slippage limits. Test tokens only.",
+    can: [{ text: "Live routes and quotes on Monad testnet", live: true }, { text: "Swaps, after you confirm", live: true }, { text: "Mainnet", live: false }],
     tags: "kuru monad orderbook clob dex swap quote",
   },
   {
@@ -251,6 +251,7 @@ const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
   orca: ["read", "trade"],
   tempo: ["read", "trade", "withdraw", "transfer"],
   hyperliquid: ["read", "trade"],
+  kuru: ["read", "trade"],
   panta: ["read", "bet"],
 };
 /** The scopes an integration can ask for. */

@@ -16,3 +16,8 @@ test("nansen and kuru refuse plainly without keys", async () => {
   await assert.rejects(toolByName("nansen.wallet")!.run!({ address: "0x0000000000000000000000000000000000000001", chain: "ethereum" } as never, agent), /not set up/);
   await assert.rejects(toolByName("kuru.quote")!.run!({ sell: "MON", buy: "USDC", amount: 1 } as never, agent), /not set up/);
 });
+
+test("kuru.swap is a confirm-card sign tool, never auto", () => {
+  const t = toolByName("kuru.swap")!;
+  assert.equal(t.risk, "sign"); assert.ok(!t.auto); assert.ok(t.prepare && t.execute);
+});
