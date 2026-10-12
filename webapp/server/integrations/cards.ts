@@ -15,6 +15,7 @@ const LABEL: Record<string, string> = {
   "ore.servers": "Checked the mining servers", "ore.control": "Miner command",
   "self.rename": "Rename", "self.setavatar": "New face", "self.setpersona": "New persona", "self.setmodel": "Switch model",
   "hyperliquid.account": "Checked its Hyperliquid account", "hyperliquid.price": "Hyperliquid prices", "hyperliquid.order": "Order on Hyperliquid",
+  "monad.wallet": "Checked its Monad wallet", "nansen.wallet": "Nansen wallet read", "kuru.quote": "Kuru quote",
   "panta.markets": "Panta markets", "panta.position": "Position on Panta", "panta.positions": "Panta positions",
 };
 /** A readable title for an action that never got a preview (refused before it was prepared). */
