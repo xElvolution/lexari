@@ -144,8 +144,9 @@ Every integration is **off until you add it**, granted to specific agents, and b
 | ORE mining | Your own server | 🟢 | 🟢 install, start, stop, watch (practice mode, no rewards) | 🟢 |
 | Solami (RPC, webhooks, Beam) | Solana mainnet | ⚪ | ⚪ | ⚪ arrives with mainnet |
 | Hyperliquid (trade-only API wallet, perps) | Hyperliquid testnet | 🟢 prices, positions, orders | 🟢 market and limit orders after Confirm | 🟢 |
-| Monad (Kuru, AUSD, Nansen data) | Monad testnet | 🟢 MON balance; 🟡 Nansen wallet reads and Kuru quotes (need API keys) | ⚪ Kuru orders, AUSD | 🟡 |
-| MetaMask Delegation | EVM | ⚪ | ⚪ | ⚪ |
+| Monad (Kuru, AUSD, Nansen data) | Monad testnet | 🟢 MON balance; 🟡 Nansen wallet reads and Kuru routes (need API keys) | 🟡 Kuru swaps after Confirm (need the Kuru API and router); ⚪ AUSD | 🟡 |
+| MetaMask Delegation (ERC-7710) | Monad testnet | 🟢 delegation status and what is left | 🟢 capped MON sends from your smart account to your linked wallets, after Confirm | 🟢 web (phone: chat tools only) |
+| Tempo agent card | Tempo testnet | 🟢 balance, limits, history | 🟢 merchant payments in stablecoins after Confirm, per payment and daily limits, freeze | 🟢 web and phone |
 
 ### Models
 
@@ -452,7 +453,7 @@ Package ids `ai.lexari.app.testnet` (preview) and `ai.lexari.app` (production), 
 | **Published sites** | Served with `Content-Security-Policy: sandbox`, an opaque origin with no access to Lexari cookies | 🟢 |
 | **ORE Miner** | Never mines on Lexari machines. One-time install code, hashed host token, uninstall on removal | 🟢 |
 | **Agent key custody** | HMAC-derived keys today (testnets only) | 🟡 |
-| **Policy-bound signing** | Privy server wallets with policies, MetaMask delegation caveats, trade-only venue keys | ⚪ |
+| **Policy-bound signing** | MetaMask delegation caveats and trade-only venue keys are live. Privy server wallets with policies are next | 🟡 |
 | **Transaction simulation** | Simulate EVM signs and show the balance diff on the Confirm card | ⚪ |
 | **Withdraw only to linked wallets, freeze all agents** | Consent with scopes, limits and expiry, audit log, revoke and switch off all | 🟢 |
 
@@ -597,7 +598,7 @@ Names only. Copy `.env.example` to `webapp/.env.local` and never commit the fill
 | Solana | `NEXT_PUBLIC_SOLANA_CLUSTER`, `NEXT_PUBLIC_SOLANA_RPC`, `SOLANA_RPC`, `HELIUS_API_KEY`, `NEXT_PUBLIC_RPC_PROXY`, `NEXT_PUBLIC_LEXARI_PROGRAM_ID`, `LEXARI_ATTESTOR_KEY`, `ORCA_SOL_USDC_POOL`, `JUPITER_API_KEY` |
 | Treasury, specialist purchases and payouts | `LEXARI_TREASURY`, `NEXT_PUBLIC_LEXARI_TREASURY`, `NEXT_PUBLIC_HIRE_LAMPORTS`, `NEXT_PUBLIC_HIRE_USD`, `NEXT_PUBLIC_HIRE_USDC`, `NEXT_PUBLIC_USDC_MINT`, `LEXARI_PAYOUT_KEY`, `LEXARI_FAUCET_KEY`, `FAUCET_DAILY_LAMPORTS`, `FAUCET_STEP_LAMPORTS`, `FAUCET_USER_CAP_LAMPORTS` |
 | EVM and Tempo | `BASE_SEPOLIA_RPC`, `SEPOLIA_RPC`, `TEMPO_RPC` |
-| Monad, Nansen, Kuru | `MONAD_RPC`, `NANSEN_API_KEY`, `NANSEN_API_URL`, `NEXT_PUBLIC_NANSEN_READY`, `KURU_API_URL`, `KURU_API_KEY`, `NEXT_PUBLIC_KURU_READY` |
+| Monad, Nansen, Kuru | `MONAD_RPC`, `NANSEN_API_KEY`, `NANSEN_API_URL`, `NEXT_PUBLIC_NANSEN_READY`, `KURU_API_URL`, `KURU_ROUTER_ADDRESS`, `KURU_TOKENS`, `NEXT_PUBLIC_KURU_READY` |
 | Privy | `NEXT_PUBLIC_PRIVY_APP_ID`, `PRIVY_VERIFICATION_KEY`, `PRIVY_APP_SECRET`, `NEXT_PUBLIC_SOCIAL_LINKS` |
 | Models | `LLM_PROVIDER`, `LLM_TIMEOUT_MS`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `XAI_API_KEY`, `XAI_BASE_URL`, `XAI_MODEL`, `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_DATA_COLLECTION`, `MODEL_KEYS_SECRET`, `BYO_ALLOW_PRIVATE` |
 | Grok CLI relay | `GROK_CLI_BIN`, `GROK_CLI_HOME`, `GROK_CLI_MODEL`, `GROK_CLI_CALL_MODEL`, `GROK_CLI_TIMEOUT_MS`, `GROK_CLI_CONCURRENCY`, `GROK_CLI_SOCKET` |
@@ -636,9 +637,9 @@ Lexari is being entered in the tracks below. The table states what each judge ca
 | Hackathon and track | Why Lexari fits | Built today | In progress or next |
 | --- | --- | --- | --- |
 | **Colosseum, Solana** | Home chain: sign-in, agent wallets, Orca swaps, x402 agent payments, Anchor program, Metaplex ID card | 🟢 devnet transfers, swaps, x402, specialist purchases, Hub | 🟡 program deploy and ID card mint |
-| **Colosseum, Tempo** | Payments-first chain for an agent that pays and gets paid | 🟢 Tempo testnet wallet, TIP-20 sends, faucet, top-up from the agent's wallet | ⚪ MPP machine payments |
+| **Colosseum, Tempo** | Payments-first chain for an agent that pays and gets paid | 🟢 Tempo testnet wallet, TIP-20 sends, faucet, top-up, Tempo agent card with limits and freeze | ⚪ MPP machine payments |
 | **Colosseum, Hyperliquid** | Trade-only API wallets match Lexari's scoped permission model | 🟢 | 🟢 testnet adapter for prices, positions and orders behind Confirm cards |
-| **Monad** (Trust, Identity and AI Infrastructure) | Agent identity plus policy-bound wallets | 🟡 | 🟢 Monad testnet chain entry, Qwen and Kimi models. 🟡 Kuru quotes and Nansen reads (wired, need keys). ⚪ MetaMask delegation |
+| **Monad** (Trust, Identity and AI Infrastructure) | Agent identity plus policy-bound wallets | 🟡 | 🟢 Monad testnet chain entry, Qwen and Kimi models. 🟢 MetaMask delegation with onchain caveats. 🟡 Kuru swaps and Nansen reads (wired, need keys) |
 | **Solana Mobile** | Native Android app with MWA and Seed Vault sign-in | 🟢 Expo app on devnet with MWA, Privy, app lock and full product parity | ⚪ dApp Store listing |
 
 <br/>
@@ -669,7 +670,7 @@ flowchart LR
 | **Self-management** | Finish and ship rename, face, tone and model changes by chat. Then `requestIntegration` (opens your consent sheet, never grants itself) and undo for the last change |
 | **Models** | Ship the Kimi, Qwen and 0G Compute house models. Fallback chains that respect tool support. Usage and cost per agent |
 | **Integrations** | Declared scopes, expiry and allowlists. Polymarket CLOB orders. Base and Ethereum writes. MPP on Tempo |
-| **New venues** | Ship Hyperliquid testnet orders, then TP and SL. Monad testnet with Kuru, AUSD and Nansen. MetaMask Delegation as a wallet mode |
+| **New venues** | Hyperliquid TP and SL are live; next is position management. Monad testnet with Kuru, AUSD and Nansen. MetaMask Delegation as a wallet mode |
 | **ORE Miner gift** | Gift reveal after your agent is created, practice mode label everywhere, quests tied to reported hashrate, never implied earnings |
 | **Mainnet** | Deploy the Lexari program and Hub PDAs. Onchain ID cards. Stripe Issuing or Lithic agent cards wired to the same limits. Mainnet ORE with clear risk disclosure |
 
