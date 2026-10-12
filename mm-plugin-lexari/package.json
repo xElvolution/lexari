@@ -1,0 +1,104 @@
+{
+  "name": "mm-plugin-lexari",
+  "version": "0.1.0",
+  "description": "Lexari for MetaMask Agent Wallet: fund your personalized AI agents, hold and send Agora AUSD on Monad, and trade across chains through Aurora Intents.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "oclif-plugin",
+    "metamask",
+    "agent-wallet",
+    "lexari",
+    "monad",
+    "ausd",
+    "aurora-intents"
+  ],
+  "files": [
+    "dist",
+    "oclif.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && oclif manifest",
+    "prepack": "tsc -p tsconfig.json && oclif manifest"
+  },
+  "oclif": {
+    "bin": "mm",
+    "commands": "./dist/commands",
+    "topicSeparator": " ",
+    "topics": {
+      "lexari": {
+        "description": "Lexari agents: balances, funding and cross-chain trades"
+      }
+    }
+  },
+  "mm": {
+    "schemaVersion": 1,
+    "minCliVersion": "^6.2.0",
+    "capabilities": [],
+    "commands": [
+      {
+        "id": "lexari:balance",
+        "capabilities": [
+          "wallet-read"
+        ],
+        "dataAccess": [
+          "accounts",
+          "balances"
+        ],
+        "targetChains": [
+          143,
+          10143
+        ]
+      },
+      {
+        "id": "lexari:fund",
+        "capabilities": [
+          "wallet-read",
+          "wallet-submit"
+        ],
+        "dataAccess": [
+          "accounts",
+          "balances",
+          "fees"
+        ],
+        "targetChains": [
+          143,
+          10143
+        ]
+      },
+      {
+        "id": "lexari:trade",
+        "capabilities": [
+          "wallet-read",
+          "wallet-submit"
+        ],
+        "dataAccess": [
+          "accounts",
+          "balances",
+          "fees",
+          "swap-quotes"
+        ],
+        "targetChains": [
+          1,
+          8453,
+          42161,
+          10,
+          137,
+          56,
+          43114,
+          143,
+          100,
+          80094
+        ]
+      }
+    ]
+  },
+  "peerDependencies": {
+    "@metamask/agent-wallet": "^6.2.0"
+  },
+  "devDependencies": {
+    "@metamask/agent-wallet": "^6.2.0",
+    "oclif": "^4",
+    "typescript": "^5"
+  }
+}

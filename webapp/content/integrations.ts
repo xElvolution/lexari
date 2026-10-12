@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora" | "alchemy";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -162,6 +162,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     about: "AUSD is Agora's fiat-backed dollar stablecoin. Your agent holds AUSD in its own Monad wallet, pays people in it, and sends it across borders with the recipient's local amount shown at today's rate. Every payment waits for your Confirm and stays inside your limits. Test AUSD from Agora's faucet.",
     can: [{ text: "AUSD balance", live: true }, { text: "Pay in AUSD, after you confirm", live: true }, { text: "Cross-border sends with the local amount shown", live: true }, { text: "Test AUSD from the Agora faucet", live: true }],
     tags: "agora ausd stablecoin dollar pay payment cross border remittance send monad",
+  },
+  {
+    id: "alchemy", name: "Alchemy", category: "data", status: process.env.NEXT_PUBLIC_ALCHEMY_READY === "1" ? "live" : "needskey", addable: true, moves: false, chains: ["Monad testnet"],
+    blurb: "Fast Monad RPC and the Token API for your agent's holdings.",
+    about: "Alchemy powers Lexari's Monad connection (RPC) and its Token API: your agent can list every token it or any address holds on Monad, with names and amounts. Read only; it never moves money.",
+    can: [{ text: "Monad RPC for every agent", live: true }, { text: "Token balances and metadata", live: true }],
+    tags: "alchemy rpc token api balances metadata monad node",
   },
   {
     id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],

@@ -3,7 +3,7 @@
  * webapp/components/wallets/WalletsSection.tsx for Settings on the phone.
  */
 import { useCallback, useEffect, useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Image, Linking, Pressable, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import Icon from "@/components/Icon";
@@ -12,12 +12,12 @@ import { useSession } from "@/state/session";
 import { AgentTile, GRAPE, Label, PopIn, Rise, T, WSheet, WToggle, short, useC } from "@/web/kit";
 import { useData } from "@/web/data";
 import {
-  AUDIT_LABEL, CHAIN_COLOR, CLIENT_COLOR, DEFAULT_EXPIRY_DAYS, EXPIRY_DAYS, INTEGRATION_META, LIMITS, SCOPE_INFO, WALLET_CHAINS,
+  AUDIT_LABEL, CHAIN_COLOR, CLIENT_COLOR, DEFAULT_EXPIRY_DAYS, EXPIRY_DAYS, INTEGRATION_META, INTEGRATION_DOMAIN, LIMITS, SCOPE_INFO, WALLET_CHAINS,
   clientName, defaultScopes, scopesOf, type AddedIntegration, type AuditRow, type LinkedWallet, type Scope, type WalletsReply,
 } from "@/content/access";
 
 type Team = { slug: string; kind: string; name: string }[];
-type IntReply = { added: AddedIntegration[]; agents: Team };
+type IntReply = { added: AddedIntegration[]; agents: Team; catalog?: { id: string; name: string; status: string; blurb: string; addable: boolean }[] };
 const DAY = 86_400_000;
 const SCOPE_ICON: Record<Scope, string> = { read: "eye", trade: "flip", bet: "spark", withdraw: "wallet", transfer: "send" };
 const pct = (bps: number) => `${(bps / 100).toFixed(bps % 100 ? 1 : 0)}%`;
@@ -29,6 +29,9 @@ const tap = () => { void Haptics.selectionAsync().catch(() => {}); };
 
 function Logo({ id, size = 46, off }: { id: string; size?: number; off?: boolean }) {
   const m = INTEGRATION_META[id];
+  const [bad, setBad] = useState(false);
+  const dom = INTEGRATION_DOMAIN[id];
+  if (dom && !bad) return <View style={{ width: size, height: size, borderRadius: size * 0.32, backgroundColor: "#fff", borderWidth: 1, borderColor: "rgba(0,0,0,0.08)", alignItems: "center", justifyContent: "center", opacity: off ? 0.45 : 1 }}><Image source={{ uri: `https://www.google.com/s2/favicons?domain=${dom}&sz=128` }} onError={() => setBad(true)} style={{ width: size * 0.62, height: size * 0.62, borderRadius: size * 0.14 }} /></View>;
   return <View style={{ width: size, height: size, borderRadius: size * 0.32, backgroundColor: m?.color ?? GRAPE, alignItems: "center", justifyContent: "center", opacity: off ? 0.45 : 1 }}><T f="display" s={size * 0.42} c={id === "orca" || id === "hyperliquid" ? "#0a0a0a" : "#fff"}>{(m?.name ?? id).slice(0, 1)}</T></View>;
 }
 function Chip({ label, color, bg }: { label: string; color: string; bg: string }) {
@@ -222,7 +225,9 @@ export function IntegrationsSec() {
   const added = d?.added ?? [];
   const live = added.filter((g) => g.enabled).length;
   const team = d?.agents ?? [];
-  const addable = Object.keys(INTEGRATION_META).filter((id) => !added.some((g) => g.connector === id));
+  const addable = Object.keys(INTEGRATION_META).filter((id) => INTEGRATION_META[id].addable !== false && !added.some((g) => g.connector === id));
+  const cat = new Map((d?.catalog ?? []).map((c) => [c.id, c]));
+  const more = Object.keys(INTEGRATION_META).filter((id) => !added.some((g) => g.connector === id) && (!d?.catalog || cat.has(id)));
   return (
     <>
       <Hero icon="plug" kicker="Your agents' tools" title={`${added.length} added`} sub="Agents only see what you add here, act through their own wallets and stay inside your limits.">
@@ -287,6 +292,26 @@ export function IntegrationsSec() {
               <Pressable onPress={() => setSheet({ kind: "audit", connector: g.connector })} style={{ borderTopWidth: 1, borderTopColor: k.line, paddingHorizontal: 16, height: 48, flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Icon name="list" size={15} color={GRAPE} /><T f="semi" s={13.5} c={GRAPE}>Audit log</T><View style={{ marginLeft: "auto" }}><Icon name="right" size={15} color={k.ink45} /></View>
               </Pressable>
+            </View>
+          </Rise>
+        );
+      })}
+      {more.length ? <Head>More for your agents</Head> : null}
+      {more.map((id, i) => {
+        const m = INTEGRATION_META[id], c = cat.get(id), setup = c?.status === "needskey", canAdd = (c?.addable ?? m.addable !== false) && !setup;
+        return (
+          <Rise key={`more-${id}`} delay={Math.min(i, 10) * 40} y={12}>
+            <View testID={`card-${id}`} style={{ marginTop: 12, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, padding: 16 }}>
+              <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+                <Logo id={id} />
+                <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={16}>{c?.name ?? m.name}</T><T s={11.5} c={k.ink45} style={{ marginTop: 3 }}>{m.chains}</T></View>
+                {canAdd ? <WToggle on={false} onChange={() => { tap(); setSheet({ kind: "consent", draft: { connector: id, agents: [], perTxUsd: LIMITS.perTx.def, dailyUsd: LIMITS.daily.def, maxSlippageBps: LIMITS.slippageBps.def } }); }} label={`Turn on ${m.name}`} /> : null}
+              </View>
+              {c?.blurb ? <T s={13.5} c={k.ink75} style={{ marginTop: 10, lineHeight: 19 }}>{c.blurb}</T> : null}
+              <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
+                {setup ? <Chip label="Setup needed" color="#9a6700" bg="rgba(245,165,36,0.16)" /> : <Chip label={m.moves ? "Asks before moving money" : "Read only"} color={k.ink60} bg={k.tint} />}
+                {id === "mera" ? <Chip label="In Settings, Security" color={k.ink60} bg={k.tint} /> : null}
+              </View>
             </View>
           </Rise>
         );
