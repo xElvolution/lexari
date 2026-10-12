@@ -21,6 +21,7 @@ import { DELEGATION_TOOLS } from "./delegation";
 import { INTENTS_TOOLS } from "./intents";
 import { AUSD_TOOLS } from "./ausd";
 import { ALCHEMY_TOOLS } from "./alchemy";
+import { cardMpp } from "./mpp";
 import { bridgeQuote } from "./bridge";
 import { SOL_RESERVE_LAMPORTS, balances, feePayer, fmtAmount, isDevnet, network, orcaQuote, orcaSwap, parseAddress, transfer, type Asset } from "./solana";
 
@@ -243,5 +244,5 @@ const pricesTool: ToolDef = {
   },
 };
 
-export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, ...DELEGATION_TOOLS, ...INTENTS_TOOLS, ...AUSD_TOOLS, ...ALCHEMY_TOOLS, ...SELF_TOOLS];
+export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, cardMpp, ...DELEGATION_TOOLS, ...INTENTS_TOOLS, ...AUSD_TOOLS, ...ALCHEMY_TOOLS, ...SELF_TOOLS];
 export const toolByName = (name: string) => TOOLS.find((t) => t.name === name.trim().toLowerCase());
