@@ -169,7 +169,7 @@ export function TokenPay({ usd, railKey, setBusy, after }: { usd: number; railKe
   return (
     <div data-token-pay={railKey}>
       <dl className="divide-y divide-[var(--line)] rounded-2xl bg-tint px-4 text-[13.5px]">
-        <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">You pay</dt><dd data-token-amount className="font-bold tabular-nums text-ink">{req ? `${fmt(amount, r)} ${c.symbol}` : phase === "loading" ? "Pricing…" : "—"}</dd></div>
+        <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">You pay</dt><dd data-token-amount className="font-bold tabular-nums text-ink">{req ? `${fmt(amount, r)} ${c.symbol}` : phase === "loading" ? "Pricing…" : "Unavailable"}</dd></div>
         <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Price</dt><dd className="text-right text-ink">{req ? `1 ${c.symbol} = $${req.price.toLocaleString("en-US", { maximumFractionDigits: req.price < 1 ? 6 : 2 })}` : "…"}<span className="block text-[11px] text-ink/45">Live, locked for 30 min</span></dd></div>
         <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Network</dt><dd className="font-semibold text-ink">Solana</dd></div>
         <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-ink/65">Your {c.symbol}</dt><dd className={`font-bold tabular-nums ${short ? "text-[#e5484d]" : "text-ink"}`}>{have === null ? "…" : fmt(have / 10 ** r.decimals, r)}</dd></div>
@@ -179,7 +179,7 @@ export function TokenPay({ usd, railKey, setBusy, after }: { usd: number; railKe
         <div className="mt-3 rounded-2xl bg-grape/10 p-3 ring-1 ring-grape/30">
           <p className="text-[13.5px] font-bold text-ink">Not enough {r.test ? "test " : ""}{c.symbol} in your wallet</p>
           {r.test ? <button data-drip onClick={drip} disabled={busy} className="btn btn-ghost btn-sm mt-2 w-full !h-10">{phase === "drip" ? <><Spinner className="mr-2" />Minting test {c.symbol}…</> : `Get test ${c.symbol}`}</button>
-            : <p className="mt-0.5 text-[12.5px] text-ink/65">{r.coin === "SOL" ? "Add SOL to this wallet, or pay from another wallet." : "Add some to your Lexari wallet, or pay from another wallet."}</p>}
+            : <p className="mt-0.5 text-[12.5px] text-ink/65">{r.coin === "SOL" ? "Add SOL to this wallet, or pay from another wallet." : "Add some to this wallet, or pay from another wallet."}</p>}
         </div>
       )}
       {!short && noSol && <p className="mt-3 rounded-2xl bg-grape/10 p-3 text-[12.5px] text-ink/70 ring-1 ring-grape/30">A little SOL (about 0.003) is needed for the network fee.</p>}

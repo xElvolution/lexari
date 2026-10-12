@@ -22,7 +22,7 @@ export default function MetaMaskPhone({ token }: { token: string | null }) {
     <View testID="metamask-phone" style={{ marginTop: 18, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, padding: 16 }}>
       <Label s={9.5} c={k.ink45}>MetaMask</Label>
       <T f="bold" s={16} style={{ marginTop: 4 }}>Delegate capped spending to an agent</T>
-      <T s={13} c={k.ink60} style={{ marginTop: 4, lineHeight: 18 }}>Opens Lexari in MetaMask Mobile. Set up your MetaMask smart account on Monad testnet, then sign a delegation with a MON cap and an expiry. Each send still waits for your Confirm. Revoke there to also disable it on chain.</T>
+      <T s={13} c={k.ink60} style={{ marginTop: 4, lineHeight: 18 }}>Opens Lexari in MetaMask Mobile. Set up your MetaMask smart account on Monad, then sign a delegation with a MON cap and an expiry. Each send still waits for your Confirm. Revoke there to also disable it on chain.</T>
       <Pressable onPress={() => void Linking.openURL(METAMASK_DAPP)} style={{ marginTop: 12, height: 46, borderRadius: 999, backgroundColor: "#f6851b", alignItems: "center", justifyContent: "center" }}><T f="bold" s={14.5} c="#fff">Set up in MetaMask</T></Pressable>
       {v?.delegations.map((d) => (
         <View key={d.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, borderTopWidth: 1, borderTopColor: k.line, marginTop: 10 }}>

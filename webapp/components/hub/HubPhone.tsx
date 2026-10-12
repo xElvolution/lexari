@@ -373,7 +373,7 @@ function InviteSheet({ s, onClose }: { s: State; onClose: () => void }) {
       <div className="mt-3 flex items-center gap-2 rounded-[16px] bg-tint p-2 pl-3.5">
         <button type="button" onClick={() => copy("code")} className="min-w-0 flex-1 text-left" aria-label={`Copy code ${code}`}>
           <span className="label block text-[8.5px] text-ink/50">Your code</span>
-          <span className="block font-mono text-[18px] font-extrabold tracking-wider text-brand-ink">{code || "—"}</span>
+          <span className="block font-mono text-[18px] font-extrabold tracking-wider text-brand-ink">{code || "…"}</span>
           <span className="block break-all font-mono text-[11px] leading-snug text-ink/50">{link.replace(/^https?:\/\//, "")}</span>
         </button>
         <button type="button" data-invite-copy onClick={() => copy("link")} aria-label="Copy invite link" className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${copied ? "bg-grape text-white" : "bg-card text-ink/75 ring-1 ring-line"}`}><Icon name={copied ? "check" : "copy"} size={16} /></button>

@@ -10,13 +10,13 @@ const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-br
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree" });
 const martian = Martian_Mono({ subsets: ["latin"], variable: "--font-martian" });
 
-const OG = { url: `${WEBAPP_URL}/og`, width: 1200, height: 630, alt: "Lexari. Meet your first personalized AI agent" };
+const OG = { url: `${WEBAPP_URL}/og`, width: 1200, height: 630, alt: "Lexari. Meet your personalized AI agent" };
 export const metadata: Metadata = {
   metadataBase: new URL(WEBAPP_URL),
   title: "Lexari",
-  description: "Meet your first personalized AI agent. An AI agent with its own computer and a memory that lasts.",
-  openGraph: { title: "Lexari · Meet your first personalized AI agent", description: "An AI agent with its own computer and a memory that lasts. Free to start.", siteName: "Lexari", type: "website", images: [OG] },
-  twitter: { card: "summary_large_image", title: "Lexari · Meet your first personalized AI agent", description: "An AI agent with its own computer and a memory that lasts. Free to start.", images: [OG] },
+  description: "Meet your personalized AI agent. An AI agent with its own computer and a memory that lasts.",
+  openGraph: { title: "Lexari · Meet your personalized AI agent", description: "An AI agent with its own computer and a memory that lasts. Free to start.", siteName: "Lexari", type: "website", images: [OG] },
+  twitter: { card: "summary_large_image", title: "Lexari · Meet your personalized AI agent", description: "An AI agent with its own computer and a memory that lasts. Free to start.", images: [OG] },
 };
 export const viewport: Viewport = {
   themeColor: [

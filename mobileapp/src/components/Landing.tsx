@@ -73,7 +73,7 @@ export function RosterCard({ i, width = 250, onPress }: { i: number; width?: num
 
 /* ---------- landing sections for onboarding (landing/content/copy.ts, exact wording) ---------- */
 export const COPY = {
-  hero: { title: ["Meet your first", "personalized AI agent."], subtitle: "And hire more.", body: "Lexari gives you a personalized AI agent with a name, its own computer and a memory that lasts. It shows up every day, remembers how you like things done, and brings in specialists when the job gets bigger than one desk." },
+  hero: { title: ["Meet your", "personalized AI agent."], subtitle: "And hire more.", body: "Lexari gives you a personalized AI agent with a name, its own computer and a memory that lasts. It shows up every day, remembers how you like things done, and brings in specialists when the job gets bigger than one desk." },
   desk: { label: "01 · Its own desk", title: "It clocks in to a real computer.", body: "Your agent is not a chat window that forgets you when the tab closes. It has a persistent computer with a terminal, a browser and a folder of files. It opens pages, runs tools and saves the results where you can find them.", shiftTitle: "First shift, as it happens",
     shift: [
       { time: "09:00", head: "Reads the brief", text: "You write one line: compare three budgeting tools and keep it to one page.", screen: "brief" },
@@ -241,7 +241,7 @@ export function RosterFan({ width }: { width: number }) {
   );
 }
 
-/** Hero title block: "Meet your first / personalized AI agent. / And hire more. ↗" */
+/** Hero title block: "Meet your / personalized AI agent. / And hire more. ↗" */
 export function HeroTitle({ s = 46 }: { s?: number }) {
   return (
     <View>

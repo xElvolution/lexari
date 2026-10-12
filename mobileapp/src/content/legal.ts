@@ -26,7 +26,7 @@ export const PRIVACY: Doc = {
     "Memories are encrypted in your browser. We store only the encrypted version and cannot read it.",
     "To write a reply, your message, recent chat, relevant memory notes and (for computer tasks) screenshots are sent to our AI model provider.",
     "Anything you do on a blockchain is public and permanent. Deleting your account cannot remove it.",
-    "Lexari runs on the Solana devnet test network today. Devnet tokens have no monetary value.",
+    "Some Lexari features run on public test networks today. Test tokens have no monetary value.",
     "You can export your data or delete your account at any time in Settings.",
   ],
   sections: [
@@ -93,7 +93,7 @@ export const PRIVACY: Doc = {
       id: "onchain",
       title: "Blockchain data is public",
       body: [
-        { p: "Lexari uses the Solana blockchain. Today it runs on Solana devnet, a public test network. Anything recorded on a blockchain is visible to anyone and cannot be changed or deleted, by you or by us. That includes:" },
+        { p: "Lexari uses public blockchains, and some features run on public test networks today. Anything recorded on a blockchain is visible to anyone and cannot be changed or deleted, by you or by us. That includes:" },
         { list: [
           "your wallet address, its balance and every transaction it signs, including transfers, payments, hires and Hub actions;",
           "your agent's ID card, a Metaplex Core NFT whose name, role and face image are uploaded to Irys, a permanent public storage network;",
@@ -195,7 +195,7 @@ export const TERMS: Doc = {
   intro: "These terms are the agreement between you and Lexari for using lexari.ai, app.lexari.ai and your Lexari agents. By using Lexari you accept them. If you do not agree, please do not use Lexari.",
   summary: [
     "You must be 18 or older and allowed to use services like this where you live.",
-    "Lexari runs on the Solana devnet test network today. Devnet tokens have no value.",
+    "Some Lexari features run on public test networks today. Test tokens have no value.",
     "Your wallet is yours. Every transaction needs your confirmation and cannot be reversed by us.",
     "AI agents can be wrong. Nothing they say is financial, legal or professional advice.",
     "Coins, XP, levels and store items have no cash value.",
@@ -213,7 +213,7 @@ export const TERMS: Doc = {
       id: "devnet",
       title: "Test network notice",
       body: [
-        { p: "Lexari currently runs on Solana devnet, a public test network. SOL and tokens on devnet have no monetary value and cannot be exchanged for real money. Payments for plans, hires and agent cards are made in devnet SOL. Agent cards are test cards with test numbers and cannot be used to buy anything. Features, balances and test data may change or be reset while Lexari is in this stage." },
+        { p: "Some Lexari features currently run on public test networks. Tokens on test networks have no monetary value and cannot be exchanged for real money. Plans, hires and agent cards are paid from your Lexari balance. Agent cards are test cards with test numbers and cannot be used to buy anything. Features, balances and test data may change or be reset while Lexari is in this stage." },
       ],
     },
     {
@@ -274,7 +274,7 @@ export const TERMS: Doc = {
       id: "payments",
       title: "Plans and payments",
       body: [
-        { p: "Today, plans, hires and agent cards are paid in devnet SOL and verified on the Solana test network. Free plans have the limits shown in the app; paid plans unlock more agent seats for the period shown at checkout." },
+        { p: "Today, plans, hires and agent cards are paid from your Lexari balance in US dollars. Free plans have the limits shown in the app; paid plans unlock more agent seats for the period shown at checkout." },
         { p: "Later, Lexari plans to offer paid plans with extra credits and a Lexari balance you can top up with a card through a third party payment processor or with crypto on supported chains. When that launches, prices, what a credit buys, renewal and refund terms will be shown before you pay and will form part of these terms. Card payments will be handled by the payment processor under its own terms; Lexari will not store full card numbers." },
       ],
     },

@@ -280,7 +280,8 @@ export function hydrate(): Promise<void> {
       void refreshHub();
     } catch (e) {
       if (state?.auth && !(e instanceof ApiError && e.status === 401)) { loadError = ""; } // a blip while signed in: keep what's on screen
-      else if (e instanceof ApiError && (e.status === 401 || e.status === 503)) { state = { ...EMPTY }; loadError = e.status === 503 ? e.message : ""; }
+      // Signed out, any server reply (401, a rate limit, a 5xx) shows the normal sign in prompt, not a raw error.
+      else if (e instanceof ApiError) { state = { ...EMPTY }; loadError = e.status === 503 ? e.message : ""; }
       else { state = state ?? { ...EMPTY }; loadError = (e as Error).message || "Could not load your account."; }
       emit();
     } finally {
