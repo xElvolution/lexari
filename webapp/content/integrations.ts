@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -113,6 +113,27 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     about: "Each agent gets its own Tempo address. Agents read their pathUSD and AlphaUSD balances, get test stablecoins from the Tempo faucet, send to an address you approve and top up your Lexari balance from their Tempo wallet. Fees are paid in the stablecoin itself. Every send waits for your Confirm.",
     can: [{ text: "Its Tempo address and stablecoin balances", live: true }, { text: "Test stablecoins from the faucet", live: true }, { text: "Send pathUSD or AlphaUSD, after you confirm", live: true }, { text: "Top up your Lexari balance from its Tempo wallet", live: true }, { text: "Mainnet", live: false }],
     tags: "stablecoin payments stripe pathusd alphausd tip20 moderato",
+  },
+  {
+    id: "monad", name: "Monad", category: "chains", status: "testnet", addable: true, moves: false, chains: ["Monad testnet"],
+    blurb: "Its Monad testnet address and MON balance.",
+    about: "Each agent uses its EVM address on Monad testnet (chain 10143). Agents read their MON balance. Read only for now.",
+    can: [{ text: "Its Monad testnet address and MON balance", live: true }, { text: "Sends and swaps on Monad", live: false }],
+    tags: "monad evm testnet mon",
+  },
+  {
+    id: "nansen", name: "Nansen", category: "data", status: process.env.NEXT_PUBLIC_NANSEN_READY === "1" ? "live" : "needskey", addable: true, moves: false, chains: ["Ethereum", "Solana", "Base", "Monad"],
+    blurb: "Wallet profiles and holdings from Nansen.",
+    about: "Your agents look up any wallet on Nansen and read its current holdings in USD before they answer. Read only. Needs a Nansen API key on the server.",
+    can: [{ text: "Current holdings of any wallet", live: true }, { text: "Smart money flows", live: false }],
+    tags: "nansen smart money wallet profiler data labels",
+  },
+  {
+    id: "kuru", name: "Kuru", category: "trading", status: process.env.NEXT_PUBLIC_KURU_READY === "1" ? "live" : "needskey", addable: true, moves: false, chains: ["Monad testnet"],
+    blurb: "Orderbook quotes on Monad testnet.",
+    about: "Your agents get Kuru orderbook quotes on Monad testnet. Quotes only for now: trading on Kuru is next and will wait for your Confirm like every other trade.",
+    can: [{ text: "Live quotes on Monad testnet", live: true }, { text: "Orders, after you confirm", live: false }],
+    tags: "kuru monad orderbook clob dex swap quote",
   },
   {
     id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],
