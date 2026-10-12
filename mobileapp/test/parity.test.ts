@@ -40,6 +40,6 @@ test("consent popup: the phone asks for the same scopes, in the same words, with
 test("wallets: the phone offers the same chains as the web", () => {
   const re = /\{ id: "([a-z]+)", name: "([^"]+)", family: "(solana|evm)", network: "([^"]+)" \}/g;
   const web = pairs(read("../../webapp/content/wallets.ts"), re);
-  assert.equal(web.length, 5);
+  assert.equal(web.length, 6);
   assert.deepEqual(pairs(read("../src/content/access.ts"), re), web);
 });
