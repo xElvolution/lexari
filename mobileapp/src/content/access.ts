@@ -35,18 +35,18 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   bridge: { name: "Cross-chain", color: "#5b2bff", moves: false, chains: "Many chains" },
   polymarket: { name: "Polymarket", color: "#2e5cff", moves: false, chains: "Polygon" },
   panta: { name: "Panta", color: "#0f9d76", moves: true, chains: "Solana" },
-  base: { name: "Base", color: "#0052ff", moves: false, chains: "Base Sepolia" },
-  ethereum: { name: "Ethereum", color: "#627eea", moves: false, chains: "Sepolia" },
+  base: { name: "Base", color: "#0052ff", moves: false, chains: "Base" },
+  ethereum: { name: "Ethereum", color: "#627eea", moves: false, chains: "Ethereum" },
   tempo: { name: "Tempo", color: "#0a0a0a", moves: true, chains: "Tempo" },
   prices: { name: "Market prices", color: "#f5a524", moves: false, chains: "Market data" },
   hyperliquid: { name: "Hyperliquid", color: "#50e3c2", moves: true, trading: true, chains: "Hyperliquid" },
-  monad: { name: "Monad", color: "#836ef9", moves: false, chains: "Monad testnet" },
+  monad: { name: "Monad", color: "#836ef9", moves: false, chains: "Monad" },
   nansen: { name: "Nansen", color: "#1a1a2e", moves: false, chains: "Many chains" },
-  kuru: { name: "Kuru", color: "#ff6b35", moves: true, trading: true, chains: "Monad testnet" },
-  metamask: { name: "MetaMask Delegation", color: "#f6851b", moves: true, chains: "Monad testnet" },
+  kuru: { name: "Kuru", color: "#ff6b35", moves: true, trading: true, chains: "Monad" },
+  metamask: { name: "MetaMask Delegation", color: "#f6851b", moves: true, chains: "Monad" },
   intents: { name: "Aurora Intents", color: "#70d44b", moves: true, trading: true, chains: "Any chain" },
-  agora: { name: "Agora AUSD", color: "#0b3d91", moves: true, chains: "Monad testnet" },
-  alchemy: { name: "Alchemy", color: "#363ff9", moves: false, chains: "Monad testnet" },
+  agora: { name: "Agora AUSD", color: "#0b3d91", moves: true, chains: "Monad" },
+  alchemy: { name: "Alchemy", color: "#363ff9", moves: false, chains: "Monad" },
   mera: { name: "Mera", color: "#111111", moves: false, chains: "Passkeys", addable: false },
   skr: { name: "SKR", color: "#14F1D9", moves: false, chains: "Solana", addable: false },
 };
@@ -68,12 +68,12 @@ export const AUDIT_LABEL: Record<string, [string, string, string]> = {
 
 export type WalletFamily = "solana" | "evm";
 export const WALLET_CHAINS: { id: string; name: string; family: WalletFamily; network: string }[] = [
-  { id: "solana", name: "Solana", family: "solana", network: "Devnet" },
-  { id: "base", name: "Base", family: "evm", network: "Base Sepolia" },
-  { id: "ethereum", name: "Ethereum", family: "evm", network: "Sepolia" },
-  { id: "tempo", name: "Tempo", family: "evm", network: "Testnet" },
-  { id: "hyperliquid", name: "Hyperliquid", family: "evm", network: "Testnet" },
-  { id: "monad", name: "Monad", family: "evm", network: "Testnet" },
+  { id: "solana", name: "Solana", family: "solana", network: "" },
+  { id: "base", name: "Base", family: "evm", network: "" },
+  { id: "ethereum", name: "Ethereum", family: "evm", network: "" },
+  { id: "tempo", name: "Tempo", family: "evm", network: "" },
+  { id: "hyperliquid", name: "Hyperliquid", family: "evm", network: "" },
+  { id: "monad", name: "Monad", family: "evm", network: "" },
 ];
 export const CHAIN_COLOR: Record<string, string> = { solana: "#9945ff", base: "#0052ff", ethereum: "#627eea", tempo: "#0a0a0a", hyperliquid: "#50e3c2", monad: "#836ef9" };
 export type LinkedWallet = { address: string; family: WalletFamily; client: string; login?: boolean; verifiedAt: number };

@@ -24,7 +24,7 @@ export type EmailCard = { id: string; subject?: string; fromLabel?: string; to: 
 export type CardFile = { id: string; name: string; size: number | string; mime?: string; kind?: string };
 
 const OK_BG = "#e7f8ee", OK_FG = "#137a3d", BAD = "#e5484d";
-const txUrl = (sig: string) => `https://explorer.solana.com/tx/${sig}?cluster=devnet`;
+const txUrl = (sig: string) => `https://explorer.solana.com/tx/${sig}${env.cluster === "mainnet-beta" ? "" : "?cluster=devnet"}`;
 const sol = (n: number) => `${+n.toFixed(6)} SOL`;
 export const fileUri = (id: string) => `${env.apiUrl}/api/files/${encodeURIComponent(id)}`;
 export const shotUri = (reply: string, n: number) => `${env.apiUrl}/api/computer/shot/${encodeURIComponent(reply)}/${n}`;

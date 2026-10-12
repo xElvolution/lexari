@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { TOPUP_MAX_USD } from "@/content/billing";
 import { api, friendly } from "@/lib/api";
 import { closeBillingSheet, payCrypto, startCard, startCrypto, usdcBalance, verifyPayment, useBilling, type CryptoRequest, type BuyIntent, type PayStep, type TopUpIntent } from "@/lib/billing";
-import { balanceOf, isEmbedded, payer } from "@/lib/pay";
+import { balanceOf, payer } from "@/lib/pay";
 import { toast } from "@/lib/store";
 import { celebrate } from "../Celebrate";
 import Icon from "../Icon";
@@ -205,7 +205,7 @@ function CryptoPay({ usd, intent, title, setBusy, after }: { usd: number; intent
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Amount</dt><dd className="font-bold text-ink">{usd} USDC</dd></div>
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">For</dt><dd className="truncate pl-3 font-semibold text-ink">{title}</dd></div>
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Network</dt><dd className="font-semibold text-ink">{"Solana"}</dd></div>
-        <div className="flex items-center justify-between gap-2 py-2.5"><dt className="text-ink/65">From</dt><dd className="flex items-center gap-1.5 font-mono text-[12.5px] text-ink">{addr ? <button onClick={() => copy(addr, "Address")} className="flex items-center gap-1 text-brand-ink">{isEmbedded() ? "Lexari wallet " : ""}{short(addr)}<Icon name="copy" size={12} /></button> : phase === "nowallet" ? "No wallet" : "…"}</dd></div>
+        <div className="flex items-center justify-between gap-2 py-2.5"><dt className="text-ink/65">From</dt><dd className="flex items-center gap-1.5 font-mono text-[12.5px] text-ink">{addr ? <button onClick={() => copy(addr, "Address")} className="flex items-center gap-1 text-brand-ink">{short(addr)}<Icon name="copy" size={12} /></button> : phase === "nowallet" ? "No wallet" : "…"}</dd></div>
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Your USDC</dt><dd data-usdc-balance className={`font-bold tabular-nums ${shortUsdc ? "text-[#e5484d]" : "text-ink"}`}>{usdc === null ? (phase === "loading" ? "Checking…" : "Unavailable") : (usdc / 1e6).toFixed(2)}</dd></div>
       </dl>
 
@@ -213,13 +213,13 @@ function CryptoPay({ usd, intent, title, setBusy, after }: { usd: number; intent
       {shortUsdc && phase !== "done" && (
         <div data-need-usdc className="mt-3 rounded-2xl bg-grape/10 p-3.5 ring-1 ring-grape/30">
           <p className="text-[14px] font-bold text-ink">You need {usd} USDC{usdc ? `, you have ${(usdc / 1e6).toFixed(2)}` : ""}</p>
-          <p className="mt-0.5 text-[12.5px] leading-snug text-ink/65">{devnet ? <>Add USDC on Solana to the address above, or pay from another wallet.</> : "Add USDC on Solana to the address above, or pay from another wallet."}</p>
+          <p className="mt-0.5 text-[12.5px] leading-snug text-ink/65">Add USDC on Solana to the address above, or pay from another wallet.</p>
         </div>
       )}
       {!shortUsdc && shortSol && phase !== "done" && (
         <div className="mt-3 rounded-2xl bg-grape/10 p-3.5 ring-1 ring-grape/30">
           <p className="text-[14px] font-bold text-ink">A little SOL is needed for the network fee</p>
-          {devnet && faucet?.on && faucet.left > 0 ? <button onClick={fund} disabled={busy} className="btn btn-ghost btn-sm mt-2.5 w-full !h-10">{phase === "funding" ? "Sending devnet SOL…" : "Get devnet SOL"}</button>
+          {devnet && faucet?.on && faucet.left > 0 ? <button onClick={fund} disabled={busy} className="btn btn-ghost btn-sm mt-2.5 w-full !h-10">{phase === "funding" ? "Sending SOL for the fee…" : "Get SOL for the fee"}</button>
             : <p className="mt-0.5 text-[12.5px] text-ink/65">Add about 0.003 SOL to the address above.</p>}
         </div>
       )}

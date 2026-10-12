@@ -2,6 +2,7 @@
 
 import type { TxReceipt as Tx } from "@/lib/store";
 import Icon from "../Icon";
+import { SOLANA_CLUSTER } from "@/lib/nft";
 
 const short = (a?: string) => (a ? `${a.slice(0, 4)}…${a.slice(-4)}` : "");
 const sol = (n: number) => `${+n.toFixed(6)} SOL`;
@@ -32,7 +33,7 @@ export default function TxReceipt({ tx }: { tx: Tx }) {
   const cls = `flex w-[min(340px,100%)] items-center gap-2.5 rounded-2xl px-3 py-2 ring-1 ring-black/5 ${tone}`;
   return (
     <div data-tx-receipt={tx.status} data-tx-kind={tx.kind} className="my-2 flex justify-center">
-      {tx.sig ? <a href={tx.url || `https://explorer.solana.com/tx/${tx.sig}?cluster=devnet`} target="_blank" rel="noreferrer" title="View on the explorer" className={`${cls} hover:brightness-[0.98]`}>{body}</a> : <div className={cls}>{body}</div>}
+      {tx.sig ? <a href={tx.url || `https://explorer.solana.com/tx/${tx.sig}${SOLANA_CLUSTER === "mainnet-beta" ? "" : "?cluster=devnet"}`} target="_blank" rel="noreferrer" title="View on the explorer" className={`${cls} hover:brightness-[0.98]`}>{body}</a> : <div className={cls}>{body}</div>}
     </div>
   );
 }

@@ -12,7 +12,7 @@ export const SIGNIN = `${WEBAPP_URL}/signin`;
 
 export const copy = {
   meta: {
-    title: "Lexari · Meet your first personalized AI agent",
+    title: "Lexari · Meet your personalized AI agent",
     description:
       "Lexari gives you a personalized AI agent with its own computer and a memory that lasts. Sign in with Google or a crypto wallet, meet your agent, and hire more as your work grows.",
   },
@@ -30,7 +30,7 @@ export const copy = {
   },
 
   hero: {
-    title: ["Meet your first", "personalized AI agent."],
+    title: ["Meet your", "personalized AI agent."],
     subtitle: "And hire more.",
     body:
       "Lexari gives you a personalized AI agent with a name, its own computer and a memory that lasts. It shows up every day, remembers how you like things done, and brings in specialists when the job gets bigger than one desk.",

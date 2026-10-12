@@ -9,6 +9,7 @@ import { ROSTER, specialist, type Specialist } from "@/content/roster";
 import { AgentTile, GRAPE, T, useC } from "@/web/kit";
 import { useData } from "@/web/data";
 import { UpgradeSheet } from "@/web/Plans";
+import PayWithSkr from "@/components/PayWithSkr";
 
 const HIRE_USD = 1;
 const usd = (micros: number) => `$${(Math.max(0, micros) / 1e6).toFixed(2)}`;
@@ -92,6 +93,7 @@ export function useHire() {
               <Pressable disabled={busy || balance === null} onPress={() => (short ? router.push({ pathname: "/(tabs)/wallets", params: { topup: "1" } }) : void confirm())} style={{ height: 48, borderRadius: 16, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center", opacity: busy || balance === null ? 0.6 : 1 }}>
                 <T f="bold" s={15} c="#fff">{busy ? "Paying…" : short ? "Top up and continue" : `Hire for $${HIRE_USD}`}</T>
               </Pressable>
+              <PayWithSkr usd={HIRE_USD} disabled={busy} />
             </View>
           ) : null}
         </View>

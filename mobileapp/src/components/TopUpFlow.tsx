@@ -23,18 +23,27 @@ type Entry = { symbol: string; name: string; logo: string | null; opts: Opt[] };
 type Dep = { address: string; tag?: number; price: number | null; status: string; incoming: number; credited: { usd: number } | null };
 type Aur = { address: string; memo: string | null; amount: number; chain: string; receive: string; watch: string };
 const MIN = 5;
+/** SKR perk, same as the web (content/topup.ts SKR_BONUS): top ups paid in SKR are credited with this bonus. */
+export const SKR_BONUS = 0.05;
 const abs = (u: string | null) => (!u ? null : u.startsWith("/") ? `${env.apiUrl}${u}` : u);
 
-export default function TopUpFlow({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function TopUpFlow({ open, onClose, coin: preset, usd: presetUsd }: { open: boolean; onClose: () => void; coin?: string; usd?: number }) {
   const k = useC();
   const { token } = useSession();
-  const [amt, setAmt] = useState("5");
+  const [amt, setAmt] = useState(String(presetUsd ?? 5));
   const [data, setData] = useState<{ rails: LRail[]; coins: ACoin[] } | null>(null);
   const [picking, setPicking] = useState(false);
   const [q, setQ] = useState("");
   const [coin, setCoin] = useState<Entry | null>(null);
   const [opt, setOpt] = useState<{ o: Opt; symbol: string } | null>(null);
   useEffect(() => { if (open && token && !data) api<{ rails: LRail[]; coins: ACoin[] }>("/api/topup/aurora", {}, token).then(setData).catch(() => setData({ rails: [], coins: [] })); }, [open, token]);
+  // Opened for a coin (Pay with SKR): start on that coin's own deposit network with the amount that covers the price.
+  useEffect(() => { if (open && presetUsd !== undefined) setAmt(String(presetUsd)); }, [open, presetUsd]);
+  useEffect(() => {
+    if (!open || !preset || !data) return;
+    const r = data.rails.find((x) => x.coin.toUpperCase() === preset.toUpperCase());
+    if (r) setOpt({ o: { kind: "rail", rail: r, chainName: r.chainName }, symbol: r.symbol });
+  }, [open, preset, data]);
   const usd = Math.round(Number(amt) * 100) / 100;
   const ok = usd >= MIN && usd <= 1000;
   const list = useMemo(() => {
@@ -180,6 +189,7 @@ function RailPay({ r, usd }: { r: LRail; usd: number }) {
     <View>
       <Warn symbol={r.symbol} network={r.network} />
       <View style={{ marginTop: 12 }}>{v ? <Box address={v.address} memo={v.tag !== undefined ? String(v.tag) : null} label={r.tag ? "Lexari XRP address" : `Your ${r.chainName} deposit address`} amount={amount} symbol={r.symbol} usd={usd} /> : <T s={13} c={k.ink60}>Making your address…</T>}</View>
+      {r.coin.toUpperCase() === "SKR" ? <View style={{ marginTop: 10, borderRadius: 16, backgroundColor: "rgba(20,241,217,0.12)", paddingHorizontal: 12, paddingVertical: 8 }}><T f="semi" s={12.5} c={k.ink}>{`SKR perk: you get ${Math.round(SKR_BONUS * 100)}% extra credit, $${(usd * (1 + SKR_BONUS)).toFixed(2)} for this deposit.`}</T></View> : null}
       <Status v={v} />
       {v && amount && !v.credited && (r.family === "solana" || r.family === "evm") ? (
         <View style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: k.line, paddingTop: 14 }}>

@@ -7,6 +7,7 @@ import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/state/session";
 import { useData } from "@/web/data";
 import { GRAPE, Label, Pill, T, WSheet, useC } from "@/web/kit";
+import PayWithSkr from "@/components/PayWithSkr";
 
 type Period = "monthly" | "yearly";
 export const PLANS = [
@@ -38,19 +39,19 @@ export function PlansGrid({ onPick, onTopUp }: { onPick?: () => void; onTopUp?: 
   const cur = me?.plan.id || "free";
   const [period, setPeriod] = useState<Period>("monthly");
   const [busy, setBusy] = useState<string | null>(null);
-  const [msg, setMsg] = useState<{ text: string; short?: boolean } | null>(null);
+  const [msg, setMsg] = useState<{ text: string; short?: boolean; usd?: number } | null>(null);
   const rank = (id: string) => PLANS.findIndex((p) => p.id === id);
   const pick = async (id: string) => {
     setBusy(id); setMsg(null);
     try { await api("/api/billing/plan", { method: "POST", body: JSON.stringify({ plan: id, period, key: `${Date.now()}-${Math.random().toString(36).slice(2)}` }) }, token); await reload(); onPick?.(); }
-    catch (e) { const short = e instanceof ApiError && (e.status === 402 || e.status === 409); setMsg({ text: short ? "Your balance is short for this plan. Top up, then try again." : "That didn't go through. Try again.", short }); }
+    catch (e) { const short = e instanceof ApiError && (e.status === 402 || e.status === 409); setMsg({ text: short ? "Your balance is short for this plan. Top up, then try again." : "That didn't go through. Try again.", short, usd: price(PLANS.find((x) => x.id === id)?.usd ?? 0, period) }); }
     finally { setBusy(null); }
   };
   return (
     <View style={{ gap: 12 }}>
       <PeriodToggle period={period} onChange={setPeriod} />
       <T f="semi" s={12.5} c={k.ink45} style={{ textAlign: "center" }}>{period === "yearly" ? "Pay for 10 months, get 12. Usage refills every month." : "30 days at a time. Renew whenever you like."}</T>
-      {msg ? <View style={{ borderRadius: 16, backgroundColor: "rgba(229,72,77,0.12)", padding: 12 }}><T s={13} c="#ff9a9d">{msg.text}</T>{msg.short && onTopUp ? <Pill label="Top up" icon="plus" h={36} fs={13} style={{ marginTop: 8, alignSelf: "flex-start" }} onPress={onTopUp} /> : null}</View> : null}
+      {msg ? <View style={{ borderRadius: 16, backgroundColor: "rgba(229,72,77,0.12)", padding: 12 }}><T s={13} c="#ff9a9d">{msg.text}</T>{msg.short && onTopUp ? <Pill label="Top up" icon="plus" h={36} fs={13} style={{ marginTop: 8, alignSelf: "flex-start" }} onPress={onTopUp} /> : null}{msg.short && msg.usd ? <View style={{ marginTop: 8 }}><PayWithSkr usd={msg.usd} /></View> : null}</View> : null}
       {PLANS.filter((p) => !p.later).map((p) => {
         const on = p.id === cur, pop = p.id === "pro", lower = rank(p.id) < rank(cur), $ = price(p.usd, period);
         const ink = on ? "#fff" : k.ink, sub = on ? "rgba(255,255,255,0.8)" : k.ink75;

@@ -374,7 +374,7 @@ export function WalletsSec() {
   const tile = (x: LinkedWallet, size = 40) => <View style={{ width: size, height: size, borderRadius: 13, backgroundColor: CLIENT_COLOR[x.client] ?? k.tint, alignItems: "center", justifyContent: "center" }}>{x.client === "lexari" ? <Icon name="wallet" size={size * 0.48} /> : <T f="bold" s={size * 0.4} c="#fff">{clientName(x.client).slice(0, 1)}</T>}</View>;
   return (
     <>
-      <Hero icon="wallet" kicker="Withdrawals go to" title={active ? (active.login ? "Sign-in wallet" : clientName(active.client)) : w ? "None yet" : "…"} sub={active ? `${short(active.address, 5)}${chain ? ` · ${chain.name} ${chain.network}` : ""}` : undefined}>
+      <Hero icon="wallet" kicker="Withdrawals go to" title={active ? (active.login ? "Sign-in wallet" : clientName(active.client)) : w ? "None yet" : "…"} sub={active ? `${short(active.address, 5)}${chain ? ` · ${chain.name}${chain.network ? ` ${chain.network}` : ""}` : ""}` : undefined}>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
           {WALLET_CHAINS.map((c) => {
             const on = w?.active?.chain === c.id;

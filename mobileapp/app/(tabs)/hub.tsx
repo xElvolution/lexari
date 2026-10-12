@@ -314,7 +314,7 @@ function InviteSheet({ open, onClose, hub, code, busy, onClaim }: { open: boolea
       <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 16, backgroundColor: k.tint, padding: 8, paddingLeft: 14 }}>
         <View style={{ flex: 1 }}>
           <Label s={8.5} c={k.ink45}>Your code</Label>
-          <Text style={{ fontFamily: F.monoB, fontSize: 18, color: k.brandInk, letterSpacing: 1.5 }}>{code || "—"}</Text>
+          <Text style={{ fontFamily: F.monoB, fontSize: 18, color: k.brandInk, letterSpacing: 1.5 }}>{code || "…"}</Text>
           <T s={11} c={k.ink45} style={{ fontFamily: F.mono }}>{link.replace(/^https?:\/\//, "")}</T>
         </View>
         <Pressable accessibilityLabel="Copy invite link" onPress={async () => { await Clipboard.setStringAsync(link); setCopied(true); setTimeout(() => setCopied(false), 1500); }} style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: copied ? GRAPE : k.card, borderWidth: 1, borderColor: k.line }}><Icon name={copied ? "check" : "copy"} size={16} color={copied ? "#fff" : k.ink75} /></Pressable>
