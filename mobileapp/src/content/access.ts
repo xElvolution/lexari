@@ -18,6 +18,8 @@ const SCOPES: Record<string, Scope[]> = {
   kuru: ["read", "trade"],
   metamask: ["read", "withdraw"],
   panta: ["read", "bet"],
+  intents: ["read", "trade"],
+  agora: ["read", "transfer"],
 };
 export const scopesOf = (id: string): Scope[] => SCOPES[id] ?? ["read"];
 export const defaultScopes = (id: string): Scope[] => scopesOf(id).filter((s) => s !== "transfer");
@@ -26,7 +28,7 @@ export const DEFAULT_EXPIRY_DAYS = 30;
 export const LIMITS = { perTx: { min: 1, max: 25, def: 5 }, daily: { min: 1, max: 100, def: 20 }, slippageBps: { min: 10, max: 500, def: 100 } } as const;
 
 /** The catalog as the phone needs it: name, tile colour and whether it moves money. */
-export const INTEGRATION_META: Record<string, { name: string; color: string; moves: boolean; trading?: boolean; chains: string }> = {
+export const INTEGRATION_META: Record<string, { name: string; color: string; moves: boolean; trading?: boolean; chains: string; domain?: string; addable?: boolean }> = {
   solana: { name: "Solana", color: "#9945ff", moves: true, chains: "Solana" },
   orca: { name: "Orca", color: "#ffd15c", moves: true, trading: true, chains: "Solana" },
   jupiter: { name: "Jupiter", color: "#1e2b38", moves: false, chains: "Solana" },
@@ -42,7 +44,13 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   nansen: { name: "Nansen", color: "#1a1a2e", moves: false, chains: "Many chains" },
   kuru: { name: "Kuru", color: "#ff6b35", moves: true, trading: true, chains: "Monad testnet" },
   metamask: { name: "MetaMask Delegation", color: "#f6851b", moves: true, chains: "Monad testnet" },
+  intents: { name: "Aurora Intents", color: "#70d44b", moves: true, trading: true, chains: "Any chain" },
+  agora: { name: "Agora AUSD", color: "#0b3d91", moves: true, chains: "Monad testnet" },
+  alchemy: { name: "Alchemy", color: "#363ff9", moves: false, chains: "Monad testnet" },
+  mera: { name: "Mera", color: "#111111", moves: false, chains: "Passkeys", addable: false },
 };
+/** Each partner's site, for its logo. */
+export const INTEGRATION_DOMAIN: Record<string, string> = { solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", metamask: "metamask.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com" };
 
 export type AddedIntegration = {
   id: string; connector: string; enabled: boolean; agents: string[]; perTxUsd: number; dailyUsd: number; maxSlippageBps: number;

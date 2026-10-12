@@ -2,13 +2,14 @@ import { z } from "zod";
 import { readJson } from "@/server/http";
 import { withUser } from "@/server/route";
 import { addIntegration, listIntegrations } from "@/server/integrations/grants";
-import { integrationById } from "@/content/integrations";
+import { INTEGRATIONS, integrationById } from "@/content/integrations";
+const catalog = () => INTEGRATIONS.filter((i) => i.status !== "soon").map((i) => ({ id: i.id, name: i.name, status: i.status, blurb: i.blurb, addable: i.addable }));
 import { logEvent } from "@/server/security";
 
 export const runtime = "nodejs";
 
 /** Settings > Integrations: what you added, and your agents. */
-export const GET = withUser(async (user) => Response.json(await listIntegrations(user.userId), { headers: { "cache-control": "no-store" } }));
+export const GET = withUser(async (user) => Response.json({ ...(await listIntegrations(user.userId)), catalog: catalog() }, { headers: { "cache-control": "no-store" } }));
 
 const addBody = z.object({
   connector: z.string().min(2).max(30),
