@@ -4,6 +4,8 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Image, Linking, Pressable, View } from "react-native";
+import { useWalletLink } from "@/lib/walletLink";
+import MetaMaskPhone from "@/components/MetaMaskPhone";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import Icon from "@/components/Icon";
@@ -354,6 +356,11 @@ export function WalletsSec() {
   const active = w?.active ? w.wallets.find((x) => x.address === w.active!.address) : undefined;
   const chain = WALLET_CHAINS.find((c) => c.id === w?.active?.chain);
   const linkOnWeb = () => Linking.openURL("https://app.lexari.ai/settings#wallets");
+  const wl = useWalletLink(token);
+  const linkHere = async (f: "solana" | "evm") => {
+    tap(); setBusy(`link-${f}`); setErr("");
+    try { const m = await wl.link(f); setErr(m === "Wallet linked" ? "" : m); load(); } catch (e) { setErr((e as Error).message || "Linking did not finish."); } finally { setBusy(null); }
+  };
   const tile = (x: LinkedWallet, size = 40) => <View style={{ width: size, height: size, borderRadius: 13, backgroundColor: CLIENT_COLOR[x.client] ?? k.tint, alignItems: "center", justifyContent: "center" }}>{x.client === "lexari" ? <Icon name="wallet" size={size * 0.48} /> : <T f="bold" s={size * 0.4} c="#fff">{clientName(x.client).slice(0, 1)}</T>}</View>;
   return (
     <>
@@ -401,13 +408,14 @@ export function WalletsSec() {
       </View>
       <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
         {(["solana", "evm"] as const).map((f) => (
-          <Pressable key={f} onPress={linkOnWeb} style={{ flex: 1, height: 48, borderRadius: 999, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <Pressable key={f} disabled={!!busy} onPress={() => void linkHere(f)} style={{ flex: 1, height: 48, borderRadius: 999, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: f === "solana" ? CHAIN_COLOR.solana : CHAIN_COLOR.ethereum, alignItems: "center", justifyContent: "center" }}><Icon name="plus" size={13} stroke={2.6} /></View>
             <T f="bold" s={14}>{f === "solana" ? "Link Solana wallet" : "Link EVM wallet"}</T>
           </Pressable>
         ))}
       </View>
-      <T s={12.5} c={k.ink60} style={{ marginTop: 8, lineHeight: 17 }}>Linking and unlinking open lexari.ai, where Privy checks the wallet is yours. They show here right after.</T>
+      <T s={12.5} c={k.ink60} style={{ marginTop: 8, lineHeight: 17 }}>{wl.inApp.solana ? "Privy checks the wallet is yours right here: your Solana wallet app signs a message (no fee). EVM wallets link inside MetaMask." : "Linking opens lexari.ai, where Privy checks the wallet is yours. It shows here right after."}</T>
+      <MetaMaskPhone token={token} />
       <View style={{ marginTop: 18, flexDirection: "row", gap: 12, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, padding: 16 }}>
         <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: "rgba(91,43,255,0.12)", alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={19} color={GRAPE} /></View>
         <View style={{ flex: 1 }}>

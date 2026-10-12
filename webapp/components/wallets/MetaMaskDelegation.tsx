@@ -6,7 +6,7 @@ import Icon from "@/components/Icon";
 import { api, friendly } from "@/lib/api";
 import { toast } from "@/lib/store";
 
-type View = { chainId: number; rpc: string; agents: { slug: string; name: string; address: string }[]; delegations: { id: string; agent: string; delegator: string; owner: string; maxWei: string; spentWei: string; expiresAt: number }[] };
+type View = { chainId: number; rpc: string; agents: { slug: string; name: string; address: string }[]; delegations: { id: string; agent: string; delegator: string; owner: string; maxWei: string; spentWei: string; expiresAt: number; delegation?: Record<string, unknown> }[] };
 type Announce = CustomEvent<{ info: { rdns: string; name: string }; provider: EIP1193Provider }>;
 
 /** EIP-6963: find MetaMask among the injected wallets (falls back to window.ethereum when it says it is MetaMask). */
@@ -87,7 +87,30 @@ export default function MetaMaskDelegation() {
     const r = await api<View>("/api/delegations", { body: { agent, owner: c.acct, delegation: plain, maxMon, expiresAt } });
     setV(r); toast({ text: `${target.name} can now spend up to ${maxMon} MON from your smart account, after you confirm each send` });
   });
-  const revoke = (id: string) => run(id, async () => { setV(await api<View>(`/api/delegations?id=${id}`, { method: "DELETE" })); toast({ text: "Delegation revoked" }); });
+  /** Revoke on chain: DelegationManager.disableDelegation must come from your smart account, so MetaMask signs a
+   *  one-off delegation from the smart account to you that can only call disableDelegation on the DelegationManager,
+   *  and you redeem it in one transaction. Then Lexari marks it revoked too. */
+  const revoke = (id: string) => run(id, async () => {
+    const d = v?.delegations.find((x) => x.id === id);
+    let tx = "";
+    if (d?.delegation) {
+      const c = await clients();
+      const { contracts, createDelegation, createExecution, ExecutionMode } = await import("@metamask/smart-accounts-kit");
+      const dm = c.smart.environment.DelegationManager as Hex;
+      const raw = d.delegation as { delegate: Hex; delegator: Hex; authority: Hex; caveats: { enforcer: Hex; terms: Hex; args: Hex }[]; salt: string | number; signature: Hex };
+      const stored = { ...raw, salt: BigInt(raw.salt) };
+      const callData = contracts.DelegationManager.encode.disableDelegation({ delegation: stored as never });
+      const revoker = createDelegation({ to: c.acct, from: c.smart.address, environment: c.smart.environment, scope: { type: "functionCall", targets: [dm], selectors: ["disableDelegation((address,address,bytes32,(address,bytes,bytes)[],uint256,bytes))"] } });
+      const signed = { ...revoker, signature: await c.smart.signDelegation({ delegation: revoker }) };
+      const data = contracts.DelegationManager.encode.redeemDelegations({ delegations: [[signed]], modes: [ExecutionMode.SingleDefault], executions: [[createExecution({ target: dm, callData })]] });
+      const hash = await c.walletClient.sendTransaction({ account: c.acct, chain: c.walletClient.chain, to: dm, data });
+      const rc = await c.publicClient.waitForTransactionReceipt({ hash });
+      if (rc.status !== "success") throw new Error("The on-chain revoke didn't go through. Nothing changed.");
+      tx = hash;
+    }
+    setV(await api<View>(`/api/delegations?id=${id}${tx ? `&tx=${tx}` : ""}`, { method: "DELETE" }));
+    toast({ text: tx ? "Delegation disabled on chain and revoked" : "Delegation revoked" });
+  });
 
   if (!v) return null;
   return (
