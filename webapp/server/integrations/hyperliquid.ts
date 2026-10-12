@@ -14,7 +14,7 @@ import { createHmac } from "node:crypto";
 import { z } from "zod";
 import { encode } from "@msgpack/msgpack";
 import { keccak256, toHex, type Hex } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { HttpError } from "../http";
 import { addressOfKey, evmAddress, evmKey } from "./evm";
 import { Reject } from "./reject";
@@ -138,6 +138,21 @@ export async function ensureApiWallet(userId: string, slug: string) {
   const r = await post<ExchangeReply>("exchange", { action, nonce, signature: await signApproveAgent(evmKey(userId, slug), apiAddr, nonce) });
   if (r.status !== "ok") throw new Reject(friendlyHl(typeof r.response === "string" ? r.response : "the API wallet couldn't be approved", account));
   return { approved: true, apiAddr };
+}
+
+/**
+ * Revoke (integration switched off, removed or expired): approve a throwaway address under the same agent name, which
+ * replaces Lexari's API wallet on Hyperliquid, so its key can no longer trade. The next allowed order approves it again.
+ */
+export async function revokeApiWallet(userId: string, slug: string) {
+  const account = hlAccount(userId, slug), apiAddr = hlApiAddress(userId, slug);
+  const agents = await info<ExtraAgent[]>({ type: "extraAgents", user: account }).catch(() => [] as ExtraAgent[]);
+  if (!agents.some((a) => a.address.toLowerCase() === apiAddr.toLowerCase())) return false;
+  const burn = privateKeyToAccount(generatePrivateKey()).address;
+  const nonce = Date.now();
+  const action = { type: "approveAgent", signatureChainId: "0x66eee", hyperliquidChain: "Testnet", agentAddress: burn, agentName: AGENT_NAME, nonce };
+  const r = await post<ExchangeReply>("exchange", { action, nonce, signature: await signApproveAgent(evmKey(userId, slug), burn, nonce) });
+  return r.status === "ok";
 }
 
 /* ---------- tools ---------- */

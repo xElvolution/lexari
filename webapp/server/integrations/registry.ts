@@ -78,7 +78,7 @@ const solanaWallet: ToolDef = {
 const transferInput = z.object({ to: z.string().min(32).max(44), asset: asset.default("USDC"), amount: num }).passthrough();
 const solanaTransfer: ToolDef = {
   name: "solana.transfer", connector: "solana", risk: "sign", input: transferInput,
-  hint: `solana.transfer {"to":"ADDRESS","asset":"USDC" or "SOL","amount":1.5} : prepare a transfer from YOUR wallet; the person confirms it.`,
+  hint: `solana.transfer {"to":"ADDRESS","asset":"USDC" or "SOL","amount":1.5} : prepare a transfer from YOUR wallet; the person confirms it. "to":"me" sends to the person's own linked wallet.`,
   prepare: async (i: z.output<typeof transferInput>, agent, limits) => {
     if (!isDevnet()) throw new Reject("Transfers run on devnet only right now.");
     const to = parseAddress(i.to);

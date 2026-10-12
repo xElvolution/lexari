@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { INTEGRATIONS, integrationById, type ActivityRow, type AddedIntegration, type IntegrationInfo } from "@/content/integrations";
-import { loadIntegrations, removeIntegration, updateIntegration, useIntegrations, type IntegrationsState } from "@/lib/integrations";
+import { INTEGRATIONS, SCOPE_INFO, integrationById, type ActivityRow, type AddedIntegration, type IntegrationInfo } from "@/content/integrations";
+import { loadIntegrations, removeIntegration, revokeAllIntegrations, updateIntegration, useIntegrations, type IntegrationsState } from "@/lib/integrations";
 import { friendly } from "@/lib/api";
 import { toast, type State } from "@/lib/store";
 import { AgentTile } from "../faces";
@@ -10,8 +10,18 @@ import Icon from "../Icon";
 import { IntegrationLogo, StatusPill } from "./Logos";
 import { CatalogSheet, GrantSheet, IntToggle } from "./Sheets";
 import { STATUS_CHIP } from "./ChatCards";
+import { AuditSheet, ConsentSheet } from "./Consent";
 
-type Sheet = null | { kind: "catalog" } | { kind: "grant"; info: IntegrationInfo; grant?: AddedIntegration; fromCatalog: boolean };
+type Sheet = null | { kind: "catalog" } | { kind: "grant"; info: IntegrationInfo; grant?: AddedIntegration; fromCatalog: boolean } | { kind: "consent"; info: IntegrationInfo; grant: AddedIntegration } | { kind: "audit"; connector?: string };
+const DAY = 86_400_000;
+/** "Ends in 3 days" / "Ends today" / "Expired" for a grant's expiry. */
+export function endsIn(at: number | null, now = Date.now()) {
+  if (at === null) return null;
+  const d = Math.ceil((at - now) / DAY);
+  if (at <= now) return "Expired";
+  if (d <= 1) return "Ends today";
+  return `Ends in ${d} days`;
+}
 
 const ago = (t: number) => {
   const s = Math.max(1, Math.round((Date.now() - t) / 1000));
@@ -37,6 +47,8 @@ export default function IntegrationsSection({ s }: { s: State }) {
   const st = useIntegrations();
   const [sheet, setSheet] = useState<Sheet>(null);
   const [fresh, setFresh] = useState<string | null>(null);
+  const [killAsk, setKillAsk] = useState(false);
+  const [killBusy, setKillBusy] = useState(false);
   useEffect(() => { void loadIntegrations(true); }, []);
   useEffect(() => { if (!fresh) return; const t = setTimeout(() => setFresh(null), 2200); return () => clearTimeout(t); }, [fresh]);
 
@@ -53,6 +65,12 @@ export default function IntegrationsSection({ s }: { s: State }) {
     </div>
   );
 
+  const live = st.added.filter((g) => g.enabled).length;
+  const killAll = async () => {
+    setKillBusy(true);
+    try { const n = await revokeAllIntegrations(); toast({ text: n ? `Switched off ${n} integration${n === 1 ? "" : "s"}` : "Everything was already off" }); setKillAsk(false); }
+    catch (e) { toast({ text: friendly(e) }); } finally { setKillBusy(false); }
+  };
   const pick = (info: IntegrationInfo) => {
     const g = st.added.find((a) => a.connector === info.id);
     setSheet({ kind: "grant", info, grant: g, fromCatalog: true });
@@ -74,6 +92,20 @@ export default function IntegrationsSection({ s }: { s: State }) {
         <button data-int-add onClick={() => setSheet({ kind: "catalog" })} className="relative mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white text-[15.5px] font-bold text-[#3a17c9] shadow-[0_5px_0_rgba(20,6,80,.35)] transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_2px_0_rgba(20,6,80,.35)]">
           <span className="grid h-6 w-6 place-items-center rounded-full bg-grape text-white"><Icon name="plus" size={14} stroke={2.6} /></span>Add integration
         </button>
+        {st.added.length > 0 && (killAsk ? (
+          <div data-int-kill-ask className="row-in relative mt-3 rounded-2xl bg-black/20 p-3">
+            <p className="text-[13px] leading-snug text-white/90">Switch off all {live} integration{live === 1 ? "" : "s"}? Agents lose access right away and anything waiting for your Confirm is cancelled.</p>
+            <div className="mt-2.5 flex gap-2">
+              <button onClick={() => setKillAsk(false)} disabled={killBusy} className="h-10 flex-1 rounded-full bg-white/15 text-[14px] font-semibold text-white hover:bg-white/25">Keep</button>
+              <button data-int-kill-yes onClick={() => void killAll()} disabled={killBusy} className="h-10 flex-1 rounded-full bg-[#e5484d] text-[14px] font-bold text-white disabled:opacity-60">{killBusy ? "Switching off…" : "Switch off all"}</button>
+            </div>
+          </div>
+        ) : (
+          <div className="relative mt-3 grid grid-cols-2 gap-2">
+            <button data-int-audit onClick={() => setSheet({ kind: "audit" })} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 text-[13.5px] font-semibold text-white transition hover:bg-white/25"><Icon name="list" size={15} />Audit log</button>
+            <button data-int-kill onClick={() => setKillAsk(true)} disabled={!live} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 text-[13.5px] font-semibold text-white transition hover:bg-white/25 disabled:opacity-50"><Icon name="stop" size={15} />Switch off all</button>
+          </div>
+        ))}
       </section>
 
       {st.added.length === 0 ? (
@@ -85,7 +117,10 @@ export default function IntegrationsSection({ s }: { s: State }) {
         </section>
       ) : (
         <div className="mt-5 space-y-4">
-          {st.added.map((g) => <AddedCard key={g.id} g={g} st={st} s={s} fresh={fresh === g.connector} onEdit={() => { const info = integrationById(g.connector); if (info) setSheet({ kind: "grant", info, grant: g, fromCatalog: false }); }} />)}
+          {st.added.map((g) => <AddedCard key={g.id} g={g} st={st} s={s} fresh={fresh === g.connector}
+            onEdit={() => { const info = integrationById(g.connector); if (info) setSheet({ kind: "grant", info, grant: g, fromCatalog: false }); }}
+            onConsent={() => { const info = integrationById(g.connector); if (info) setSheet({ kind: "consent", info, grant: g }); }}
+            onAudit={() => setSheet({ kind: "audit", connector: g.connector })} />)}
         </div>
       )}
       <p className="mt-5 text-[12.5px] leading-snug text-ink/50">Trades and transfers run on Solana devnet with test funds only, and each one waits for your Confirm in chat. Market data is read only.</p>
@@ -97,19 +132,28 @@ export default function IntegrationsSection({ s }: { s: State }) {
           onClose={() => setSheet(null)}
           onSaved={(id) => { setSheet(null); setFresh(id); }} />
       )}
+      {sheet?.kind === "consent" && (
+        <ConsentSheet key={sheet.grant.id} info={sheet.info} grantId={sheet.grant.id} st={st}
+          draft={{ agents: sheet.grant.agents, perTxUsd: sheet.grant.perTxUsd, dailyUsd: sheet.grant.dailyUsd, maxSlippageBps: sheet.grant.maxSlippageBps, scopes: sheet.grant.scopes }}
+          onBack={() => setSheet({ kind: "grant", info: sheet.info, grant: sheet.grant, fromCatalog: false })}
+          onClose={() => setSheet(null)} onDone={(id) => { setSheet(null); setFresh(id); }} />
+      )}
+      {sheet?.kind === "audit" && <AuditSheet connector={sheet.connector} st={st} onClose={() => setSheet(null)} />}
     </div>
   );
 }
 
-function AddedCard({ g, st, s, fresh, onEdit }: { g: AddedIntegration; st: IntegrationsState; s: State; fresh: boolean; onEdit: () => void }) {
+function AddedCard({ g, st, s, fresh, onEdit, onConsent, onAudit }: { g: AddedIntegration; st: IntegrationsState; s: State; fresh: boolean; onEdit: () => void; onConsent: () => void; onAudit: () => void }) {
   const info = integrationById(g.connector);
   const [busy, setBusy] = useState(false);
   const [ask, setAsk] = useState(false);
   if (!info) return null;
   const nameOf = (slug: string) => st.agents.find((a) => a.slug === slug)?.name || "An agent";
   const toggle = async (on: boolean) => {
+    // On always goes through the consent popup; off revokes right away.
+    if (on) { onConsent(); return; }
     setBusy(true);
-    try { await updateIntegration(g.id, { enabled: on }); toast({ text: on ? `${info.name} is on` : `${info.name} paused` }); }
+    try { await updateIntegration(g.id, { enabled: false }); toast({ text: `${info.name} switched off` }); }
     catch (e) { toast({ text: friendly(e) }); } finally { setBusy(false); }
   };
   const remove = async () => {
@@ -127,9 +171,20 @@ function AddedCard({ g, st, s, fresh, onEdit }: { g: AddedIntegration; st: Integ
           <div className="text-[16px] font-bold leading-tight text-ink">{info.name}</div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5"><StatusPill status={info.status} /><span className="text-[11.5px] text-ink/45">{info.chains.join(", ")}</span></div>
         </div>
-        <span data-int-toggle className={busy ? "pointer-events-none opacity-60" : ""}><IntToggle on={g.enabled} onChange={(v) => void toggle(v)} label={g.enabled ? `Pause ${info.name}` : `Turn on ${info.name}`} /></span>
+        <span data-int-toggle className={busy ? "pointer-events-none opacity-60" : ""}><IntToggle on={g.enabled} onChange={(v) => void toggle(v)} label={g.enabled ? `Switch off ${info.name}` : `Turn on ${info.name}`} /></span>
       </div>
-      {!g.enabled && <p data-int-paused className="mx-4 mb-3 rounded-xl bg-tint px-3 py-2 text-[12.5px] font-semibold text-ink/60">Paused. No agent can use {info.name} until you turn it back on.</p>}
+      {!g.enabled && <p data-int-paused className="mx-4 mb-3 rounded-xl bg-tint px-3 py-2 text-[12.5px] font-semibold text-ink/60">{g.expiresAt !== null && g.expiresAt <= Date.now() ? "Access expired." : "Switched off."} No agent can use {info.name} until you allow it again.</p>}
+
+      <div data-int-access className="border-t border-line px-4 py-3">
+        <div className="flex items-center gap-2">
+          <h4 className="label text-[9px] text-ink/45">Access</h4>
+          {g.enabled && g.expiresAt !== null && <span data-int-ends className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold ${g.expiresAt - Date.now() < 3 * DAY ? "bg-[#fff6db] text-[#8a6100]" : "bg-tint text-ink/55"}`}>{endsIn(g.expiresAt)}</span>}
+          <button data-int-renew onClick={onConsent} className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-[13px] font-semibold text-brand-ink hover:bg-tint"><Icon name="lock" size={13} />{g.enabled ? "Review" : "Allow again"}</button>
+        </div>
+        <div data-int-scopes className="mt-1.5 flex flex-wrap gap-1.5">
+          {g.scopes.map((x) => <span key={x} className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${SCOPE_INFO[x].risky ? "bg-[#fff1e6] text-[#c2570c]" : "bg-tint text-ink/75"}`}>{SCOPE_INFO[x].title}</span>)}
+        </div>
+      </div>
 
       <div className="border-t border-line px-4 py-3">
         <div className="flex items-center gap-2">
@@ -173,7 +228,10 @@ function AddedCard({ g, st, s, fresh, onEdit }: { g: AddedIntegration; st: Integ
       )}
 
       <div className="border-t border-line px-4 py-3">
-        <h4 className="label text-[9px] text-ink/45">Recent activity</h4>
+        <div className="flex items-center gap-2">
+          <h4 className="label text-[9px] text-ink/45">Recent activity</h4>
+          <button data-int-card-audit onClick={onAudit} className="ml-auto inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-[13px] font-semibold text-brand-ink hover:bg-tint"><Icon name="list" size={13} />Audit log</button>
+        </div>
         {g.activity.length ? (
           <ul data-int-activity className="mt-1 divide-y divide-[var(--line)]">{g.activity.map((r, i) => <Activity key={r.id} r={r} i={i} who={nameOf(r.agent)} />)}</ul>
         ) : <p className="mt-1.5 text-[13px] leading-snug text-ink/55">Nothing yet. Try asking an agent in chat: {TRY[g.connector] || "ask it to use this"}</p>}

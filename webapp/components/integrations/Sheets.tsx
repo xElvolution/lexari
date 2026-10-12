@@ -8,6 +8,7 @@ import { toast, useApp } from "@/lib/store";
 import { AgentTile } from "../faces";
 import Icon from "../Icon";
 import { IntegrationLogo, StatusPill } from "./Logos";
+import { ConsentSheet } from "./Consent";
 
 /** A bottom sheet on phones (drag the handle down to close), a centred card on bigger screens. */
 export function IntSheet({ label, onClose, head, children, footer }: { label: string; onClose: () => void; head: React.ReactNode; children: React.ReactNode; footer?: React.ReactNode }) {
@@ -152,11 +153,14 @@ export function GrantSheet({ info, grant, st, onBack, onClose, onSaved }: {
   const [slip, setSlip] = useState(grant?.maxSlippageBps ?? LIMITS.slippageBps.def);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [consent, setConsent] = useState(false);
   const edit = !!grant;
   const flip = (slug: string, on: boolean) => setAgents((a) => (on ? [...new Set([...a, slug])] : a.filter((x) => x !== slug)));
   const setPer = (v: number) => { setPerTx(v); if (daily < v) setDaily(v); };
   const setDay = (v: number) => { setDaily(v); if (perTx > v) setPerTx(v); };
   const save = async () => {
+    // Adding is a consent: review what agents may do and for how long first.
+    if (!grant) { setConsent(true); return; }
     setErr(""); setBusy(true);
     const body = { agents, ...(info.moves ? { perTxUsd: perTx, dailyUsd: daily, ...(info.category === "trading" ? { maxSlippageBps: slip } : {}) } : {}) };
     try {
@@ -167,6 +171,7 @@ export function GrantSheet({ info, grant, st, onBack, onClose, onSaved }: {
   };
   const n = agents.length;
   const cta = !info.addable ? "Coming soon" : busy ? "Saving…" : edit ? "Save changes" : n ? `Add ${info.name} for ${n} agent${n === 1 ? "" : "s"}` : "Pick at least one agent";
+  if (consent) return <ConsentSheet info={info} draft={{ agents, perTxUsd: perTx, dailyUsd: daily, maxSlippageBps: slip }} st={st} onBack={() => setConsent(false)} onClose={onClose} onDone={onSaved} />;
   return (
     <IntSheet label={`${info.name} integration`} onClose={onClose} head={
       <div className="flex items-start gap-3 px-5 pb-4 pt-3 sm:px-6 sm:pt-6 max-[430px]:px-4">

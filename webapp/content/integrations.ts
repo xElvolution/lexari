@@ -204,7 +204,59 @@ export type AddedIntegration = {
   dailyUsd: number;
   maxSlippageBps: number;
   spentTodayUsd: number;
+  /** what you allowed in the consent popup */
+  scopes: Scope[];
+  /** when the grant stops on its own (ms); null for grants made before expiry existed */
+  expiresAt: number | null;
   addresses: { agent: string; chain: string; address: string; explorer: string }[];
   activity: ActivityRow[];
   at: number;
+};
+
+/**
+ * What an agent may do with an integration, asked for up front in the consent popup. "read" is always part of a
+ * grant. "withdraw" sends only to wallets you linked in Settings > Wallets; "transfer" may send to any address.
+ */
+export type Scope = "read" | "trade" | "bet" | "withdraw" | "transfer";
+export const SCOPE_INFO: Record<Scope, { title: string; body: string; risky?: boolean }> = {
+  read: { title: "See balances and prices", body: "Read its wallet, positions and live market data. Nothing moves." },
+  trade: { title: "Trade", body: "Swap or place orders from its own wallet, inside your limits, after you confirm." },
+  bet: { title: "Take positions", body: "Open prediction market positions, inside your limits, after you confirm." },
+  withdraw: { title: "Send to your linked wallets", body: "Move funds back to a wallet you linked in Settings > Wallets. Nowhere else." },
+  transfer: { title: "Send to any address", body: "Pay an address you name in chat, after you confirm. Leave this off unless you need it.", risky: true },
+};
+const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
+  solana: ["read", "withdraw", "transfer"],
+  orca: ["read", "trade"],
+  tempo: ["read", "trade", "withdraw", "transfer"],
+  hyperliquid: ["read", "trade"],
+  panta: ["read", "bet"],
+};
+/** The scopes an integration can ask for. */
+export const scopesOf = (id: string): Scope[] => SCOPES[id as IntegrationId] ?? ["read"];
+/** Asked for by default: everything except sending to any address. */
+export const defaultScopes = (id: string): Scope[] => scopesOf(id).filter((s) => s !== "transfer");
+/** The scope a tool needs. Transfers need "withdraw" when the address is one of your linked wallets, "transfer" otherwise. */
+export function scopeOfTool(tool: string, risk: "read" | "sign"): Scope {
+  if (risk === "read") return "read";
+  if (/\.transfer$/.test(tool)) return "transfer";
+  if (tool === "panta.position") return "bet";
+  return "trade";
+}
+/** How long a grant lasts. */
+export const EXPIRY_DAYS = [1, 7, 30, 90] as const;
+export const DEFAULT_EXPIRY_DAYS = 30;
+
+/** One line of the audit log: a grant change you made, or something an agent did (or was stopped from doing). */
+export type AuditRow = {
+  id: string;
+  connector: IntegrationId;
+  at: number;
+  /** consent | change | revoke | expire | remove | read | confirmed | rejected | denied | cancelled | pending | failed */
+  kind: string;
+  title: string;
+  agent?: string;
+  usd?: number;
+  detail?: string;
+  explorer?: string;
 };
