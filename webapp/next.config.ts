@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
   turbopack: { root: path.join(__dirname, "..") },
   outputFileTracingRoot: path.join(__dirname, ".."),
   poweredByHeader: false,
+  // Kuru SDK ships ethers v5 with JSON ABIs: load it from node_modules at runtime instead of bundling it.
+  serverExternalPackages: ["@kuru-labs/kuru-sdk", "ethers"],
   // One id per build: the client compares it with /api/version and hard-reloads after a deploy instead of calling stale chunks.
   // NEXT_PUBLIC_RPC_PROXY: the server has a private Solana RPC (Helius or SOLANA_RPC), so the browser uses /api/rpc (server/rpc.ts).
   env: { NEXT_PUBLIC_BUILD: process.env.LEXARI_BUILD || Date.now().toString(36), NEXT_PUBLIC_RPC_PROXY: privateRpcConfigured() ? "1" : "" },
