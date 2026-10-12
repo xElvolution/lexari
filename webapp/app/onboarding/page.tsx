@@ -18,6 +18,7 @@ import { burst } from "@/components/fly";
 import SetupSequence from "@/components/agent/SetupSequence";
 import MintFinish from "@/components/agent/MintFinish";
 import Toaster from "@/components/Toaster";
+import OreGift from "@/components/miner/OreGift";
 
 const STEPS = ["Name", "Look", "About you", "Meet"];
 const NAMES = ["Juniper", "Nova", "Pip", "Otto", "Mika", "Sol"];
@@ -37,7 +38,7 @@ export default function Onboarding() {
   const printer = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const cta = useRef<HTMLButtonElement>(null);
-  const [finale, setFinale] = useState<"none" | "setup" | "done">("none");
+  const [finale, setFinale] = useState<"none" | "setup" | "gift" | "done">("none");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -84,7 +85,9 @@ export default function Onboarding() {
       <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[var(--glow)] blur-[130px]" />
       <div className="relative w-full max-w-[760px]">
         {finale === "setup"
-          ? <SetupSequence name={agentName} v={v} bg={bg} onDone={() => setFinale("done")} tone="page" />
+          ? <SetupSequence name={agentName} v={v} bg={bg} onDone={() => setFinale(s.hired.includes("ore") ? "done" : "gift")} tone="page" />
+          : finale === "gift"
+          ? <OreGift agentName={agentName} onDone={() => setFinale("done")} />
           : <div className="rounded-[30px] bg-card p-5 ring-1 ring-line sm:p-7"><MintFinish s={s} id="home" v={v} title={`Meet ${agentName}.`}
               sub={`Its badge is printed, its computer is on and it already knows ${knownCount} ${knownCount === 1 ? "thing" : "things"} about you. Mint its ID card on chain, or do it later from its profile.`}
               later={() => router.push("/agents")} laterLabel={s.meta.home?.nft ? `Start chatting with ${agentName}` : "Later, start chatting"} /></div>}

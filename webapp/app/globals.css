@@ -110,3 +110,17 @@ html, body { overflow-x: clip; }
 @keyframes row-in { 0% { opacity: 0; transform: translateY(6px); } 100% { opacity: 1; transform: none; } }
 .row-in { animation: row-in .35s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .period-thumb { transition: none; } .price-in, .sheet-up, .row-in { animation: none; } }
+
+/* ORE bot gift reveal (onboarding): the box shakes, the lid flies off, rays spin and the bot's card flips in. */
+@keyframes gift-lid { 0% { transform: translateY(0) rotate(0); opacity: 1; } 60% { opacity: 1; } 100% { transform: translate(46px, -150px) rotate(38deg); opacity: 0; } }
+@keyframes gift-sink { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(36px) scale(.82); opacity: 0; } }
+@keyframes gift-rays { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes gift-rays-in { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes gift-card { 0% { opacity: 0; transform: perspective(900px) translateY(40px) rotateY(-100deg) scale(.7); } 60% { opacity: 1; transform: perspective(900px) translateY(-6px) rotateY(12deg) scale(1.03); } 100% { opacity: 1; transform: perspective(900px) rotateY(0) scale(1); } }
+@keyframes gift-ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+.gift-lid { animation: gift-lid .7s cubic-bezier(.3,.7,.3,1) forwards; }
+.gift-sink { animation: gift-sink .5s .35s ease-in forwards; }
+.gift-rays { position: absolute; left: 50%; top: 50%; width: 520px; height: 520px; pointer-events: none; background: repeating-conic-gradient(from 0deg, rgba(143, 107, 255, .28) 0deg 9deg, transparent 9deg 24deg); -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 68%); mask-image: radial-gradient(circle, #000 18%, transparent 68%); animation: gift-rays-in .6s ease-out both, gift-rays 22s linear infinite; }
+.gift-card { animation: gift-card .9s .25s cubic-bezier(.2,.9,.3,1.15) both; }
+.gift-ping { animation: gift-ping 1.6s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .gift-lid, .gift-sink, .gift-card, .gift-ping { animation: none; } .gift-lid, .gift-sink { opacity: 0; } .gift-rays { animation: none; transform: translate(-50%, -50%); } }

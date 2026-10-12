@@ -15,6 +15,7 @@ import AgentFace from "@/components/AgentFace";
 import FaceCreator, { PopCheck } from "@/components/FaceCreator";
 import SetupSequence from "@/components/SetupSequence";
 import MintFinish from "@/components/MintFinish";
+import OreGift from "@/web/OreGift";
 import { agentIdNo, type IdInfo } from "@/components/AgentIdCard";
 import Icon from "@/components/Icon";
 import { tap } from "@/components/ui";
@@ -114,7 +115,7 @@ export default function Onboarding() {
   const [tone, setTone] = useState<ToneId>("short");
   const [knows, setKnows] = useState<string[]>([KNOW_SUGGESTIONS[0]]);
   const [custom, setCustom] = useState("");
-  const [finale, setFinale] = useState<"none" | "setup" | "done">("none");
+  const [finale, setFinale] = useState<"none" | "setup" | "gift" | "done">("none");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const [note, setNote] = useState("");
@@ -173,7 +174,9 @@ export default function Onboarding() {
       <Backdrop width={width} height={height} center />
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 20, paddingTop: insets.top + 28, paddingBottom: insets.bottom + 28 }}>
         {finale === "setup"
-          ? <SetupSequence name={agentName} v={v} bg={bg} onDone={() => setFinale("done")} />
+          ? <SetupSequence name={agentName} v={v} bg={bg} onDone={() => setFinale(me?.agents.some((a) => a.slug === "ore") ? "done" : "gift")} />
+          : finale === "gift"
+          ? <OreGift agentName={agentName} onDone={() => setFinale("done")} />
           : <View style={{ borderRadius: 22, backgroundColor: k.card, borderWidth: 1, borderColor: k.line, padding: 14 }}>
               <MintFinish info={info} title={`Meet ${agentName}.`}
                 sub={`Its badge is printed, its computer is on and it already knows ${knownCount} ${knownCount === 1 ? "thing" : "things"} about you. Mint its ID card on chain, or do it later from its profile.`}
