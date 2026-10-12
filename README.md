@@ -22,7 +22,7 @@ Sign in with Google or email, give it a name and a face, and tell it what you ne
 ![Expo](https://img.shields.io/badge/Expo-Android-000020?logo=expo&logoColor=white)
 ![Anchor](https://img.shields.io/badge/Anchor-0.32-5b2bff)
 ![Privy](https://img.shields.io/badge/auth-Privy-5b2bff)
-![Status](https://img.shields.io/badge/status-hackathon%20build-f5a524)
+![Status](https://img.shields.io/badge/status-live%20on%20testnets-22c55e)
 
 [Concept](#-meet-your-own-personalized-ai-agent) ·
 [Features](#-features-and-status) ·
@@ -343,6 +343,8 @@ flowchart LR
 
 ## ◆ Multi-chain map
 
+Your agent has one balance, like any app, and Solana is its home. Chains are routes, not accounts: when a trade or payment needs funds elsewhere, the agent proposes one Confirm card that moves them through Aurora Intents and then runs the trade. Nothing signs without your Confirm.
+
 Lexari is chain-agnostic by design: an agent has one Solana address and one EVM address that is the same on every EVM chain, and each integration declares which chains it touches.
 
 ```mermaid
@@ -630,17 +632,28 @@ Names only. Copy `.env.example` to `webapp/.env.local` and never commit the fill
 
 <br/>
 
-## ◆ Hackathon tracks
+## ◆ Built with
 
-Lexari is being entered in the tracks below. The table states what each judge can see in the code today and what is still being built, with no overclaiming.
+Lexari gives everyone personalized AI agents that act onchain. These partners and tools do the heavy lifting.
 
-| Hackathon and track | Why Lexari fits | Built today | In progress or next |
+| | Partner | Role in Lexari | Where it sits in the architecture |
 | --- | --- | --- | --- |
-| **Colosseum, Solana** | Home chain: sign-in, agent wallets, Orca swaps, x402 agent payments, Anchor program, Metaplex ID card | 🟢 devnet transfers, swaps, x402, specialist purchases, Hub | 🟡 program deploy and ID card mint |
-| **Colosseum, Tempo** | Payments-first chain for an agent that pays and gets paid | 🟢 Tempo testnet wallet, TIP-20 sends, faucet, top-up, Tempo agent card with limits and freeze | ⚪ MPP machine payments |
-| **Colosseum, Hyperliquid** | Trade-only API wallets match Lexari's scoped permission model | 🟢 | 🟢 testnet adapter for prices, positions and orders behind Confirm cards |
-| **Monad** (Trust, Identity and AI Infrastructure) | Agent identity plus policy-bound wallets | 🟡 | 🟢 Monad testnet chain entry, Qwen and Kimi models. 🟢 MetaMask delegation with onchain caveats. 🟡 Kuru swaps and Nansen reads (wired, need keys) |
-| **Solana Mobile** | Native Android app with MWA and Seed Vault sign-in | 🟢 Expo app on devnet with MWA, Privy, app lock and full product parity | ⚪ dApp Store listing |
+| <img src="https://www.google.com/s2/favicons?domain=intents.aurora.dev&sz=64" width="20" height="20" alt="" /> | **Aurora Intents** | Cross-chain engine for the one balance. When a trade needs funds on another chain, the agent routes them through the Aurora Intents Swap API in a single Confirm card. | Signer layer to Adapter Registry (routing) |
+| <img src="https://www.google.com/s2/favicons?domain=nansen.ai&sz=64" width="20" height="20" alt="" /> | **Nansen** | Smart money flows and wallet profiles. Every trade Confirm card carries a Nansen check line, and agents consult it before proposing a trade. | Adapter Registry: data |
+| <img src="https://www.google.com/s2/favicons?domain=kuru.io&sz=64" width="20" height="20" alt="" /> | **Kuru** | Orderbook routes and swaps on Monad testnet through the Kuru SDK, behind Confirm cards. | Adapter Registry: Monad |
+| <img src="https://www.google.com/s2/favicons?domain=metamask.io&sz=64" width="20" height="20" alt="" /> | **MetaMask** | Smart account delegations (ERC-7710) with onchain caveats, so an agent can spend a capped amount without holding your funds. Agent Wallet plugin is in progress. | Signer layer: delegation |
+| <img src="https://www.google.com/s2/favicons?domain=agora.finance&sz=64" width="20" height="20" alt="" /> | **Agora AUSD** | Planned stablecoin for holding and paying in the unified balance. | Adapter Registry: Monad |
+| <img src="https://www.google.com/s2/favicons?domain=mera.xyz&sz=64" width="20" height="20" alt="" /> | **Mera** | Planned passkey sign-in and per-agent keys. | Sign-in |
+| <img src="https://www.google.com/s2/favicons?domain=alchemy.com&sz=64" width="20" height="20" alt="" /> | **Alchemy** | RPC for Monad and EVM chains when ALCHEMY_API_KEY is set. | Adapter Registry: RPC |
+| <img src="https://www.google.com/s2/favicons?domain=hyperliquid.xyz&sz=64" width="20" height="20" alt="" /> | **Hyperliquid** | Perps on testnet with a trade-only API wallet, market and limit orders, take profit and stop loss. | Signer layer: HL API wallet |
+| <img src="https://www.google.com/s2/favicons?domain=tempo.xyz&sz=64" width="20" height="20" alt="" /> | **Tempo** | Stablecoin rail for the agent card: merchant payments inside per payment and daily limits, with freeze. | Adapter Registry: Tempo |
+| <img src="https://www.google.com/s2/favicons?domain=privy.io&sz=64" width="20" height="20" alt="" /> | **Privy** | Google and email sign-in, embedded wallets and wallet linking on web and phone. | User login |
+| <img src="https://www.google.com/s2/favicons?domain=qwen.ai&sz=64" width="20" height="20" alt="" /> | **Qwen 3.8 Max** | House model for careful multi-step, tool-using plans. | Model Router |
+| <img src="https://www.google.com/s2/favicons?domain=moonshot.ai&sz=64" width="20" height="20" alt="" /> | **Kimi** | House model (Kimi K3) for long context planning and tools. | Model Router |
+| <img src="https://www.google.com/s2/favicons?domain=0g.ai&sz=64" width="20" height="20" alt="" /> | **0G Compute** | OpenAI-compatible router that also serves Qwen 3.8 Max and Kimi K3, so one key runs all three house models. | Model Router |
+| <img src="https://www.google.com/s2/favicons?domain=ore.supply&sz=64" width="20" height="20" alt="" /> | **ORE** | The free ORE Miner agent: your own server, practice mode on devnet, one-line uninstall. | Adapter Registry: Solana |
+| <img src="https://www.google.com/s2/favicons?domain=orca.so&sz=64" width="20" height="20" alt="" /> | **Orca** | Whirlpool swaps between SOL and USDC from the agent's own wallet. | Adapter Registry: Solana |
+| <img src="https://www.google.com/s2/favicons?domain=solana.com&sz=64" width="20" height="20" alt="" /> | **Solana** | Home of the one balance, sign-in, agent wallets and the Lexari program. | Adapter Registry: Solana |
 
 <br/>
 
