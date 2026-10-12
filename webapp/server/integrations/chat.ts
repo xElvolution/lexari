@@ -10,6 +10,8 @@ import { runCall, type CallResult } from "./actions";
 import { spentToday, usableGrants, type Grant } from "./grants";
 import { agentSpentToday, budgetOf } from "../agentpay/budgets";
 import type { AgentRef } from "./registry";
+import { SELF_HINT } from "./self";
+import { HL_HINT } from "./hyperliquid";
 
 export const INTEGRATIONS_MARK = "[lexari-integrations]";
 const MAX_CALLS = 2;
@@ -42,6 +44,8 @@ export async function turnTools(userId: string, slug: string): Promise<TurnTools
     ...(limits.length ? [`Spending limits the person set: ${limits.join("; ")}. Lexari enforces them; stay inside them.`] : []),
     ...(budget ? [budget] : []),
     ...(grants.some((g) => g.connector === "ore") ? [ORE_HINT] : []),
+    ...(grants.some((g) => g.connector === "self") ? [SELF_HINT] : []),
+    ...(grants.some((g) => g.connector === "hyperliquid") ? [HL_HINT] : []),
     "Read tools return live data to you, then you answer. Sign tools only prepare a Confirm card for the person: nothing moves until they tap Confirm, so say it's ready to confirm and never claim it went through. Everything runs on devnet or testnets with test funds, not real money.",
     "Only use a tool when the person asks for something it does. Never invent addresses, prices or results.",
     `For anything not listed: ${none}`,
