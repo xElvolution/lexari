@@ -19,7 +19,7 @@ import { SOCIALS, SOCIAL_NAME, isSocial, socialStatus, type Social, type SocialL
 import { currentPlan } from "./plans";
 
 type Found = { provider: Social; subject: string; handle: string | null };
-type Snapshot = { did: string | null; wallets: string[]; accounts: Found[] };
+type Snapshot = { did: string | null; wallets: string[]; accounts: Found[]; raw: unknown[] };
 
 const TYPE: Record<string, Social> = { twitter_oauth: "twitter", discord_oauth: "discord", telegram: "telegram" };
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 120) : typeof v === "number" ? String(v) : null);
@@ -49,7 +49,7 @@ async function fromIdentityToken(token: string): Promise<Snapshot> {
   let list: unknown = p.linked_accounts;
   if (typeof list === "string") { try { list = JSON.parse(list); } catch { list = null; } }
   if (!Array.isArray(list)) throw new HttpError(400, "Privy did not include your linked accounts. Try again.");
-  return { did: p.sub, ...parseLinked(list) };
+  return { did: p.sub, ...parseLinked(list), raw: list };
 }
 
 async function fromApi(accessToken: string): Promise<Snapshot> {
@@ -61,7 +61,7 @@ async function fromApi(accessToken: string): Promise<Snapshot> {
   }).catch(() => null);
   if (!res?.ok) throw new HttpError(502, "Could not reach Privy to check your accounts. Try again.");
   const body = (await res.json().catch(() => ({}))) as { linked_accounts?: unknown };
-  return { did: sub, ...parseLinked(body.linked_accounts) };
+  return { did: sub, ...parseLinked(body.linked_accounts), raw: Array.isArray(body.linked_accounts) ? body.linked_accounts : [] };
 }
 
 export async function listSocial(userId: string): Promise<SocialLink[]> {
@@ -109,7 +109,8 @@ async function apply(userId: string, did: string | null, accounts: Found[], scop
 }
 
 /** Reads the person's Privy linked accounts from a token, checks the Privy account is theirs, and stores the result. */
-export async function syncSocial(user: { userId: string; wallet: string }, tokens: { idToken?: string; accessToken?: string }) {
+/** Reads the person's Privy account from a token and checks it is this Lexari account (shared with wallet linking). */
+export async function readOwnPrivy(user: { userId: string }, tokens: { idToken?: string; accessToken?: string }): Promise<Snapshot> {
   if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) throw new HttpError(503, "Linking accounts is not set up here yet.");
   let snap: Snapshot;
   if (tokens.idToken) snap = await fromIdentityToken(tokens.idToken);
@@ -125,6 +126,11 @@ export async function syncSocial(user: { userId: string; wallet: string }, token
     const [other] = await db().select({ id: users.id }).from(users).where(eq(users.privyDid, snap.did!)).limit(1);
     if (other && other.id !== user.userId) throw new HttpError(409, "That Privy account belongs to a different Lexari account.");
   }
+  return snap;
+}
+
+export async function syncSocial(user: { userId: string; wallet: string }, tokens: { idToken?: string; accessToken?: string }) {
+  const snap = await readOwnPrivy(user, tokens);
   const conflicts = await apply(user.userId, snap.did, snap.accounts, SOCIALS);
   return { links: await listSocial(user.userId), conflicts: conflicts.map((p) => `This ${SOCIAL_NAME[p]} account is already linked to another Lexari account.`) };
 }
