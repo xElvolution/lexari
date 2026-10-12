@@ -20,6 +20,18 @@ import { overBudget } from "../agentpay/budgets";
 import { recordTx } from "../txlog";
 import { TEMPO, tempoReceipt } from "./tempo";
 import { HL_NETWORK } from "./hyperliquid";
+import { nansenCheck } from "./monad";
+
+/** Trades and swaps get a "Nansen check" row on their Confirm card (smart money flows for the token bought). */
+const NANSEN_TOOLS: Record<string, string> = { "orca.swap": "solana", "kuru.swap": "monad", "hyperliquid.order": "ethereum", "intents.route": "solana" };
+async function nansenRowFor(tool: string, input: unknown): Promise<[string, string] | null> {
+  const chain = NANSEN_TOOLS[tool];
+  if (!chain) return null;
+  const i = (input || {}) as Record<string, unknown>;
+  const sym = String(i.buy || i.coin || i.to || (i.sell === "SOL" ? "USDC" : "SOL") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+  if (!sym) return null;
+  return ["Nansen check", await Promise.race([nansenCheck(sym, chain), new Promise<string>((r) => setTimeout(() => r("Skipped: Nansen didn't answer in time"), 5000))])];
+}
 import type { Executed } from "./registry";
 import { Reject, toolByName, type AgentRef, type ToolDef } from "./registry";
 import { ChainError, SimError, isDevnet, network } from "./solana";
@@ -137,7 +149,8 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
     await record(ctx, tool, parsed.data, "rejected", { error: why });
     return { kind: "refused", tool: tool.name, text: why };
   }
-  const preview: Preview = { title: prep.title, rows: prep.rows, network: netOf(prep.chain), plan: prep.plan, summary: prep.summary };
+  const nansen = await nansenRowFor(tool.name, parsed.data);
+  const preview: Preview = { title: prep.title, rows: nansen ? [...prep.rows, nansen] : prep.rows, network: netOf(prep.chain), plan: prep.plan, summary: prep.summary };
   if (!isBuiltin(tool.connector)) {
     const denied = await scopeDenied(ctx.userId, grant, tool, prep.plan);
     if (denied) {
@@ -183,7 +196,7 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
   return { kind: "action", tool: tool.name, card: cardOf(row) };
 }
 
-const netOf = (chain: string) => (chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : chain === "lexari" ? "Lexari settings" : chain === "hyperliquid" ? HL_NETWORK : chain === "monad" ? "Monad testnet" : network());
+const netOf = (chain: string) => (chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : chain === "lexari" ? "Lexari settings" : chain === "hyperliquid" ? HL_NETWORK : chain === "monad" ? "Monad testnet" : chain === "intents" ? "Aurora Intents" : network());
 
 /** A payment inside the agent's budget: counted toward today first, then executed, with a receipt in the chat. */
 async function autoRun(ctx: Ctx, tool: ToolDef, input: unknown, preview: Preview, prep: { usdMicros: number; chain: string; summary: string }): Promise<CallResult> {
@@ -296,7 +309,7 @@ export async function cancelAction(userId: string, id: string): Promise<ActionCa
 
 /** A transaction that was sent but not yet confirmed: check it on chain. */
 async function settle(a: typeof integrationActions.$inferSelect) {
-  if (a.status !== "submitted" || !a.txSig || a.chain === "lexari" || a.chain === "hyperliquid" || a.chain === "monad") return a;
+  if (a.status !== "submitted" || !a.txSig || a.chain === "lexari" || a.chain === "hyperliquid" || a.chain === "monad" || a.chain === "intents") return a;
   if (a.chain === "tempo") {
     const rc = await tempoReceipt(a.txSig).catch(() => null);
     if (rc?.status === "0x1") return finish(a.id, { status: "confirmed" });

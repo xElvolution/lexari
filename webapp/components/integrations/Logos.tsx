@@ -65,6 +65,28 @@ export function IntegrationLogo({ id, size = 44, className = "" }: { id: Integra
       return tile("#111", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.2" strokeLinecap="round"><path d="M5 8h14M5 12h10M5 16h6" /></svg>
       ));
+    case "monad":
+      return tile("#836ef9", (
+        <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#fff" d="M12 3c-2.6 0-9 6.4-9 9s6.4 9 9 9 9-6.4 9-9-6.4-9-9-9zm-1.4 14.1c-1.1-.3-4-5.4-3.7-6.5.3-1.1 5.4-4 6.5-3.7 1.1.3 4 5.4 3.7 6.5-.3 1.1-5.4 4-6.5 3.7z" /></svg>
+      ));
+    case "nansen":
+      return tile("#0d1b2a", (
+        <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#00e1b4" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 19V5l14 14V5" /></svg>
+      ));
+    case "kuru":
+      return tile("#111111", (
+        <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v16M18 4l-9 8 9 8" /></svg>
+      ));
+    case "metamask":
+      return tile("#fff3e6", (
+        <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#e2761b" d="M20.5 3 13 8.6l1.4-3.3z" /><path fill="#e4761b" d="m3.5 3 7.4 5.6-1.3-3.3zM17.8 16.2l-2 3.1 4.3 1.2 1.2-4.2zM2.7 16.3l1.2 4.2 4.3-1.2-2-3.1z" /><path fill="#f6851b" d="m8 10.6-1.2 1.8 4.3.2-.2-4.6zm8 0-3-2.7-.1 4.7 4.3-.2zM8.2 19.3l2.6-1.3-2.2-1.7zm5-1.3 2.6 1.3-.4-3z" /><path fill="#763d16" d="m8.6 14 1-2-2.9-.1z" /></svg>
+      ));
+    case "intents":
+      return tile("linear-gradient(140deg,#70d44b,#1f7a3c)", (
+        <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 3 20h18z" /><path d="M8.5 14h7" /></svg>
+      ));
+    default:
+      return tile("linear-gradient(140deg,#5b2bff,#8f6bff)", <span style={{ color: "#fff", fontWeight: 800, fontSize: Math.round(size * 0.4) }}>{String(id).slice(0, 1).toUpperCase()}</span>);
     case "prices":
       return tile("linear-gradient(140deg,#5b2bff,#8f6bff)", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3.5 17.5 9 12l3.5 3.5L20.5 7" /><path d="M15.5 7h5v5" /></svg>

@@ -46,6 +46,8 @@ export async function turnTools(userId: string, slug: string): Promise<TurnTools
     ...(grants.some((g) => g.connector === "ore") ? [ORE_HINT] : []),
     ...(grants.some((g) => g.connector === "self") ? [SELF_HINT] : []),
     ...(grants.some((g) => g.connector === "hyperliquid") ? [HL_HINT] : []),
+    ...(grants.some((g) => g.connector === "nansen") ? ["Nansen: before you propose any trade or swap, call nansen.smartmoney for the token and mention what smart money is doing. Every trade Confirm card also shows a Nansen check line."] : []),
+    "One balance: the person's money is one balance, kept on Solana. Chains are routes, not accounts. When a trade or payment needs funds on another chain, propose intents.route (Aurora Intents) first as one Confirm card, then the trade. Never ask the person to pick or switch a chain.",
     "Read tools return live data to you, then you answer. Sign tools only prepare a Confirm card for the person: nothing moves until they tap Confirm, so say it's ready to confirm and never claim it went through. Everything runs on devnet or testnets with test funds, not real money.",
     "Only use a tool when the person asks for something it does. Never invent addresses, prices or results.",
     `For anything not listed: ${none}`,
