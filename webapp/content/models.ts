@@ -57,7 +57,7 @@ export const INCLUDED: ModelInfo[] = [
  * model and then to Lamina when its provider is down, busy or out of credit (only before any text reached the person).
  */
 export const HOUSE: ModelInfo[] = [
-  { id: "kimi", label: "Kimi K3", short: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 }, house: { provider: "moonshot", fallback: ["qwen", "zg"] } },
+  { id: "kimi", label: "Kimi", short: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 }, house: { provider: "moonshot", fallback: ["qwen", "zg"] } },
   { id: "qwen", label: "Qwen 3.8 Max", short: "Qwen", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 }, house: { provider: "dashscope", fallback: ["zg", "kimi"] } },
   { id: "zg", label: "0G Compute", short: "0G", maker: "0G", blurb: "Open models on 0G's decentralized network, with automatic failover.", pool: "lamina", price: { in: 0.5, out: 1.6 }, house: { provider: "zg", fallback: ["qwen", "kimi"] } },
 ];

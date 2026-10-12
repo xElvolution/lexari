@@ -16,7 +16,7 @@ const INCLUDED: M[] = [
 ];
 /** content/models.ts HOUSE: open models on Lexari's provider keys. Unavailable when the server has no key for them. */
 const HOUSE: M[] = [
-  { id: "kimi", label: "Kimi K3", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 } },
+  { id: "kimi", label: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 } },
   { id: "qwen", label: "Qwen 3.8 Max", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 } },
   { id: "zg", label: "0G Compute", maker: "0G", blurb: "Open models on 0G's decentralized network, with automatic failover.", pool: "lamina", price: { in: 0.5, out: 1.6 } },
 ];
