@@ -36,7 +36,9 @@ export default function Team() {
   const kindOf = (slug: string, kind: string): Exclude<Ring, null> => (slug === primary ? "primary" : kind === "home" || kind === "custom" ? "made" : "hired");
   const picked = pick ? team.find((a) => a.slug === pick) : undefined;
   const youName = home?.name || "your agent";
-  const cell = 58;
+  // grid-cols-5 gap-2 like the web: square seats that share the card width (58 is the first paint before layout)
+  const [gridW, setGridW] = useState(0);
+  const cell = gridW ? Math.floor((gridW - 4 * 8) / 5) : 58;
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 18, paddingBottom: 32 }}>
@@ -54,22 +56,22 @@ export default function Team() {
           <Label>{`${used} of ${plan.seats} seat${plan.seats === 1 ? "" : "s"}`}</Label>
         </View>
         <RingLegend />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+        <View onLayout={(e) => setGridW(e.nativeEvent.layout.width)} style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
           {Array.from({ length: seats }, (_, i) => {
             const a = team[i];
             if (a) {
               const kd = kindOf(a.slug, a.kind); const locked = lockedSet.has(a.slug);
               return (
                 <Pressable key={i} onLongPress={() => setPick(a.slug)} onPress={() => (locked ? router.push("/settings/billing") : setPick(pick === a.slug ? null : a.slug))} style={{ width: cell, height: cell, opacity: locked ? 0.8 : 1 }}>
-                  <View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, borderRadius: 14, backgroundColor: k.tint, borderWidth: 2, borderColor: kd === "primary" ? GOLD : kd === "made" ? GRAPE_SOFT : SILVER, alignItems: "center", justifyContent: "center", ...(kd === "primary" ? { shadowColor: GOLD, shadowOpacity: 0.8, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
+                  <View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0, borderRadius: Math.round(cell * 0.22), backgroundColor: k.tint, borderWidth: 2, borderColor: kd === "primary" ? GOLD : kd === "made" ? GRAPE_SOFT : SILVER, alignItems: "center", justifyContent: "center", ...(kd === "primary" ? { shadowColor: GOLD, shadowOpacity: 0.8, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } } : null) }}>
                     <View style={{ opacity: locked ? 0.4 : 1 }}><AgentTile slug={a.slug} look={a.look} size={44} dot={false} /></View>
                     {locked ? <View style={{ position: "absolute", width: 26, height: 26, borderRadius: 13, backgroundColor: k.ink, alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={13} color={k.bg} /></View> : null}
                   </View>
                 </Pressable>
               );
             }
-            if (i >= unlocked) return <Pressable key={i} onPress={() => router.push("/settings/billing")} style={{ width: cell, height: cell, borderRadius: 14, backgroundColor: k.dark ? "rgba(255,255,255,0.06)" : "rgba(10,10,10,0.06)", alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={16} color={k.ink45} /></Pressable>;
-            return <Pressable key={i} onPress={() => router.navigate("/(tabs)/marketplace")} style={{ width: cell, height: cell, borderRadius: 14, borderWidth: 2, borderStyle: "dashed", borderColor: k.ink45, alignItems: "center", justifyContent: "center" }}><Icon name="plus" size={18} color={k.ink45} /></Pressable>;
+            if (i >= unlocked) return <Pressable key={i} onPress={() => router.push("/settings/billing")} style={{ width: cell, height: cell, borderRadius: Math.round(cell * 0.22), backgroundColor: k.dark ? "rgba(255,255,255,0.06)" : "rgba(10,10,10,0.06)", alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={16} color={k.ink45} /></Pressable>;
+            return <Pressable key={i} onPress={() => router.navigate("/(tabs)/marketplace")} style={{ width: cell, height: cell, borderRadius: Math.round(cell * 0.22), borderWidth: 2, borderStyle: "dashed", borderColor: k.ink45, alignItems: "center", justifyContent: "center" }}><Icon name="plus" size={18} color={k.ink45} /></Pressable>;
           })}
         </View>
         {picked ? (() => { const kd = kindOf(picked.slug, picked.kind); return (
@@ -80,13 +82,11 @@ export default function Team() {
             <Pressable onPress={() => router.push(`/agents/${picked.slug}`)} style={{ height: 32, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1, borderColor: k.bg, justifyContent: "center", opacity: 0.85 }}><T f="bold" s={13.5} c={k.bg}>ID card</T></Pressable>
           </View>
         ); })() : null}
-        <View style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+        <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 14, height: 14, borderRadius: 4, borderWidth: 2, borderStyle: "dashed", borderColor: k.ink45 }} /><T s={12.5} c={k.ink75}>Open seat</T></View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: k.dark ? "rgba(255,255,255,0.1)" : "rgba(10,10,10,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={9} color={k.ink45} /></View><T s={12.5} c={k.ink75}>Locked</T></View>
-        </View>
-        <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <T s={12.5} c={k.ink45}>Long-press an agent for more</T>
-          <Pill h={40} fs={14} icon="plus" label="Add an agent" onPress={() => router.navigate("/(tabs)/marketplace")} />
+          <View style={{ marginLeft: "auto" }}><Pill h={40} fs={13.5} icon="plus" label="Add an agent" onPress={() => router.navigate("/(tabs)/marketplace")} /></View>
         </View>
       </View>
 
