@@ -3,7 +3,7 @@
  * The grape hero ("Sign in. Meet your agent." and the faces row), then "Welcome in." with Google or email (Privy) only.
  * Mobile Wallet Adapter stays in the app for paying and topping up (wallets tab, chat send card), not for signing in.
  */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import Svg, { Path } from "react-native-svg";
@@ -91,7 +91,7 @@ function CodeBoxes({ value, onChange }: { value: string; onChange: (next: string
   );
 }
 
-type Methods = { google: () => Promise<void>; sendCode: (email: string) => Promise<void>; verify: (email: string, code: string) => Promise<void> };
+type Methods = { google: () => Promise<void>; sendCode: (email: string) => Promise<void>; verify: (email: string, code: string) => Promise<void>; signedIn?: boolean; resume?: () => Promise<void> };
 
 const offline: Methods = {
   google: async () => { console.warn("[lexari] Google sign-in needs EXPO_PUBLIC_PRIVY_APP_ID and EXPO_PUBLIC_PRIVY_CLIENT_ID in the build."); throw new Error(SOON); },
@@ -157,6 +157,20 @@ function SignInView({ methods }: { methods: Methods }) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     } finally { setBusy(""); }
   };
+
+  // On mount and whenever Privy's user/isReady changes: a Privy user already here (the OAuth return reopened
+  // this screen, or the app restarted mid-login) goes straight to the server exchange and on into the app.
+  const { signedIn, resume } = methods;
+  useEffect(() => {
+    if (!signedIn || !resume) return;
+    setMsg(""); setLoading(true);
+    resume().catch((e) => {
+      console.warn("[lexari] sign-in", e);
+      setLoading(false);
+      setMsg(said(e, "That didn't work. Please try again."));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    });
+  }, [signedIn, resume]);
 
   const emailStep = async () => {
     setEmailMsg(""); setBusy("email");
