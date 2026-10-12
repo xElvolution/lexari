@@ -140,13 +140,13 @@ export const INTENTS_TOOLS: ToolDef[] = [quoteTool, routeTool, statusTool];
 export const intentsLamports = (sol: number) => Math.round(sol * LAMPORTS_PER_SOL);
 
 /** Deposit into the agent's balance: any Aurora Intents coin in, USDC on Solana out, to the agent's own wallet. */
-export async function intentsDepositQuote(me: string, ch: { assetId: string; decimals: number }, amount: number) {
+export async function intentsDepositQuote(me: string, refund: string, ch: { assetId: string; decimals: number }, amount: number) {
   const usdc = (await intentsTokens()).find((x) => x.blockchain === "sol" && x.symbol.toUpperCase() === "USDC");
   if (!usdc) throw new Reject("Aurora Intents isn't listing USDC on Solana right now.");
   const q = await api<{ quote: { depositAddress: string; depositMemo?: string; amountOutFormatted: string; deadline?: string } }>("/api/quote/{key}", { method: "POST", body: JSON.stringify({
     dry: false, swapType: "EXACT_INPUT", depositType: "ORIGIN_CHAIN", depositMode: "SIMPLE", quoteWaitingTimeMs: 3000, slippageTolerance: 100,
     originAsset: ch.assetId, destinationAsset: usdc.assetId, amount: atoms(amount, ch.decimals),
-    refundTo: me, refundType: "INTENTS", recipient: me, recipientType: "DESTINATION_CHAIN", deadline: new Date(Date.now() + 60 * 60_000).toISOString(),
+    refundTo: refund.toLowerCase(), refundType: "INTENTS", recipient: me, recipientType: "DESTINATION_CHAIN", deadline: new Date(Date.now() + 60 * 60_000).toISOString(),
   }) });
   if (!q.quote.depositAddress) throw new Reject("Aurora Intents didn't return a deposit address. Try again in a moment.");
   return q.quote;

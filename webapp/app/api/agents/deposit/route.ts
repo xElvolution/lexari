@@ -2,6 +2,7 @@ import { z } from "zod";
 import { withUser } from "@/server/route";
 import { noStore } from "@/server/http";
 import { ownAgent, solanaKeypair } from "@/server/agentWallets";
+import { evmAddress } from "@/server/integrations/evm";
 import { db } from "@/server/db";
 import { agents } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -23,6 +24,7 @@ export const POST = withUser(async (user, req) => {
   await ownAgent(user.userId, b.agent);
   const [a] = await db().select({ kind: agents.kind }).from(agents).where(and(eq(agents.userId, user.userId), eq(agents.slug, b.agent))).limit(1);
   const me = solanaKeypair(user.userId, b.agent, a?.kind || "home").publicKey.toBase58();
-  try { return Response.json(await depositAddress(me, b.assetId, b.amount), { headers: noStore }); }
-  catch (e) { return Response.json({ error: e instanceof Error ? e.message : "Couldn't get a deposit address." }, { status: 400, headers: noStore }); }
+  try { return Response.json(await depositAddress(me, evmAddress(user.userId, b.agent), b.assetId, b.amount), { headers: noStore }); }
+  catch (e) { const m = e instanceof Error ? e.message : "Couldn't get a deposit address.";
+    return Response.json({ error: m, message: m }, { status: 400, headers: noStore }); }
 });
