@@ -4,12 +4,13 @@ import * as Store from "@/lib/storage";
 import { dark, light, type Palette } from "@/theme/colors";
 
 type ThemeName = "light" | "dark" | "system";
-type Saved = { theme: ThemeName; hideBalances: boolean; lockOn: boolean; bioOn: boolean; onboarded: boolean; securityAsked: boolean; tourOn: boolean; tourStep: number; tourDone: boolean };
+type Saved = { theme: ThemeName; hideBalances: boolean; lockOn: boolean; bioOn: boolean; onboarded: boolean; securityAsked: boolean; tourOn: boolean; tourStep: number; tourDone: boolean; passkeyAsk?: boolean };
 type Prefs = Saved & {
   loaded: boolean;
   palette: Palette;
   isDark: boolean;
   setTheme: (t: ThemeName) => void;
+  dismissPasskey: () => void;
   toggleBalances: () => void;
   setBalances: (hide: boolean) => void;
   setLock: (on: boolean) => void;
@@ -57,7 +58,8 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setLock: (lockOn) => patch({ lockOn }),
       setBio: (bioOn) => patch({ bioOn }),
       setOnboarded: () => patch({ onboarded: true }),
-      setSecurityAsked: () => patch({ securityAsked: true }),
+      setSecurityAsked: () => patch({ securityAsked: true, passkeyAsk: true }),
+      dismissPasskey: () => patch({ passkeyAsk: false }),
       startTour: () => { if (!saved.tourDone) patch({ tourOn: true, tourStep: 0 }); },
       setTourStep: (tourStep) => patch({ tourStep }),
       endTour: () => patch({ tourOn: false, tourDone: true }),

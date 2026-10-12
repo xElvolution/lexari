@@ -1,6 +1,7 @@
 /** Port of the web /agents phone view: AgentStrip (tiles with rings, Add, Search) + ConvoList (Chats, Messages, New group chat). */
 import { UpgradeSheet } from "@/web/Plans";
 import { useState } from "react";
+import PasskeyPrompt from "@/components/PasskeyPrompt";
 import { Linking, Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import Icon from "@/components/Icon";
@@ -49,6 +50,7 @@ export default function Agents() {
 
   return (
     <View style={{ flex: 1 }}>
+      <PasskeyPrompt />
       <View style={{ flexDirection: "row", alignItems: "flex-start", borderBottomWidth: 1, borderBottomColor: k.line, paddingHorizontal: 12, paddingVertical: 10 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ gap: 4 }}>
           {list.map((a) => (

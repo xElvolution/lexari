@@ -291,6 +291,9 @@ function Security() {
         <Row title={google ? "Google or email" : "Wallet signature"} desc={google ? "Privy checks your Google account or a one-time email code. Your Lexari wallet is created and kept by Privy." : "You sign a one-time message with your wallet. Lexari never sees your keys."} />
         <Row last title="Session" desc="Sessions last up to 30 days on a device. See every device below and sign out the ones you don't know." />
       </Group>
+      <Group title="Passkey">
+        <Row last title="Connect a passkey" desc="Link a passkey to this account, then sign in with it. A passkey never creates an account. Set it up in Lexari on the web, Settings, Security."><Small icon="lock" label="Connect" onPress={() => Linking.openURL("https://app.lexari.ai/settings#security")} /></Row>
+      </Group>
       <Group title="App lock"><SecurityRows /></Group>
       <SecurityCenter />
       <Group title="This device"><Row last title="Sign out" desc="Ends this session."><Small icon="out" label="Sign out" onPress={() => signOut().then(() => router.replace("/(auth)/sign-in"))} /></Row></Group>

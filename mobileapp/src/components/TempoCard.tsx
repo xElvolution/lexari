@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, View } from "react-native";
+import Capped from "./Capped";
 import { api } from "@/lib/api";
 import { GRAPE, Label, T, useC } from "@/web/kit";
 
@@ -57,13 +58,13 @@ export default function TempoCard({ slug, name, token }: { slug: string; name: s
         </View>
         {err ? <T s={12.5} c="#e5484d">{err}</T> : null}
         <Label s={9} c={k.ink45} style={{ marginTop: 8 }}>History</Label>
-        {c.history.length ? c.history.map((r) => (
+        <Capped n={c.history.length}>{c.history.length ? c.history.map((r) => (
           <Pressable key={r.id} onPress={() => r.explorer && Linking.openURL(r.explorer)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 }}>
             <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: r.status === "confirmed" ? "#22c55e" : r.status === "prepared" ? "#e0a100" : r.status === "failed" || r.status === "rejected" ? "#e5484d" : k.ink45 }} />
             <T f="semi" s={13} lines={1} style={{ flex: 1 }}>{r.title}</T>
             <T f="bold" s={13}>{usd(r.usd)}</T>
           </Pressable>
-        )) : <T s={13} c={k.ink60}>No card payments yet. Ask {name} to pay with its Tempo card in chat.</T>}
+        )) : <T s={13} c={k.ink60}>No card payments yet. Ask {name} to pay with its Tempo card in chat.</T>}</Capped>
       </View>
     </View>
   );
