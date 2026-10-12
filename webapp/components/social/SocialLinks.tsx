@@ -109,12 +109,33 @@ function privyLinked(user: User | null): Linked[] {
 }
 const PENDING = "lexari-social-pending";
 
+/** A Privy session for this Lexari account (shared by social and wallet linking). */
+export function usePrivySession(s: State) {
+  const { authenticated, user, logout } = usePrivy();
+  const { generateSiwsMessage, loginWithSiws } = useLoginWithSiws();
+  const google = s.auth?.method === "google";
+  const address = s.auth?.address;
+  /** A Privy session for this Lexari account: Google users already have one; wallet users confirm once with their wallet. */
+  const ensurePrivy = useCallback(async () => {
+    const mine = (u: User | null) => !!u && (google || u.linkedAccounts.some((a) => a.type === "wallet" && a.address === address));
+    if (authenticated && mine(user)) return true;
+    if (authenticated) await logout().catch(() => {});
+    if (google) { toast({ text: "Your Google or email session ended. Sign out and back in, then link again." }); return false; }
+    const bridge = await ensureBridge(address);
+    if (!bridge || !address) { toast({ text: "Connect your wallet to confirm it's you." }); return false; }
+    const message = await generateSiwsMessage({ address });
+    const sig = await bridge.signMessage(new TextEncoder().encode(message));
+    await loginWithSiws({ message, signature: btoa(String.fromCharCode(...sig)) });
+    return true;
+  }, [authenticated, user, google, address, logout, generateSiwsMessage, loginWithSiws]);
+  return ensurePrivy;
+}
+
 /** Real linking: Privy opens X, Discord or Telegram, then the server verifies the result from a Privy token. */
 function usePrivyActions(s: State): Actions {
   const social = useSocial();
-  const { ready, authenticated, user, logout, getAccessToken } = usePrivy();
+  const { ready, authenticated, user, getAccessToken } = usePrivy();
   const { refreshUser } = useUser();
-  const { generateSiwsMessage, loginWithSiws } = useLoginWithSiws();
   const { unlink: unlinkOAuth } = useUnlinkOAuth();
   const { unlink: unlinkTelegram } = useUnlinkTelegram();
   const [busy, setBusy] = useState<Social | null>(null);
@@ -136,19 +157,7 @@ function usePrivyActions(s: State): Actions {
     onError: (err) => { sessionStorage.removeItem(PENDING); setBusy(null); if (!/exited|cancel/i.test(String(err))) toast({ text: /linked_to_another_user|already/i.test(String(err)) ? "That account is already linked to another Privy account." : "Linking did not finish. Try again." }); },
   });
 
-  /** A Privy session for this Lexari account: Google users already have one; wallet users confirm once with their wallet. */
-  const ensurePrivy = useCallback(async () => {
-    const mine = (u: User | null) => !!u && (google || u.linkedAccounts.some((a) => a.type === "wallet" && a.address === address));
-    if (authenticated && mine(user)) return true;
-    if (authenticated) await logout().catch(() => {});
-    if (google) { toast({ text: "Your Google or email session ended. Sign out and back in, then link again." }); return false; }
-    const bridge = await ensureBridge(address);
-    if (!bridge || !address) { toast({ text: "Connect your wallet to confirm it's you." }); return false; }
-    const message = await generateSiwsMessage({ address });
-    const sig = await bridge.signMessage(new TextEncoder().encode(message));
-    await loginWithSiws({ message, signature: btoa(String.fromCharCode(...sig)) });
-    return true;
-  }, [authenticated, user, google, address, logout, generateSiwsMessage, loginWithSiws]);
+  const ensurePrivy = usePrivySession(s);
 
   const link = async (p: Social) => {
     setBusy(p);

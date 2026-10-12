@@ -13,6 +13,7 @@ import { usePrefs } from "@/state/prefs";
 import { AgentTile, F, GRAPE, Label, Pill, T, WSheet, ringOf, short, useC, WToggle } from "@/web/kit";
 import { primaryOf, useData } from "@/web/data";
 import { UpgradeSheet } from "@/web/Plans";
+import { IntegrationsSec, WalletsSec } from "@/web/Access";
 import { SECRET_NAME_RE, findSecrets, isBlockedKind, toSecretName } from "@/lib/secretScan";
 
 const SECTIONS = [
@@ -25,6 +26,7 @@ const SECTIONS = [
   { id: "security", label: "Security", icon: "pin" },
   { id: "accounts", label: "Account", icon: "globe" },
   { id: "social", label: "Connected accounts", icon: "link" },
+  { id: "wallets", label: "Wallets", icon: "wallet" },
   { id: "integrations", label: "Integrations", icon: "plug" },
   { id: "secrets", label: "Secrets", icon: "key" },
   { id: "billing", label: "Billing", icon: "wallet" },
@@ -333,21 +335,6 @@ function Social() {
   );
 }
 
-function Integrations() {
-  const { token } = useSession();
-  const [d, setD] = useState<{ added?: { id: string; name?: string }[] } | null>(null);
-  useEffect(() => { if (token) api<typeof d>("/api/integrations", {}, token).then(setD).catch(() => setD({})); }, [token]);
-  return (
-    <>
-      <Group title="Your agents' tools">
-        {(d?.added ?? []).length ? (d!.added!).map((x, i, a) => <Row key={x.id} last={i === a.length - 1} title={x.name ?? x.id} />)
-          : <Row last title="No integrations yet" desc="Add Solana, Orca or Polymarket and pick which agents can use them. Nothing runs until you add it." />}
-      </Group>
-      <Group><Row last title="Test funds only" desc="Trades and transfers run on Solana devnet with test funds only, and each one waits for your Confirm in chat. Market data is read only." /></Group>
-    </>
-  );
-}
-
 type SecretInfo = { id: string; name: string; label?: string; service?: string; last4?: string };
 /** Port of webapp/components/secrets/SecretsSection.tsx: vault list with add / delete sheets, and "How it works". */
 function Secrets() {
@@ -446,7 +433,7 @@ export default function Settings() {
   const k = useC();
   const [sec, setSec] = useState<Sec | null>(null);
   const cur = SECTIONS.find((x) => x.id === sec);
-  const body: Record<Sec, ReactNode> = { general: <General />, personal: <Personal />, agents: <AgentsSec />, models: <Models />, notifications: <Notifs />, data: <Data />, security: <Security />, accounts: <Accounts />, social: <Social />, integrations: <Integrations />, secrets: <Secrets />, billing: <Billing />, about: <About /> };
+  const body: Record<Sec, ReactNode> = { general: <General />, personal: <Personal />, agents: <AgentsSec />, models: <Models />, notifications: <Notifs />, data: <Data />, security: <Security />, accounts: <Accounts />, social: <Social />, wallets: <WalletsSec />, integrations: <IntegrationsSec />, secrets: <Secrets />, billing: <Billing />, about: <About /> };
   if (!cur) return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 16, paddingBottom: 32 }}>
       <T f="display" s={22} style={{ letterSpacing: -0.99, lineHeight: 20.9 }}>Settings</T>
