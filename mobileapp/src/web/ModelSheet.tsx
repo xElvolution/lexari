@@ -14,6 +14,13 @@ const INCLUDED: M[] = [
   { id: "grok-fast", label: "Grok 4.7 Fast", maker: "xAI", blurb: "Quickest replies for everyday chat.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
   { id: "grok-4.6", label: "Grok 4.6", maker: "xAI", blurb: "The previous Grok. Steady and thorough.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
 ];
+/** content/models.ts HOUSE: open models on Lexari's provider keys. Unavailable when the server has no key for them. */
+const HOUSE: M[] = [
+  { id: "kimi", label: "Kimi K3", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 } },
+  { id: "qwen", label: "Qwen 3.8 Max", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 } },
+  { id: "zg", label: "0G Compute", maker: "0G", blurb: "Open models on 0G's decentralized network, with automatic failover.", pool: "lamina", price: { in: 0.5, out: 1.6 } },
+];
+const LETTER: Record<string, [string, string]> = { "Moonshot AI": ["K", "#16191e"], Alibaba: ["Q", "#615ced"], "0G": ["0G", "#b75fff"] };
 const PREMIUM: M[] = [
   { id: "claude-sonnet", label: "Claude Sonnet 5.5", maker: "Anthropic", blurb: "Careful writing and reasoning. The everyday premium pick.", pool: "premium", price: { in: 2, out: 10 } },
   { id: "claude-opus", label: "Claude Opus 5.5", maker: "Anthropic", blurb: "Anthropic's strongest model for hard, long tasks.", pool: "premium", price: { in: 4, out: 20 } },
@@ -32,6 +39,8 @@ export function LaminaMark({ size = 20, color = "#fff" }: { size?: number; color
 const TILE: Record<string, { bg: string; tint?: string }> = { xAI: { bg: "#0a0a0a", tint: "#fff" }, Anthropic: { bg: "#d97757", tint: "#fff" }, Google: { bg: "#fff" } };
 function Mark({ m, size = 40 }: { m: M; size?: number }) {
   if (m.id === "lamina") return <View style={{ width: size, height: size, borderRadius: 12, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><LaminaMark size={size * 0.5} /></View>;
+  const letter = LETTER[m.maker];
+  if (letter) return <View style={{ width: size, height: size, borderRadius: 12, backgroundColor: letter[1], alignItems: "center", justifyContent: "center" }}><T f="xbold" s={Math.round(size * (letter[0].length > 1 ? 0.34 : 0.42))} c="#fff">{letter[0]}</T></View>;
   const st = TILE[m.maker] ?? TILE.xAI;
   return <View style={{ width: size, height: size, borderRadius: 12, backgroundColor: st.bg, overflow: "hidden", alignItems: "center", justifyContent: "center" }}><Image source={LOGO[m.maker]} resizeMode="contain" style={{ width: size * 0.6, height: size * 0.6, tintColor: st.tint }} /></View>;
 }
@@ -57,7 +66,7 @@ export function ModelSheet({ open, onClose, convo, agent, agentName, group, onCh
     } catch { /* stays open */ } finally { setBusy(null); }
   };
   const Row = ({ m, note }: { m: M; note?: string }) => {
-    const on = selected === m.id; const soon = !s?.models.available[m.id]; const lam = m.id === "lamina";
+    const on = selected === m.id; const soon = !s?.models.available[m.id]; const lam = m.id === "lamina"; const house = HOUSE.some((h) => h.id === m.id);
     return (
       <Pressable disabled={soon || !!busy} onPress={() => void pick(m)} style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderRadius: 18, backgroundColor: on ? GRAPE : k.card, borderWidth: on ? 1 : lam ? 2 : 1, borderColor: on ? GRAPE : lam ? "rgba(91,43,255,0.4)" : k.line, opacity: soon ? 0.55 : 1 }}>
         <Mark m={m} />
@@ -69,7 +78,7 @@ export function ModelSheet({ open, onClose, convo, agent, agentName, group, onCh
           <T s={12} c={on ? "rgba(255,255,255,0.8)" : k.ink60} style={{ marginTop: 2, lineHeight: 16 }}>{note ?? m.blurb}</T>
         </View>
         {busy === m.id ? <ActivityIndicator color={on ? "#fff" : GRAPE} /> : on ? <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}><Icon name="check" size={14} stroke={3} color={k.brandInk} /></View>
-          : soon ? <View style={{ borderRadius: 999, backgroundColor: k.tint, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={8.5} c={k.ink60}>Soon</Label></View>
+          : soon ? <View style={{ borderRadius: 999, backgroundColor: k.tint, paddingHorizontal: 8, paddingVertical: 4 }}><Label s={8.5} c={k.ink60}>{house ? "Unavailable" : "Soon"}</Label></View>
           : <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1, borderColor: k.line }} />}
       </Pressable>
     );
@@ -105,6 +114,8 @@ export function ModelSheet({ open, onClose, convo, agent, agentName, group, onCh
         <View style={{ gap: 8 }}>
           <Row m={LAMINA} />
           {INCLUDED.filter((m) => s.models.available[m.id] && !s.models.prefs.off.includes(m.id)).map((m) => <Row key={m.id} m={m} />)}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, marginTop: 12 }}><Label s={9.5} c={k.ink45}>Open models</Label><T s={11.5} c={k.ink45}>Included · falls back if busy</T></View>
+          {HOUSE.filter((m) => !s.models.available[m.id] || !s.models.prefs.off.includes(m.id)).map((m) => <Row key={m.id} m={m} />)}
           <Pressable onPress={() => { onClose(); router.push("/(tabs)/settings"); }} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4, marginTop: 4 }}><Icon name="key" size={13} color={k.brandInk} /><T f="bold" s={12.5} c={k.brandInk}>{s.models.keys.length ? "Manage models and API keys" : "Use your own API keys"}</T></Pressable>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, marginTop: 12 }}><Label s={9.5} c={k.ink45}>Premium</Label><T s={11.5} c={k.ink45}>Uses premium usage at API price + 20%</T></View>
           {!s.models.gateway ? (

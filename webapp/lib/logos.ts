@@ -89,5 +89,8 @@ export const MAKER_TILE: Record<string, string> = {
   Google: "#1a73e8",
   xAI: "#111111",
   OpenRouter: "#6467f2",
+  "Moonshot AI": "#16191e",
+  Alibaba: "#615ced",
+  "0G": "#b75fff",
   Custom: "var(--ink)",
 };

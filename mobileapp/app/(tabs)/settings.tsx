@@ -169,11 +169,15 @@ function AgentsSec() {
   );
 }
 
+/** content/models.ts HOUSE, same order and names as the web. */
+const OPEN_MODELS: [string, string, string][] = [["kimi", "Kimi K3", "Moonshot AI"], ["qwen", "Qwen 3.8 Max", "Alibaba"], ["zg", "0G Compute", "0G"]];
 function Models() {
   const k = useC();
   const { token } = useSession();
   const [m, setM] = useState<{ default?: string; prefs?: { on: string[] }; keys?: { provider: string }[] } | null>(null);
+  const [avail, setAvail] = useState<Record<string, boolean> | null>(null);
   useEffect(() => { if (token) api<typeof m>("/api/models", {}, token).then(setM).catch(() => setM({})); }, [token]);
+  useEffect(() => { if (token) api<{ models: { available: Record<string, boolean> } }>("/api/billing", {}, token).then((b) => setAvail(b.models.available)).catch(() => setAvail({})); }, [token]);
   return (
     <>
       <Group title="Defaults">
@@ -182,6 +186,13 @@ function Models() {
       <Group title="Models">
         {(m?.prefs?.on ?? []).map((id, i, a) => <Row key={id} last={i === a.length - 1} title={id} desc="Included" />)}
         {m && !(m.prefs?.on ?? []).length ? <Row last title="Lamina" desc="Included" /> : null}
+      </Group>
+      <Group title="Open models">
+        {OPEN_MODELS.map(([id, label, maker], i, a) => (
+          <Row key={id} last={i === a.length - 1} title={label} desc={avail ? (avail[id] ? `${maker} · included. Falls back to another open model if it's busy.` : `${maker} · unavailable on this server`) : maker}>
+            {avail && !avail[id] ? <View style={{ borderRadius: 999, backgroundColor: k.tint, paddingHorizontal: 8, paddingVertical: 4 }}><T f="bold" s={10} c={k.ink60}>UNAVAILABLE</T></View> : null}
+          </Row>
+        ))}
       </Group>
       <Group title="API Keys">
         <Row last title={`${m?.keys?.length ?? 0} keys`} desc="Keys are encrypted on Lexari's server and never shown again. Replies on your key are billed by your provider and never use your Lexari balance." />

@@ -29,7 +29,7 @@ const base = () => (process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/ap
 /** What a model is told about where it runs, so every model behaves like a Lexari agent. */
 export function houseNote(model: ModelInfo, messages: ChatMessage[]) {
   const desktop = messages.some((m) => m.role === "system" && m.content.includes(DESKTOP_MARK));
-  const who = model.pool === "lamina"
+  const who = model.pool === "lamina" && !model.house
     ? "If asked which model you are, say you run on Lamina, Lexari's own model, and don't name any other model or company behind it."
     : `If asked which model you are, say you are running on ${model.label} inside Lexari.`;
   const where = desktop

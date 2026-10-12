@@ -20,7 +20,11 @@ export type ModelInfo = {
   pool: ModelPool;
   /** list price (Lamina: what a turn typically costs Lexari to serve) */
   price: Price;
+  /** open models Lexari serves on its own provider keys: the provider, and the models tried next if it fails */
+  house?: { provider: HouseProvider; fallback: string[] };
 };
+/** Providers Lexari runs on its own keys (server env). A missing key shows the model as unavailable. */
+export type HouseProvider = "moonshot" | "dashscope" | "zg";
 
 export const LAMINA: ModelInfo = {
   id: "lamina",
@@ -48,7 +52,18 @@ export const INCLUDED: ModelInfo[] = [
   { id: "grok-4.6", label: "Grok 4.6", short: "Grok 4.6", maker: "xAI", blurb: "The previous Grok. Steady and thorough.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
 ];
 
-export const MODELS: ModelInfo[] = [LAMINA, ...INCLUDED, ...PREMIUM];
+/**
+ * Open models on Lexari's own provider keys, included on every plan like Lamina. Each one falls back to the next open
+ * model and then to Lamina when its provider is down, busy or out of credit (only before any text reached the person).
+ */
+export const HOUSE: ModelInfo[] = [
+  { id: "kimi", label: "Kimi K3", short: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 }, house: { provider: "moonshot", fallback: ["qwen", "zg"] } },
+  { id: "qwen", label: "Qwen 3.8 Max", short: "Qwen", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 }, house: { provider: "dashscope", fallback: ["zg", "kimi"] } },
+  { id: "zg", label: "0G Compute", short: "0G", maker: "0G", blurb: "Open models on 0G's decentralized network, with automatic failover.", pool: "lamina", price: { in: 0.5, out: 1.6 }, house: { provider: "zg", fallback: ["qwen", "kimi"] } },
+];
+export const isHouse = (m: ModelInfo | null | undefined) => !!m?.house;
+
+export const MODELS: ModelInfo[] = [LAMINA, ...INCLUDED, ...HOUSE, ...PREMIUM];
 export const modelById = (id: string | null | undefined): ModelInfo | null => (id ? MODELS.find((m) => m.id === id) ?? null : null);
 export const isModelId = (id: string) => MODELS.some((m) => m.id === id);
 
@@ -122,7 +137,7 @@ export function keyModelInfo(id: string): ModelInfo | null {
   return { id, label, short: label.replace(/^(Claude|Gemini) /, "").slice(0, 14), maker: p.maker, blurb: `${p.name} · your key`, pool: "byo", price: { in: 0, out: 0 } };
 }
 
-export type CatalogRow = { m: ModelInfo; enabled: boolean; /** Lamina is always on */ locked: boolean; provider: KeyProvider | null; /** you added it by name */ added: boolean };
+export type CatalogRow = { m: ModelInfo; enabled: boolean; /** Lamina is always on */ locked: boolean; provider: KeyProvider | null; /** you added it by name */ added: boolean; /** an open model whose provider key isn't set on this server */ unavailable?: boolean };
 /**
  * Every model you can switch on: Lamina and the built-ins this server can serve, then each keyed provider's models and
  * the ones you added by name. Used by Settings and, on the server, to check a pick.
@@ -131,7 +146,10 @@ export function modelCatalog(keys: KeyProvider[], prefs: ModelPrefs | null | und
   const on = new Set(prefs?.on ?? []), off = new Set(prefs?.off ?? []);
   const state = (id: string, def: boolean) => (off.has(id) ? false : on.has(id) ? true : def);
   const rows: CatalogRow[] = [{ m: LAMINA, enabled: true, locked: true, provider: null, added: false }];
-  for (const m of [...INCLUDED, ...PREMIUM]) if (available[m.id]) rows.push({ m, enabled: state(m.id, true), locked: false, provider: null, added: false });
+  for (const m of INCLUDED) if (available[m.id]) rows.push({ m, enabled: state(m.id, true), locked: false, provider: null, added: false });
+  // Open models are always listed; without their provider key they show as unavailable and can't be switched on.
+  for (const m of HOUSE) rows.push(available[m.id] ? { m, enabled: state(m.id, true), locked: false, provider: null, added: false } : { m, enabled: false, locked: false, provider: null, added: false, unavailable: true });
+  for (const m of PREMIUM) if (available[m.id]) rows.push({ m, enabled: state(m.id, true), locked: false, provider: null, added: false });
   for (const p of KEY_PROVIDERS) {
     if (!keys.includes(p.id)) continue;
     const seen = new Set<string>();

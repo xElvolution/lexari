@@ -99,10 +99,11 @@ function ModelList({ b }: { b: BillingState }) {
               <ModelMark m={r.m} size={26} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14px] font-semibold text-ink">{r.m.label}</span>
-                <span className="block truncate text-[11.5px] text-ink/50">{r.provider ? <>{KEY_PROVIDERS.find((p) => p.id === r.provider)!.name} key · <span className="font-mono">{r.m.id.split(":").slice(2).join(":")}</span></> : r.m.pool === "premium" ? "Premium usage" : "Included"}</span>
+                <span className="block truncate text-[11.5px] text-ink/50">{r.provider ? <>{KEY_PROVIDERS.find((p) => p.id === r.provider)!.name} key · <span className="font-mono">{r.m.id.split(":").slice(2).join(":")}</span></> : r.m.pool === "premium" ? "Premium usage" : r.m.house ? (r.unavailable ? `${r.m.maker} · unavailable on this server` : `${r.m.maker} · included`) : "Included"}</span>
               </span>
               {r.added && <button onClick={() => void drop(r)} disabled={busy === r.m.id} aria-label={`Remove ${r.m.label}`} title="Remove" className={`${iconBtn} !h-7 !w-7 text-ink/45 hover:bg-[#e5484d]/12 hover:text-[#e5484d]`}><Icon name="trash" size={14} /></button>}
-              <Switch on={r.enabled} disabled={r.locked} busy={busy === r.m.id} label={`${r.m.label} ${r.enabled ? "on" : "off"}`} onChange={(v) => void toggle(r, v)} />
+              {r.unavailable && <span data-model-unavailable className="label shrink-0 rounded-full bg-tint px-2 py-1 text-[8.5px] text-ink/60">Unavailable</span>}
+              <Switch on={r.enabled} disabled={r.locked || r.unavailable} busy={busy === r.m.id} label={`${r.m.label} ${r.enabled ? "on" : "off"}`} onChange={(v) => void toggle(r, v)} />
             </li>
           ))}
           {addable.map((p) => (
