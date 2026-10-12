@@ -37,7 +37,20 @@ test("Qwen on DashScope: OpenAI-compatible target from env, with overrides", () 
 
 test("fallback chain keeps only ready providers, the picked model first", () => {
   withEnv({ DASHSCOPE_API_KEY: "a", ZG_COMPUTE_API_KEY: "b" }, () => {
-    assert.deepEqual(houseChain(modelById("qwen")!).map((m) => m.id), ["qwen", "zg"]);
-    assert.deepEqual(houseChain(modelById("kimi")!).map((m) => m.id), ["qwen", "zg"]);
+    // with a 0G key, Kimi is ready too (it runs on 0G when MOONSHOT_API_KEY is missing)
+    assert.deepEqual(houseChain(modelById("qwen")!).map((m) => m.id), ["qwen", "zg", "kimi"]);
+    assert.deepEqual(houseChain(modelById("kimi")!).map((m) => m.id), ["kimi", "qwen", "zg"]);
   });
+});
+
+test("Kimi and Qwen run on the 0G key when their own keys are missing", () => {
+  const keep = { ...process.env };
+  try {
+    delete process.env.MOONSHOT_API_KEY; delete process.env.DASHSCOPE_API_KEY; process.env.ZG_COMPUTE_API_KEY = "sk-test-zg";
+    const k = houseTarget(modelById("kimi")!)!, q = houseTarget(modelById("qwen")!)!;
+    assert.equal(k.key, "sk-test-zg"); assert.equal(k.model, "kimi-k3"); assert.match(k.baseUrl!, /router-api\.0g\.ai/);
+    assert.equal(q.model, "qwen3.8-max"); assert.equal(q.key, "sk-test-zg");
+    process.env.MOONSHOT_API_KEY = "sk-direct";
+    assert.equal(houseTarget(modelById("kimi")!)!.key, "sk-direct");
+  } finally { process.env = keep; }
 });
