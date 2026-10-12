@@ -307,10 +307,6 @@ export default function SignIn() {
             <button data-in disabled={!PRIVY_ON || !ready || privyBusy} onClick={() => start("email")} className="flex h-14 w-full items-center justify-center gap-3 rounded-full border-2 border-line bg-card px-5 text-[16px] font-bold text-ink transition hover:-translate-y-0.5 hover:border-grape active:scale-[.98] disabled:opacity-60">
               <Icon name="mail" size={20} />Continue with email
             </button>
-            <button data-in data-passkey disabled={pkBusy} onClick={() => void passkey()} className="flex h-14 w-full items-center justify-center gap-3 rounded-full border-2 border-line bg-card px-5 text-[16px] font-bold text-ink transition hover:-translate-y-0.5 hover:border-grape active:scale-[.98] disabled:opacity-60">
-              <Icon name="lock" size={20} />{pkBusy ? "Waiting for passkey…" : "Continue with a passkey"}
-            </button>
-            {pkErr && <p role="alert" className="text-center text-[13px] text-[#e5484d]">{pkErr} <button className="underline" onClick={() => void passkey(true)}>Create a new passkey</button></p>}
           </div>
           {(() => { const t = privyStep === "wallet" && authenticated ? "Setting up your wallet…" : privyStep === "sign" ? "Signing you in…" : googleNote; return t ? <p className="mt-3 text-center text-[13px] text-ink/60">{t}</p> : null; })()}
 
