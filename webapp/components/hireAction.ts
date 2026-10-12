@@ -31,8 +31,10 @@ async function run(slug: string, faceEl: HTMLElement | null): Promise<"ok" | "fu
   const before = s.paid.includes(slug);
   let paidNow = false;
   if (sp.free && !before) {
+    // Free with any paid plan: on Free, open the upgrade instead.
+    if (s.plan === "free") { openUpgrade("hire"); toast({ text: `${sp.name} is free with any paid plan`, face: sp.seed, color: sp.color }); return "full"; }
     try { await api("/api/hires", { body: { slug, pay: "balance" } }); void refreshHub(); }
-    catch (e) { toast({ text: friendly(e, "Could not hire them."), face: "home" }); return "unpaid"; }
+    catch (e) { if ((e as { status?: number }).status === 402) { openUpgrade("hire"); return "full"; } toast({ text: friendly(e, "Could not hire them."), face: "home" }); return "unpaid"; }
   } else if (before) {
     try { await api("/api/hires", { method: "PUT", body: { slug } }); }
     catch (e) { if ((e as { status?: number }).status === 402) { openUpgrade("hire"); return "full"; } toast({ text: friendly(e, "Could not add them back."), face: "home" }); return "unpaid"; }

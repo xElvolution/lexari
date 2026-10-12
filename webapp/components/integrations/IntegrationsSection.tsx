@@ -12,6 +12,7 @@ import { IntegrationLogo, StatusPill } from "./Logos";
 import { CatalogSheet, GrantSheet, IntToggle } from "./Sheets";
 import { STATUS_CHIP } from "./ChatCards";
 import { AuditSheet, ConsentSheet } from "./Consent";
+import { Sheet as Modal } from "../billing/parts";
 
 type Sheet = null | { kind: "catalog" } | { kind: "grant"; info: IntegrationInfo; grant?: AddedIntegration; fromCatalog: boolean } | { kind: "consent"; info: IntegrationInfo; grant: AddedIntegration } | { kind: "audit"; connector?: string };
 const DAY = 86_400_000;
@@ -43,6 +44,14 @@ const TRY: Partial<Record<string, string>> = {
   prices: "“What's BTC at right now?”",
 };
 
+/** The page's groups, in order. Anything not listed (new integrations) shows under Data. */
+const GROUPS: [string, string[]][] = [
+  ["Trading", ["orca", "jupiter", "kuru", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
+  ["Wallets & Payments", ["solana", "base", "ethereum", "monad", "tempo", "agora", "metamask", "mera", "payments"]],
+  ["Data", ["prices", "nansen", "alchemy", "ore", "solami"]],
+  ["AI", ["self"]],
+];
+
 /** Settings > Integrations: the tools you added, who may use them, their limits and what they did. */
 export default function IntegrationsSection({ s }: { s: State }) {
   const st = useIntegrations();
@@ -50,6 +59,8 @@ export default function IntegrationsSection({ s }: { s: State }) {
   const [fresh, setFresh] = useState<string | null>(null);
   const [killAsk, setKillAsk] = useState(false);
   const [killBusy, setKillBusy] = useState(false);
+  const [detail, setDetail] = useState<string | null>(null);
+  const [info, setInfo] = useState<IntegrationInfo | null>(null);
   useEffect(() => { void loadIntegrations(true); }, []);
   useEffect(() => { if (!fresh) return; const t = setTimeout(() => setFresh(null), 2200); return () => clearTimeout(t); }, [fresh]);
 
@@ -76,79 +87,71 @@ export default function IntegrationsSection({ s }: { s: State }) {
     const g = st.added.find((a) => a.connector === info.id);
     setSheet({ kind: "grant", info, grant: g, fromCatalog: true });
   };
+  const open = (i: IntegrationInfo) => {
+    const g = st.added.find((a) => a.connector === i.id);
+    if (g) setDetail(g.id); else if (i.addable && i.status !== "needskey") pick(i); else setInfo(i);
+  };
+  const shownDetail = detail ? st.added.find((g) => g.id === detail) : null;
   return (
     <div data-integrations data-int-state="open">
-      <section className="grain relative overflow-hidden rounded-[22px] bg-[linear-gradient(130deg,#2a0f9a,#5b2bff_60%,#8f6bff)] p-5 text-white">
-        <div aria-hidden className="pointer-events-none absolute -right-6 -top-6 flex rotate-12 gap-2 opacity-25">
-          {INTEGRATIONS.filter((i) => !i.builtin).slice(0, 4).map((i, n) => <span key={i.id} style={{ animation: `hub-float ${3 + n * 0.4}s ease-in-out ${n * 0.3}s infinite` }}><IntegrationLogo id={i.id} size={40} /></span>)}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div data-int-count className="text-[15px] font-bold text-ink">{st.added.length} connected</div>
+          <p className="text-[12.5px] leading-snug text-ink/55">Agents only use what you connect, and ask before moving money.</p>
         </div>
-        <div className="relative flex items-start gap-4">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><Icon name="plug" size={24} /></span>
-          <div className="min-w-0 flex-1">
-            <div className="label text-[9.5px] text-white/70">Your agents&apos; tools</div>
-            <div data-int-count className="display mt-1 text-[30px] leading-none"><span key={st.added.length} className="price-in">{st.added.length}</span> added</div>
-            <p className="mt-2 text-[13.5px] leading-snug text-white/80">Agents only see what you add here, act through their own wallets and stay inside your limits.</p>
+        <button data-int-add onClick={() => setSheet({ kind: "catalog" })} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-grape px-3.5 text-[13px] font-bold text-white"><Icon name="plus" size={13} stroke={2.6} />Add</button>
+        <button data-int-audit onClick={() => setSheet({ kind: "audit" })} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-tint px-3 text-[13px] font-semibold text-ink"><Icon name="list" size={13} />Audit</button>
+        {live > 0 && <button data-int-kill onClick={() => setKillAsk(true)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-tint px-3 text-[13px] font-semibold text-[#e5484d]"><Icon name="stop" size={13} />Off</button>}
+      </div>
+      {killAsk && (
+        <div data-int-kill-ask className="mt-3 rounded-2xl bg-card p-3 ring-1 ring-[#e5484d]/40">
+          <p className="text-[13px] leading-snug text-ink/80">Switch off all {live} integration{live === 1 ? "" : "s"}? Agents lose access right away and anything waiting for your Confirm is cancelled.</p>
+          <div className="mt-2.5 flex gap-2">
+            <button onClick={() => setKillAsk(false)} disabled={killBusy} className="h-9 flex-1 rounded-full bg-tint text-[13.5px] font-semibold text-ink">Keep</button>
+            <button data-int-kill-yes onClick={() => void killAll()} disabled={killBusy} className="h-9 flex-1 rounded-full bg-[#e5484d] text-[13.5px] font-bold text-white disabled:opacity-60">{killBusy ? "Switching off…" : "Switch off all"}</button>
           </div>
-        </div>
-        <button data-int-add onClick={() => setSheet({ kind: "catalog" })} className="relative mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white text-[15.5px] font-bold text-[#3a17c9] shadow-[0_5px_0_rgba(20,6,80,.35)] transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_2px_0_rgba(20,6,80,.35)]">
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-grape text-white"><Icon name="plus" size={14} stroke={2.6} /></span>Add integration
-        </button>
-        {st.added.length > 0 && (killAsk ? (
-          <div data-int-kill-ask className="row-in relative mt-3 rounded-2xl bg-black/20 p-3">
-            <p className="text-[13px] leading-snug text-white/90">Switch off all {live} integration{live === 1 ? "" : "s"}? Agents lose access right away and anything waiting for your Confirm is cancelled.</p>
-            <div className="mt-2.5 flex gap-2">
-              <button onClick={() => setKillAsk(false)} disabled={killBusy} className="h-10 flex-1 rounded-full bg-white/15 text-[14px] font-semibold text-white hover:bg-white/25">Keep</button>
-              <button data-int-kill-yes onClick={() => void killAll()} disabled={killBusy} className="h-10 flex-1 rounded-full bg-[#e5484d] text-[14px] font-bold text-white disabled:opacity-60">{killBusy ? "Switching off…" : "Switch off all"}</button>
-            </div>
-          </div>
-        ) : (
-          <div className="relative mt-3 grid grid-cols-2 gap-2">
-            <button data-int-audit onClick={() => setSheet({ kind: "audit" })} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 text-[13.5px] font-semibold text-white transition hover:bg-white/25"><Icon name="list" size={15} />Audit log</button>
-            <button data-int-kill onClick={() => setKillAsk(true)} disabled={!live} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-white/15 text-[13.5px] font-semibold text-white transition hover:bg-white/25 disabled:opacity-50"><Icon name="stop" size={15} />Switch off all</button>
-          </div>
-        ))}
-      </section>
-
-      {st.added.length === 0 ? (
-        <section data-int-none className="mt-5 grid place-items-center rounded-[22px] bg-card px-5 py-8 text-center ring-1 ring-line">
-          <div className="flex -space-x-2">{["solana", "orca", "polymarket"].map((id, n) => <span key={id} className="pop rounded-[15px] ring-4 ring-[var(--card,#fff)]" style={{ animationDelay: `${n * 80}ms` }}><IntegrationLogo id={id as never} size={46} /></span>)}</div>
-          <p className="mt-4 text-[16px] font-bold text-ink">No integrations yet</p>
-          <p className="mt-1 max-w-[300px] text-[13.5px] leading-snug text-ink/60">Add Solana, Orca or Polymarket and pick which agents can use them. Nothing runs until you add it.</p>
-          <button onClick={() => setSheet({ kind: "catalog" })} className="btn btn-brand btn-sm mt-5"><Icon name="plus" size={15} stroke={2.4} />Add integration</button>
-        </section>
-      ) : (
-        <div className="mt-5 space-y-4">
-          {st.added.map((g) => <AddedCard key={g.id} g={g} st={st} s={s} fresh={fresh === g.connector}
-            onEdit={() => { const info = integrationById(g.connector); if (info) setSheet({ kind: "grant", info, grant: g, fromCatalog: false }); }}
-            onConsent={() => { const info = integrationById(g.connector); if (info) setSheet({ kind: "consent", info, grant: g }); }}
-            onAudit={() => setSheet({ kind: "audit", connector: g.connector })} />)}
         </div>
       )}
-      <h3 className="label mt-7 text-[10px] text-ink/50">More for your agents</h3>
-      <div data-int-more className="mt-2 grid gap-3 sm:grid-cols-2">
-        {INTEGRATIONS.filter((i) => !i.builtin && i.status !== "soon" && !st.added.some((g) => g.connector === i.id)).map((i) => {
-          const setup = i.status === "needskey";
-          return (
-            <article key={i.id} data-int-card={i.id} className="rounded-[22px] bg-card p-4 ring-1 ring-line">
-              <div className="flex items-start gap-3">
-                <IntegrationLogo id={i.id} size={44} />
-                <div className="min-w-0 flex-1"><h4 className="text-[15.5px] font-bold text-ink">{i.name}</h4><p className="text-[11.5px] text-ink/50">{i.chains.join(", ")}</p></div>
-                {i.addable && !setup ? (
-                  <button role="switch" aria-checked={false} aria-label={`Turn on ${i.name}`} onClick={() => pick(i)} className="relative h-7 w-12 shrink-0 rounded-full bg-ink/15 transition hover:bg-ink/25"><span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow" /></button>
-                ) : null}
-              </div>
-              <p className="mt-2.5 text-[13.5px] leading-snug text-ink/75">{i.blurb}</p>
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-semibold ${setup ? "bg-[rgba(245,165,36,.16)] text-[#9a6700]" : "bg-tint text-ink/65"}`}>{STATUS_LABEL[i.status]}</span>
-                {i.moves ? <span className="rounded-full bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-ink/65">Asks before moving money</span> : <span className="rounded-full bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-ink/65">Read only</span>}
-                {i.id === "mera" && <span className="rounded-full bg-tint px-2.5 py-1 text-[11.5px] font-semibold text-ink/65">In Settings, Security</span>}
-              </div>
-            </article>
-          );
-        })}
-      </div>
-      <p className="mt-5 text-[12.5px] leading-snug text-ink/50">Trades and transfers run on Solana devnet with test funds only, and each one waits for your Confirm in chat. Market data is read only.</p>
+      {GROUPS.map(([label, ids]) => {
+        const items = ids.map((id) => integrationById(id as never)).filter((i): i is IntegrationInfo => !!i && i.status !== "soon");
+        if (!items.length) return null;
+        return (
+          <section key={label} className="mt-5">
+            <h3 className="label mb-2 text-[9.5px] text-ink/50">{label}</h3>
+            <div data-int-grid className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {items.map((i) => {
+                const g = st.added.find((a) => a.connector === i.id);
+                const on = !!g?.enabled || !!i.builtin;
+                const setup = !g && !i.builtin && i.status === "needskey";
+                return (
+                  <button key={i.id} data-int-card={i.id} onClick={() => open(i)} className={`flex h-[60px] items-center gap-3 rounded-2xl bg-card px-3 text-left ring-1 transition hover:ring-grape/50 ${fresh === i.id ? "ring-2 ring-grape" : "ring-line"}`}>
+                    <IntegrationLogo id={i.id} size={32} />
+                    <span className="min-w-0 flex-1"><span className="block truncate text-[14px] font-bold text-ink">{i.name}</span><span className="block truncate text-[12px] text-ink/55">{i.blurb}</span></span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold ${on ? "bg-[#e7f8ee] text-[#137a3d]" : setup ? "bg-[rgba(245,165,36,.16)] text-[#9a6700]" : "bg-tint text-ink/60"}`}>{on ? "Connected" : setup ? "Setup" : g ? "Off" : "Available"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+      <p className="mt-5 text-[12px] leading-snug text-ink/50">Every trade and transfer waits for your Confirm in chat. Market data is read only.</p>
 
+      {shownDetail && (() => { const i = integrationById(shownDetail.connector); return (
+        <Modal label="integration" title={i?.name || "Integration"} icon={<IntegrationLogo id={shownDetail.connector as never} size={28} />} onClose={() => setDetail(null)}>
+          <AddedCard g={shownDetail} st={st} s={s} fresh={false}
+            onEdit={() => { setDetail(null); if (i) setSheet({ kind: "grant", info: i, grant: shownDetail, fromCatalog: false }); }}
+            onConsent={() => { setDetail(null); if (i) setSheet({ kind: "consent", info: i, grant: shownDetail }); }}
+            onAudit={() => { setDetail(null); setSheet({ kind: "audit", connector: shownDetail.connector }); }} />
+        </Modal>
+      ); })()}
+      {info && (
+        <Modal label="integration" title={info.name} sub={info.chains.join(", ")} icon={<IntegrationLogo id={info.id} size={28} />} onClose={() => setInfo(null)}>
+          <p className="text-[14px] leading-snug text-ink/75">{info.about}</p>
+          <ul className="mt-3 space-y-1.5">{info.can.map((c) => <li key={c.text} className="flex items-start gap-2 text-[13.5px] text-ink/80"><Icon name={c.live ? "check" : "info"} size={14} className="mt-0.5 shrink-0 text-brand-ink" />{c.text}</li>)}</ul>
+          <p className="mt-3 rounded-2xl bg-tint p-3 text-[12.5px] text-ink/65">{info.id === "mera" ? "Link a passkey in Settings, Security." : info.builtin ? "Always on for your agents." : info.status === "needskey" ? "This one needs setting up on the server before agents can use it." : STATUS_LABEL[info.status]}</p>
+        </Modal>
+      )}
       {sheet?.kind === "catalog" && <CatalogSheet added={st.added} onPick={pick} onClose={() => setSheet(null)} />}
       {sheet?.kind === "grant" && (
         <GrantSheet key={sheet.info.id + (sheet.grant?.id || "")} info={sheet.info} grant={sheet.grant} st={st}

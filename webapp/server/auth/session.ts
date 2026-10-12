@@ -159,6 +159,17 @@ export async function startSession(userId: string, from: { ua?: string; ip?: str
   const device = deviceName(from.ua || ""), hint = ipHint(from.ip || "");
   const [row] = await database.insert(sessions).values({ userId, tokenHash: hashToken(token), expiresAt: expires, userAgent: (from.ua || "").slice(0, 300), device, ipHint: hint }).returning({ id: sessions.id });
   await noteSignIn(userId, row.id, device, hint).catch((e: Error) => console.error(`[security] sign-in note: ${e.message?.slice(0, 120)}`));
+  await oreGift(userId).catch(() => {});
   const [u] = await database.select({ wallet: users.wallet }).from(users).where(eq(users.id, userId)).limit(1);
   return { token, expires, wallet: u?.wallet || "" };
+}
+
+/** "Your free ORE Miner is waiting": once per account (the notification key makes it idempotent), new or existing. */
+export async function oreGift(userId: string) {
+  const { notify } = await import("../notify");
+  const { agents } = await import("../db/schema");
+  const { and: a2, eq: e2 } = await import("drizzle-orm");
+  const [has] = await db().select({ id: agents.id }).from(agents).where(a2(e2(agents.userId, userId), e2(agents.slug, "ore"))).limit(1);
+  if (has) return;
+  await notify(userId, { kind: "hire", title: "Your free ORE Miner is waiting", body: "Free with any paid plan. It mines ORE on a server you own and reports what it earns.", url: "/marketplace/ore", key: "gift:ore-miner" });
 }

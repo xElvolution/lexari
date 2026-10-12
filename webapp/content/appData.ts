@@ -152,7 +152,7 @@ export const SPECIALISTS: Specialist[] = [
     examples: ["Brief me on my space every morning", "Watch three competitors", "List new launches this week"],
     words: ["news", "competitor", "brief", "trend", "market", "scan"],
     review: [{ who: "Uche", seed: 217, stars: 5, text: "My morning read, done for me." }] },
-  { slug: "ore", name: "ORE Miner", job: "ORE mining", cat: "Onchain", quip: "Your server, your ORE. I run the rig.", back: "Explains ORE mining, connects to a server you own, installs and runs the miner there and reports what it earns. Free to hire.", rating: 4.8, jobs: 1, reviews: 0, ...face(13), speed: "Always on", free: true,
+  { slug: "ore", name: "ORE Miner", job: "ORE mining", cat: "Onchain", quip: "Your server, your ORE. I run the rig.", back: "Explains ORE mining, connects to a server you own, installs and runs the miner there and reports what it earns. Free with any paid plan.", rating: 4.8, jobs: 1, reviews: 0, ...face(13), speed: "Always on", free: true,
     skills: [["ORE mining", 95], ["Server setup", 90], ["Miner monitoring", 92], ["Plain reports", 88]], tools: ["Your server", "Terminal"],
     examples: ["How does ORE mining work now?", "Connect my server and install the miner", "How is my miner doing?"],
     words: ["ore", "mine", "mining", "miner", "hashrate", "rig"],

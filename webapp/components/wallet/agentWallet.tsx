@@ -12,6 +12,7 @@ import { shortAddr } from "@/content/appData";
 import Icon from "../Icon";
 import { CoinLogo } from "../Logos";
 import { AgentTile } from "../faces";
+import { Sheet as Modal } from "../billing/parts";
 
 export type Holding = { asset: string; amount: number; decimals: number; test: boolean };
 export type ChainWallet = { chain: "solana" | "base" | "ethereum"; network: string; address: string; holdings: Holding[]; explorer: string };
@@ -59,7 +60,7 @@ export async function fundAgent(slug: string, name: string, amounts: readonly nu
   const r = await payFromBalance({
     kind: "fund", title: `Fund ${name}`, doing: `Funding ${name}`, what: `Send dollars from your balance to ${name}'s own wallet.`, usd, amounts,
     art: <AgentTile id={slug} look={undefined} size={64} radius={22} />,
-    note: "Test funds on Solana devnet: it arrives as test USDC, not real money. Anything left can come back to your balance.",
+    note: "It arrives in its wallet as USDC. Anything left can come back to your balance.",
     cta: (v) => `Fund $${v} from balance`,
     run: async (v) => {
       const out = await api<{ funding: { status: string; sig: string | null } }>("/api/wallet/fund", { body: { agent: slug, usd: v, key: key() } });
@@ -69,7 +70,7 @@ export async function fundAgent(slug: string, name: string, amounts: readonly nu
   });
   if (r.ok) {
     const sig = (r.result as { funding: { sig: string | null } }).funding.sig;
-    toast({ text: `$${r.usd} sent to ${name}'s wallet${sig ? " · confirmed on devnet" : ""}` });
+    toast({ text: `$${r.usd} sent to ${name}'s wallet${sig ? " · confirmed" : ""}` });
     void refreshAll();
   }
   return r;
@@ -94,8 +95,10 @@ export function AgentWalletCard({ a, name, look, funding, fundings = [], compact
   const [back, setBack] = useState(false);
   const sol = a.wallets.find((w) => w.chain === "solana");
   const usdc = sol?.holdings.find((h) => h.asset === "USDC" && h.amount > 0);
-  const devnet = funding.network === "devnet";
   const last = fundings.find((f) => f.agent === a.slug);
+  const [addrs, setAddrs] = useState(false);
+  const evm = a.wallets.find((w) => w.chain !== "solana");
+  const total = a.wallets.flatMap((w) => w.holdings).filter((h) => /USD/.test(h.asset)).reduce((x, h) => x + h.amount, 0);
   return (
     <li data-agent-wallet={a.slug} className={`list-none rounded-[22px] bg-card ring-1 ring-line ${compact ? "p-3.5" : "p-4"}`}>
       <div className="flex items-center gap-3">
@@ -104,15 +107,13 @@ export function AgentWalletCard({ a, name, look, funding, fundings = [], compact
           <div className="truncate text-[15.5px] font-bold text-ink">{name}&apos;s wallet</div>
           <div className="text-[12.5px] leading-snug text-ink/60">{a.kind === "hired" ? "Its own wallet for tasks" : "Its own wallet, separate from your balance"}</div>
         </div>
-        {devnet && <span className="label shrink-0 rounded-full bg-[#ffd84d] px-2 py-0.5 text-[8px] text-[#0a0a0a]">Test funds</span>}
       </div>
       {sol ? (
         <div className="mt-3 rounded-2xl bg-tint p-3">
-          <div className="flex items-center gap-2 text-[12px] text-ink/60">
-            <span className="label text-[8.5px]">Solana{devnet ? " devnet" : ""}</span>
-            <button onClick={() => copy(sol.address)} title={sol.address} className="ml-auto flex min-w-0 items-center gap-1 font-mono text-[12px] text-ink/70 hover:text-ink"><span className="truncate">{shortAddr(sol.address)}</span><Icon name="copy" size={12} /></button>
-            <a href={sol.explorer} target="_blank" rel="noreferrer" aria-label="Open in explorer" className="grid h-6 w-6 place-items-center rounded-full text-ink/55 hover:bg-card hover:text-ink"><Icon name="arrow" size={12} /></a>
-          </div>
+          <button data-agent-addresses onClick={() => setAddrs(true)} className="flex w-full items-center gap-2 text-left">
+            <span className="min-w-0 flex-1"><span className="label block text-[8.5px] text-ink/55">Agent wallet</span><span className="tab-num block text-[20px] font-extrabold text-ink">{hide ? MASK : `$${total.toFixed(2)}`}</span></span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[12px] font-bold text-brand-ink ring-1 ring-line">Addresses<Icon name="right" size={11} /></span>
+          </button>
           <div data-holdings className="mt-2 flex flex-wrap gap-2">
             {sol.holdings.filter((h) => h.amount > 0).length === 0 ? <span className="text-[13.5px] font-semibold text-ink/55">Empty</span>
               : sol.holdings.filter((h) => h.amount > 0).map((h) => (
@@ -137,6 +138,37 @@ export function AgentWalletCard({ a, name, look, funding, fundings = [], compact
       )}
       {!funding.on && sol && <p className="mt-2 text-[12px] text-ink/50">Funding agents isn&apos;t switched on here yet.</p>}
       {children}
+      {addrs && <AddressSheet name={name} evm={evm?.address} sol={sol?.address} onClose={() => setAddrs(false)} />}
     </li>
+  );
+}
+
+function Qr({ text }: { text: string }) {
+  const [svg, setSvg] = useState("");
+  useEffect(() => { import("qrcode").then((Q) => Q.toString(text, { type: "svg", margin: 1, width: 150 })).then(setSvg, () => setSvg("")); }, [text]);
+  return <div aria-label="QR code" className="h-[150px] w-[150px] shrink-0 overflow-hidden rounded-xl bg-white p-1 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />;
+}
+
+/** Every address an agent has: one EVM address for all EVM chains, its Solana address. Copy and QR for each. */
+function AddressSheet({ name, evm, sol, onClose }: { name: string; evm?: string; sol?: string; onClose: () => void }) {
+  const rows: [string, string, string | undefined][] = [
+    ["EVM", "One address on Ethereum, Base, Monad, Hyperliquid EVM, Tempo and every other EVM chain", evm],
+    ["Solana", "Solana", sol],
+  ];
+  return (
+    <Modal label="agent-addresses" title={`${name}'s addresses`} sub="Fund agents from your balance with Fund. These are for reference." icon={<Icon name="wallet" size={20} />} onClose={onClose}>
+      <div className="grid gap-3">
+        {rows.filter((r) => r[2]).map(([t, d, addr]) => (
+          <div key={t} data-addr-row={t} className="flex items-center gap-3 rounded-2xl bg-tint p-3 max-[430px]:flex-col max-[430px]:items-stretch">
+            <div className="min-w-0 flex-1">
+              <div className="text-[14.5px] font-bold text-ink">{t}</div>
+              <div className="text-[12px] leading-snug text-ink/55">{d}</div>
+              <button onClick={() => copy(addr!)} className="mt-2 flex w-full items-center gap-2 text-left"><span className="min-w-0 flex-1 break-all font-mono text-[12.5px] font-semibold text-ink">{addr}</span><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-card text-brand-ink ring-1 ring-line"><Icon name="copy" size={14} /></span></button>
+            </div>
+            <div className="max-[430px]:self-center"><Qr text={addr!} /></div>
+          </div>
+        ))}
+      </div>
+    </Modal>
   );
 }
