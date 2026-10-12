@@ -98,13 +98,13 @@ export default function OreGift({ agentName, onDone }: { agentName: string; onDo
       </ul>
 
       {err && <p role="alert" className="mt-3 text-[13px] font-semibold text-[#e5484d]">{err}</p>}
-      <div className={`mt-5 flex w-full flex-col gap-2 transition-opacity duration-500 sm:flex-row ${opened ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+      <div className={`mt-5 flex w-full shrink-0 flex-col gap-2 transition-opacity duration-500 sm:flex-row ${opened ? "opacity-100" : "pointer-events-none opacity-0"}`}>
         {phase === "claimed" ? (
-          <button ref={cta} data-ore-continue onClick={() => onDone(true)} className="btn btn-brand flex-1">Continue →</button>
+          <button ref={cta} data-ore-continue onClick={() => onDone(true)} className="btn btn-brand w-full shrink-0 sm:flex-1">Continue →</button>
         ) : (
           <>
-            <button data-ore-skip onClick={() => onDone(false)} disabled={phase === "claiming"} className="btn btn-line flex-1 text-ink disabled:opacity-50">Maybe later</button>
-            <button ref={cta} data-ore-claim onClick={() => void claim()} disabled={phase === "claiming"} className="btn btn-brand flex-[1.4] disabled:opacity-70">{phase === "claiming" ? "Adding…" : "Claim ORE bot"}</button>
+            <button data-ore-skip onClick={() => onDone(false)} disabled={phase === "claiming"} className="btn btn-line w-full shrink-0 text-ink disabled:opacity-50 sm:flex-1">Maybe later</button>
+            <button ref={cta} data-ore-claim onClick={() => void claim()} disabled={phase === "claiming"} className="btn btn-brand w-full shrink-0 disabled:opacity-70 sm:flex-[1.4]">{phase === "claiming" ? "Adding…" : "Claim ORE bot"}</button>
           </>
         )}
       </div>
