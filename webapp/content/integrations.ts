@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -157,6 +157,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "mera passkey face id touch id webauthn prf sign in keys monad category labs",
   },
   {
+    id: "agora", name: "Agora AUSD", category: "trading", status: "live", addable: true, moves: true, chains: ["Monad testnet"],
+    blurb: "Hold and pay in AUSD, including cross-border sends.",
+    about: "AUSD is Agora's fiat-backed dollar stablecoin. Your agent holds AUSD in its own Monad wallet, pays people in it, and sends it across borders with the recipient's local amount shown at today's rate. Every payment waits for your Confirm and stays inside your limits. Test AUSD from Agora's faucet.",
+    can: [{ text: "AUSD balance", live: true }, { text: "Pay in AUSD, after you confirm", live: true }, { text: "Cross-border sends with the local amount shown", live: true }, { text: "Test AUSD from the Agora faucet", live: true }],
+    tags: "agora ausd stablecoin dollar pay payment cross border remittance send monad",
+  },
+  {
     id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],
     blurb: "Perps orders on Hyperliquid testnet with a trade-only API key.",
     about: "Each agent trades from its own Hyperliquid testnet account through an API wallet: a separate key that can place and cancel orders but can never withdraw or move funds. Agents read prices, positions and open orders, and every order waits for your Confirm inside your per-trade and daily limits. Test USDC only.",
@@ -273,6 +280,7 @@ const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
   tempo: ["read", "trade", "withdraw", "transfer"],
   hyperliquid: ["read", "trade"],
   kuru: ["read", "trade"],
+  agora: ["read", "transfer"],
   metamask: ["read", "withdraw"],
   intents: ["read", "trade"],
   panta: ["read", "bet"],
@@ -287,6 +295,7 @@ export function scopeOfTool(tool: string, risk: "read" | "sign"): Scope {
   if (/\.transfer$/.test(tool)) return "transfer";
   if (tool === "panta.position") return "bet";
   if (tool === "metamask.send") return "withdraw";
+  if (tool.startsWith("ausd.")) return "transfer";
   return "trade";
 }
 /** How long a grant lasts. */
