@@ -11,6 +11,7 @@ import { HttpError } from "../http";
 import { solanaKeypair } from "../agentWallets";
 import { EVM, evmAddress } from "./evm";
 import { TEMPO } from "./tempo";
+import { HL_NETWORK, hlExplorer } from "./hyperliquid";
 import { addrExplorer } from "./solana";
 import { cardOf } from "./cards";
 
@@ -31,7 +32,7 @@ export async function teamOf(userId: string) {
   return rows.sort((a, b) => Number(b.slug === "home") - Number(a.slug === "home")).map((r) => ({ slug: r.slug, kind: r.kind, name: (r.meta as { nick?: string } | null)?.nick || r.name }));
 }
 
-const CHAIN_OF: Partial<Record<IntegrationId, "solana" | "base" | "ethereum" | "tempo">> = { solana: "solana", orca: "solana", base: "base", ethereum: "ethereum", tempo: "tempo", panta: "solana" };
+const CHAIN_OF: Partial<Record<IntegrationId, "solana" | "base" | "ethereum" | "tempo" | "hyperliquid">> = { solana: "solana", orca: "solana", base: "base", ethereum: "ethereum", tempo: "tempo", panta: "solana", hyperliquid: "hyperliquid" };
 
 function addressesFor(userId: string, g: Grant, team: { slug: string; kind: string }[]) {
   const chain = CHAIN_OF[g.connector as IntegrationId];
@@ -43,6 +44,7 @@ function addressesFor(userId: string, g: Grant, team: { slug: string; kind: stri
       if (chain === "solana") { const addr = solanaKeypair(userId, slug, a.kind).publicKey.toBase58(); return [{ agent: slug, chain: "Solana", address: addr, explorer: addrExplorer(addr) }]; }
       const addr = evmAddress(userId, slug);
       if (chain === "tempo") return [{ agent: slug, chain: TEMPO.network, address: addr, explorer: TEMPO.explorerAddr(addr) }];
+      if (chain === "hyperliquid") return [{ agent: slug, chain: HL_NETWORK, address: addr, explorer: hlExplorer(addr) }];
       return [{ agent: slug, chain: EVM[chain].network, address: addr, explorer: `${EVM[chain].explorer}${addr}` }];
     } catch { return []; }
   });

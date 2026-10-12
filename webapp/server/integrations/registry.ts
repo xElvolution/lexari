@@ -13,6 +13,8 @@ import type { IntegrationId, MarketsCard } from "@/content/integrations";
 import { EVM, evmAddress, evmBalances, type EvmChain } from "./evm";
 import { jupiterQuote, polymarketMarkets, spotUsd } from "./market";
 import { EXTRA_TOOLS } from "./extra";
+import { SELF_TOOLS } from "./self";
+import { HL_TOOLS } from "./hyperliquid";
 import { bridgeQuote } from "./bridge";
 import { SOL_RESERVE_LAMPORTS, balances, feePayer, fmtAmount, isDevnet, network, orcaQuote, orcaSwap, parseAddress, transfer, type Asset } from "./solana";
 
@@ -43,6 +45,8 @@ export type ToolDef = {
   execute?: (plan: never, agent: AgentRef) => Promise<Executed>;
   /** sign tools that run on their own inside the agent's budget (server/agentpay/budgets.ts); over it they're a Confirm card */
   auto?: boolean;
+  /** changes Lexari settings, not a chain (the agent's own name, face, persona, model): no network or money checks */
+  offchain?: boolean;
 };
 
 const num = z.union([z.number(), z.string().regex(/^\s*\$?\d+(\.\d+)?\s*$/).transform((s) => Number(s.replace(/[$\s]/g, "")))]);
@@ -233,5 +237,5 @@ const pricesTool: ToolDef = {
   },
 };
 
-export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS];
+export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...SELF_TOOLS];
 export const toolByName = (name: string) => TOOLS.find((t) => t.name === name.trim().toLowerCase());

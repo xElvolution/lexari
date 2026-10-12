@@ -6,13 +6,15 @@ import { integrationById } from "@/content/integrations";
 import { actOn, actionNow } from "@/lib/integrations";
 import { friendly } from "@/lib/api";
 import { moneyChanged } from "@/lib/money";
-import { ackTx, refreshReceipts, set, useApp, type Msg } from "@/lib/store";
+import { ackTx, hydrate, refreshReceipts, set, useApp, type Msg } from "@/lib/store";
+import { refreshBilling } from "@/lib/billing";
+import { AgentFace } from "../faces";
 import { nameOf } from "../agents";
 import Icon from "../Icon";
 import { IntegrationLogo } from "./Logos";
 import { PhraseBadge, usePhrase } from "../security/PhraseBadge";
 
-const short = (a: string) => `${a.slice(0, 5)}…${a.slice(-5)}`;
+const short = (a: string) => (a.length > 14 ? `${a.slice(0, 5)}…${a.slice(-5)}` : a);
 const LIVE: ActionStatus[] = ["submitting", "submitted"];
 
 export const STATUS_CHIP: Record<ActionStatus, [string, string]> = {
@@ -61,7 +63,9 @@ export function ActionCardView({ convo, m }: { convo: string; m: Msg & { action:
     try {
       const n = await actOn(a.id, op);
       keep(n);
-      if (n.status === "confirmed") moneyChanged();
+      if (n.status === "confirmed" && n.connector !== "self") moneyChanged();
+      // The agent changed its own name, face, persona or model: reload so the badge, header and pickers show it.
+      if (n.connector === "self" && n.status === "confirmed") { await hydrate(); void refreshBilling(); }
       // Agent payments and Tempo write a receipt row; the agent then follows up with what came back.
       if (op === "confirm" && (n.connector === "payments" || n.connector === "tempo") && n.status !== "failed") {
         await refreshReceipts(convo);
@@ -74,6 +78,8 @@ export function ActionCardView({ convo, m }: { convo: string; m: Msg & { action:
   };
 
   const [label, chip] = STATUS_CHIP[a.status];
+  const self = a.connector === "self";
+  const seed = a.tool === "self.setavatar" ? Number(a.rows.find(([k]) => k === "Face")?.[1]?.replace(/\D/g, "")) : NaN;
   return (
     <div data-action-card={a.id} data-action-status={a.status} className="row-in mt-2 w-[min(320px,100%)] overflow-hidden rounded-2xl bg-card ring-1 ring-line">
       <div className="flex items-center gap-2.5 bg-tint/70 px-3.5 py-3">
@@ -84,6 +90,9 @@ export function ActionCardView({ convo, m }: { convo: string; m: Msg & { action:
         </div>
         <span data-action-chip className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold ${chip}`}>{label}</span>
       </div>
+      {Number.isInteger(seed) && seed > 0 && (
+        <div data-self-face className="flex justify-center px-3.5 pt-3"><span className="pop rounded-[22px] bg-tint/70 p-2 ring-1 ring-line"><AgentFace look={seed} size={72} animated /></span></div>
+      )}
       <dl className="space-y-1.5 px-3.5 pt-3 text-[13px]">
         {a.rows.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-3"><dt className="shrink-0 text-ink/55">{k}</dt><dd className="tab-num min-w-0 break-words text-right font-semibold text-ink">{v}</dd></div>
@@ -91,7 +100,7 @@ export function ActionCardView({ convo, m }: { convo: string; m: Msg & { action:
         {a.usd > 0 && <div className="flex justify-between gap-3"><dt className="text-ink/55">Counts toward limits</dt><dd className="tab-num font-semibold text-ink">${a.usd.toFixed(2)}</dd></div>}
       </dl>
       <div className="px-3.5 pb-3.5 pt-2.5">
-        <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-ink/50"><span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />{a.network} · test funds only</p>
+        <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-ink/50"><span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />{self ? "Only this agent's own settings. Nothing else changes." : `${a.network} · test funds only`}</p>
         {a.status === "prepared" && (
           <div className="mt-3 flex gap-2">
             <button data-action-cancel onClick={() => void run("cancel")} disabled={!!busy} className="btn btn-line btn-sm !h-10 flex-1 text-ink disabled:opacity-50">{busy === "cancel" ? "Cancelling…" : "Cancel"}</button>
@@ -101,9 +110,12 @@ export function ActionCardView({ convo, m }: { convo: string; m: Msg & { action:
         {LIVE.includes(a.status) && (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#fff8e6] px-3 py-2.5 text-[13px] font-semibold text-[#8a5a00]">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            {a.status === "submitting" ? "Sending from the agent's wallet…" : "Waiting for the network…"}
+            {self ? "Applying…" : a.status === "submitting" ? "Sending from the agent's wallet…" : "Waiting for the network…"}
             {a.explorer && <a href={a.explorer} target="_blank" rel="noreferrer" className="ml-auto underline">View</a>}
           </div>
+        )}
+        {a.status === "confirmed" && !a.sig && self && (
+          <p data-action-done className="pop mt-3 flex items-center gap-2 rounded-xl bg-[#e7f8ee] px-3 py-2.5 text-[13px] font-bold text-[#137a3d]"><Icon name="check" size={15} stroke={2.6} />{a.rows.find(([k]) => k === "Done")?.[1] || "Done"}</p>
         )}
         {a.status === "confirmed" && a.sig && (
           <a data-action-sig={a.sig} href={a.explorer} target="_blank" rel="noreferrer" className="pop mt-3 flex items-center gap-2 rounded-xl bg-[#e7f8ee] px-3 py-2.5 text-[13px] font-bold text-[#137a3d]">
@@ -111,7 +123,7 @@ export function ActionCardView({ convo, m }: { convo: string; m: Msg & { action:
           </a>
         )}
         {(a.status === "failed" || a.status === "rejected") && <p data-action-error role="alert" className="mt-3 rounded-xl bg-[#fdecec] px-3 py-2.5 text-[12.5px] font-semibold leading-snug text-[#c4292f]">{a.error || "That didn't go through. Nothing was sent."}{a.explorer && <> <a href={a.explorer} target="_blank" rel="noreferrer" className="underline">View</a></>}</p>}
-        {a.status === "cancelled" && <p className="mt-3 text-[12.5px] font-semibold text-ink/55">Cancelled. Nothing was sent.</p>}
+        {a.status === "cancelled" && <p className="mt-3 text-[12.5px] font-semibold text-ink/55">{self ? "Cancelled. Nothing changed." : "Cancelled. Nothing was sent."}</p>}
         {a.status === "expired" && <p className="mt-3 text-[12.5px] font-semibold text-ink/55">This expired before it was confirmed. Ask again for a fresh quote.</p>}
         {a.status === "prepared" && <div className="mt-2"><PhraseBadge phrase={phrase} compact /></div>}
         {err && a.status === "prepared" && <p role="alert" className="mt-2 text-[12.5px] text-[#e5484d]">{err}</p>}

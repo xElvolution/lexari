@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { api } from "@/lib/api";
 import { useSession } from "@/state/session";
 
-export type Agent = { slug: string; kind: string; name: string; role?: string; look?: unknown; meta?: Record<string, unknown>; skills?: string[]; about?: string; createdAt?: number };
+export type Agent = { slug: string; kind: string; name: string; model?: string | null; role?: string; look?: unknown; meta?: Record<string, unknown>; skills?: string[]; about?: string; createdAt?: number };
 export type Msg = { id: string; from: string; text?: string; at: number; call?: number; voice?: number; file?: { name: string; size?: number } };
 export type Chat = { slug: string; kind: string; title: string; members: string[]; messages: Msg[]; createdAt?: number };
 export type Me = {
@@ -60,7 +60,8 @@ export function withHello<T extends { id: string; at: number }>(me: Me | null, s
   return [{ id: "hello", from: slug, at, text } as unknown as T, ...msgs];
 }
 export const primaryOf = (me: Me | null) => me?.prefs?.defaultAgent || "home";
-export const nameOf = (me: Me | null, slug: string) => me?.agents.find((a) => a.slug === slug)?.name || slug;
+/** Your nickname for an agent first (a hired specialist renamed from chat), then its name. Same rule as the web. */
+export const nameOf = (me: Me | null, slug: string) => { const a = me?.agents.find((x) => x.slug === slug); return (typeof a?.meta?.nick === "string" && a.meta.nick) || a?.name || slug; };
 export const youName = (me: Me | null) => me?.profile?.name || (me?.agents.find((a) => a.slug === "home")?.meta?.you as string | undefined) || "You";
 /** AppShell initials(): the profile name, else the sign-in label (email or short wallet address). */
 export const initialsOf = (me: Me | null) => {

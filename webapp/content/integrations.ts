@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -115,6 +115,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "stablecoin payments stripe pathusd alphausd tip20 moderato",
   },
   {
+    id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],
+    blurb: "Perps orders on Hyperliquid testnet with a trade-only API key.",
+    about: "Each agent trades from its own Hyperliquid testnet account through an API wallet: a separate key that can place and cancel orders but can never withdraw or move funds. Agents read prices, positions and open orders, and every order waits for your Confirm inside your per-trade and daily limits. Test USDC only.",
+    can: [{ text: "Live prices, positions and open orders", live: true }, { text: "Market and limit orders, after you confirm", live: true }, { text: "Trade-only API wallet, no withdrawals", live: true }, { text: "Mainnet", live: false }],
+    tags: "hyperliquid perps perpetuals futures hypercore order trade testnet api wallet",
+  },
+  {
     id: "panta", name: "Panta", category: "prediction", status: process.env.NEXT_PUBLIC_PANTA_READY === "1" ? "devnet" : "needskey", addable: true, moves: true, chains: ["Solana"],
     blurb: "Prediction markets on Solana: research and YES / NO positions.",
     about: "Your agents browse Panta markets, read live YES / NO prices and get real quotes. On devnet a position you confirm is recorded as a paper position at Panta's real quote (Panta settles in mainnet USDC, so no money moves yet).",
@@ -141,6 +148,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     about: "Connect your own server with a one-line install. The ORE Miner installs, starts, stops and watches the miner there. Nothing mines on Lexari's machines.",
     can: [{ text: "Install, start, stop and monitor on your server", live: true }, { text: "ORE rewards (mainnet)", live: false }],
     tags: "ore mining miner server",
+  },
+  {
+    id: "self", name: "Its own settings", category: "data", status: "live", addable: false, moves: false, chains: ["Lexari"], builtin: "all",
+    blurb: "Agents rename themselves and change their face, tone or model, after you confirm.",
+    about: "Ask an agent to change its name, face, persona or model and it shows a Confirm card. Nothing changes until you confirm. Agents can never change their own integrations, limits, wallets or keys.",
+    can: [{ text: "Rename, new face, tone and model", live: true }, { text: "Integrations, limits and wallets", live: false }],
+    tags: "self rename avatar persona model settings",
   },
 ];
 

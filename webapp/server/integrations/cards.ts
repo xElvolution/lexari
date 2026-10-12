@@ -13,6 +13,8 @@ const LABEL: Record<string, string> = {
   "pay.services": "Checked its budget", "pay.service": "Paid an x402 service", "pay.agent": "Hired an agent for a task",
   "tempo.wallet": "Checked its Tempo wallet", "tempo.fund": "Tempo faucet", "tempo.transfer": "Send on Tempo", "tempo.topup": "Top up from Tempo",
   "ore.servers": "Checked the mining servers", "ore.control": "Miner command",
+  "self.rename": "Rename", "self.setavatar": "New face", "self.setpersona": "New persona", "self.setmodel": "Switch model",
+  "hyperliquid.account": "Checked its Hyperliquid account", "hyperliquid.price": "Hyperliquid prices", "hyperliquid.order": "Order on Hyperliquid",
   "panta.markets": "Panta markets", "panta.position": "Position on Panta", "panta.positions": "Panta positions",
 };
 /** A readable title for an action that never got a preview (refused before it was prepared). */
@@ -31,6 +33,6 @@ export function cardOf(a: Row): ActionCard {
   return {
     id: a.id, connector: a.connector as IntegrationId, tool: a.tool, agent: a.agentSlug,
     title: p.title || p.summary || toolLabel(a.tool, a.input), rows: [...(p.rows || []), ...(p.result || [])], usd: a.usdMicros / 1e6, network: p.network || (a.chain === "solana" ? network() : a.chain === "tempo" ? TEMPO.network : ""),
-    status: a.status as ActionStatus, ...(a.txSig ? { sig: a.txSig, explorer: a.chain === "tempo" ? TEMPO.explorerTx(a.txSig) : txExplorer(a.txSig) } : {}), ...(a.error ? { error: a.error } : {}),
+    status: a.status as ActionStatus, ...(a.txSig ? { sig: a.txSig, explorer: a.chain === "tempo" ? TEMPO.explorerTx(a.txSig) : a.chain === "hyperliquid" ? String((p.plan as { explorer?: string } | undefined)?.explorer || "") || undefined : txExplorer(a.txSig) } : {}), ...(a.error ? { error: a.error } : {}),
   };
 }

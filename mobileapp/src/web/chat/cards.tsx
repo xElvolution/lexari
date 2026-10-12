@@ -10,6 +10,8 @@ import { env } from "@/lib/env";
 import { signAndSend } from "@/lib/mwa";
 import { useSession } from "@/state/session";
 import { F, GRAPE, Label, T, short, useC } from "@/web/kit";
+import { useData } from "@/web/data";
+import AgentFace from "@/components/AgentFace";
 
 export type Tx = { id?: string; kind: string; status: string; sol?: number; amount?: string; to?: string; from?: string; label?: string; sig?: string; url?: string; net?: string; balance?: number; error?: string };
 export type SendAsk = { kind?: string; to: string; sol: number; usd?: number; agent?: string; reason?: string; status: string; sig?: string; firstTime?: boolean; valueUsd?: number; error?: string; returned?: { sig?: string; sol?: number; usd?: number } };
@@ -17,7 +19,7 @@ export type MeetAsk = { url: string; platform: string; as?: "me" | "agent"; task
 export type TaskRef = { id: string; kind: string; title: string };
 export type TaskView = { id: string; kind: string; status: string; title: string; agent: string; phase?: string; detail?: string; createdAt: number; finishedAt?: number; joinedAt?: number; secs?: number; every?: string; nextRun?: number; link?: string };
 export type SecretCard = { id: string; name: string; label: string; service?: string; why?: string; status: string; agent?: string };
-export type ActionCard = { id: string; title?: string; status: string; usd: number; rows?: [string, string][]; network?: string; sig?: string; explorer?: string; error?: string; connector?: string };
+export type ActionCard = { id: string; title?: string; status: string; usd: number; rows?: [string, string][]; network?: string; sig?: string; explorer?: string; error?: string; connector?: string; tool?: string };
 export type EmailCard = { id: string; subject?: string; fromLabel?: string; to: string[]; from: string; replyTo?: string; text: string; status: string; mock?: boolean; sentAt?: number; error?: string };
 export type CardFile = { id: string; name: string; size: number | string; mime?: string; kind?: string };
 
@@ -48,9 +50,9 @@ function Row({ k: key, v, mono }: { k: string; v: string; mono?: boolean }) {
   const k = useC();
   return <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, marginTop: 6 }}><T s={13.5} c={k.ink60}>{key}</T><T f={mono ? "monoB" : "sans"} s={13.5} style={{ flexShrink: 1, textAlign: "right" }}>{v}</T></View>;
 }
-function OkLine({ text, sig }: { text: string; sig?: string }) {
+function OkLine({ text, sig, url }: { text: string; sig?: string; url?: string }) {
   return (
-    <Pressable onPress={() => sig && Linking.openURL(txUrl(sig))} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, backgroundColor: OK_BG, paddingHorizontal: 12, paddingVertical: 8 }}>
+    <Pressable onPress={() => (url ? Linking.openURL(url) : sig && Linking.openURL(txUrl(sig)))} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, backgroundColor: OK_BG, paddingHorizontal: 12, paddingVertical: 8 }}>
       <Icon name="check" size={14} color={OK_FG} /><T f="bold" s={13} c={OK_FG} style={{ flex: 1 }}>{text}</T><Icon name="arrow" size={13} color={OK_FG} />
     </Pressable>
   );
@@ -304,11 +306,19 @@ export function ActionCardView({ a0, who }: { a0: ActionCard; who: string }) {
   const [a, setA] = useState(a0);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState("");
+  const { reload } = useData();
+  const self = a.connector === "self";
   const run = async (op: "confirm" | "cancel") => {
-    if (op === "confirm" && !(await biometricGate("Confirm this payment"))) return;
+    if (op === "confirm" && !(await biometricGate(self ? "Confirm this change" : "Confirm this payment"))) return;
     setBusy(op); setErr("");
-    try { setA((await api<{ action: ActionCard }>(`/api/integrations/actions/${a.id}`, { method: "POST", body: JSON.stringify({ op }) }, token)).action); } catch (e) { setErr(e instanceof Error ? e.message : ""); } finally { setBusy(null); }
+    try {
+      const next = (await api<{ action: ActionCard }>(`/api/integrations/actions/${a.id}`, { method: "POST", body: JSON.stringify({ op }) }, token)).action;
+      setA(next);
+      // The agent changed its own name, face, persona or model: reload so the header, team and pickers show it.
+      if (next.connector === "self" && next.status === "confirmed") await reload();
+    } catch (e) { setErr(e instanceof Error ? e.message : ""); } finally { setBusy(null); }
   };
+  const seed = a.tool === "self.setavatar" ? Number((a.rows || []).find(([kk]) => kk === "Face")?.[1]?.replace(/\D/g, "")) : NaN;
   const [label, bg, fg] = STATUS_CHIP[a.status] || [a.status, k.tint, k.ink60];
   return (
     <Box w={320}>
@@ -317,16 +327,18 @@ export function ActionCardView({ a0, who }: { a0: ActionCard; who: string }) {
         <View style={{ flex: 1 }}><T f="bold" s={14} lines={2}>{a.title || "Paid action"}</T><T s={11.5} c={k.ink60} lines={1}>{`${a.connector || "x402"} · ${who}`}</T></View>
         <View style={{ borderRadius: 999, backgroundColor: bg || k.tint, paddingHorizontal: 8, paddingVertical: 2 }}><T f="bold" s={10.5} c={fg || k.ink60}>{label}</T></View>
       </View>
+      {Number.isInteger(seed) && seed > 0 ? <View style={{ alignItems: "center", paddingTop: 12 }}><View style={{ borderRadius: 22, backgroundColor: k.tint, padding: 8, borderWidth: 1, borderColor: k.line }}><AgentFace seed={seed} size={72} animated /></View></View> : null}
       <View style={{ paddingHorizontal: 14, paddingTop: 6 }}>
         {(a.rows || []).map(([kk, v]) => <Row key={kk} k={kk} v={v} />)}
         {a.usd > 0 ? <Row k="Counts toward limits" v={`$${a.usd.toFixed(2)}`} /> : null}
       </View>
       <View style={{ paddingHorizontal: 14, paddingBottom: 14, paddingTop: 10 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#22c55e" }} /><T f="semi" s={11.5} c={k.ink45}>{`${a.network || "Solana devnet"} · test funds only`}</T></View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#22c55e" }} /><T f="semi" s={11.5} c={k.ink45}>{self ? "Only this agent's own settings. Nothing else changes." : `${a.network || "Solana devnet"} · test funds only`}</T></View>
         {a.status === "prepared" ? <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}><Btn label={busy === "cancel" ? "Cancelling…" : "Cancel"} flex={1} disabled={!!busy} onPress={() => void run("cancel")} /><Btn brand label="Confirm" flex={1.4} disabled={!!busy} onPress={() => void run("confirm")} /></View> : null}
-        {(a.status === "done" || a.status === "confirmed") && a.sig ? <OkLine sig={a.sig} text={`Done · ${short(a.sig)}`} /> : null}
+        {(a.status === "done" || a.status === "confirmed") && a.sig ? <OkLine sig={a.sig} url={a.explorer} text={`Done · ${a.sig.length > 14 ? short(a.sig) : a.sig}`} /> : null}
+        {a.status === "confirmed" && !a.sig && self ? <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, backgroundColor: OK_BG, paddingHorizontal: 12, paddingVertical: 8 }}><Icon name="check" size={14} color={OK_FG} /><T f="bold" s={13} c={OK_FG} style={{ flex: 1 }}>{(a.rows || []).find(([kk]) => kk === "Done")?.[1] || "Done"}</T></View> : null}
         {a.status === "failed" || a.status === "rejected" ? <T f="semi" s={12.5} c="#c4292f" style={{ marginTop: 12, borderRadius: 12, backgroundColor: "#fdecec", padding: 10 }}>{a.error || "That didn't go through. Nothing was sent."}</T> : null}
-        {a.status === "cancelled" ? <T f="semi" s={12.5} c={k.ink60} style={{ marginTop: 12 }}>Cancelled. Nothing was sent.</T> : null}
+        {a.status === "cancelled" ? <T f="semi" s={12.5} c={k.ink60} style={{ marginTop: 12 }}>{self ? "Cancelled. Nothing changed." : "Cancelled. Nothing was sent."}</T> : null}
         {a.status === "expired" ? <T f="semi" s={12.5} c={k.ink60} style={{ marginTop: 12 }}>This expired before it was confirmed. Ask again for a fresh quote.</T> : null}
         {err ? <T s={12.5} c={BAD} style={{ marginTop: 8 }}>{err}</T> : null}
       </View>

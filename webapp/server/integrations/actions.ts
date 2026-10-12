@@ -18,6 +18,7 @@ import { COUNTED, isBuiltin, spentToday, type Grant } from "./grants";
 import { overBudget } from "../agentpay/budgets";
 import { recordTx } from "../txlog";
 import { TEMPO, tempoReceipt } from "./tempo";
+import { HL_NETWORK } from "./hyperliquid";
 import type { Executed } from "./registry";
 import { Reject, toolByName, type AgentRef, type ToolDef } from "./registry";
 import { ChainError, SimError, isDevnet, network } from "./solana";
@@ -77,10 +78,15 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
       return { kind: "read", tool: tool.name, ok: false, text: why };
     }
   }
+  // The agent's own settings change only when the person asks in this turn, never from email or web content it read.
+  if (tool.offchain && ctx.untrusted) {
+    await record(ctx, tool, parsed.data, "rejected", { error: "Asked while reading content the person didn't write." }).catch(() => null);
+    return { kind: "refused", tool: tool.name, text: "I only change my own settings when you ask me directly, not from content I read" };
+  }
   // sign: prepare a confirm card, inside the limits
   let prep;
   try {
-    if (!isDevnet()) throw new Reject("Lexari runs integrations on devnet and testnets only right now, so nothing can execute here.");
+    if (!isDevnet() && !tool.offchain) throw new Reject("Lexari runs integrations on devnet and testnets only right now, so nothing can execute here.");
     prep = await tool.prepare!(parsed.data as never, ctx.agent, limits);
   } catch (e) {
     const why = e instanceof Reject ? e.message : "I couldn't get a live quote right now. Try again in a moment.";
@@ -89,6 +95,11 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
     return { kind: "refused", tool: tool.name, text: why };
   }
   const preview: Preview = { title: prep.title, rows: prep.rows, network: netOf(prep.chain), plan: prep.plan, summary: prep.summary };
+  // The agent's own settings move no money: straight to a Confirm card.
+  if (tool.offchain) {
+    const row = await record(ctx, tool, parsed.data, "prepared", { preview, usdMicros: 0, chain: prep.chain });
+    return { kind: "action", tool: tool.name, card: cardOf(row) };
+  }
   // Settings > Security: the daily money limit and "saved addresses only" apply to everything an agent prepares.
   let guard: SendCheck;
   try { guard = await checkMoney(ctx.userId, { usdMicros: prep.usdMicros, to: (prep.plan as { to?: string } | undefined)?.to ?? null }); }
@@ -119,7 +130,7 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
   return { kind: "action", tool: tool.name, card: cardOf(row) };
 }
 
-const netOf = (chain: string) => (chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : network());
+const netOf = (chain: string) => (chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : chain === "lexari" ? "Lexari settings" : chain === "hyperliquid" ? HL_NETWORK : network());
 
 /** A payment inside the agent's budget: counted toward today first, then executed, with a receipt in the chat. */
 async function autoRun(ctx: Ctx, tool: ToolDef, input: unknown, preview: Preview, prep: { usdMicros: number; chain: string; summary: string }): Promise<CallResult> {
@@ -182,7 +193,7 @@ export async function confirmAction(userId: string, id: string): Promise<ActionC
   const info = integrationById(a.connector);
   if (!tool?.execute || !info) return cardOf(await finish(a.id, { status: "failed", error: "This integration can't run that any more." }));
   if (Date.now() - a.createdAt.getTime() > EXPIRE_MS) return cardOf(await finish(a.id, { status: "expired", error: "This quote expired. Ask again for a fresh one." }));
-  if (!isDevnet()) return cardOf(await finish(a.id, { status: "rejected", error: "Execution is off: devnet and testnets only." }));
+  if (!isDevnet() && !tool.offchain) return cardOf(await finish(a.id, { status: "rejected", error: "Execution is off: devnet and testnets only." }));
   if (!(await rateLimit(`int:confirm:${userId}`, CONFIRMS_PER_HOUR, 3_600_000))) throw new HttpError(429, "That's a lot of transactions this hour. Wait a bit and try again.");
   const agentRow = await ownAgent(userId, a.agentSlug).catch(() => null);
   if (!agentRow) return cardOf(await finish(a.id, { status: "rejected", error: "That agent isn't on your team any more." }));
@@ -230,7 +241,7 @@ export async function cancelAction(userId: string, id: string): Promise<ActionCa
 
 /** A transaction that was sent but not yet confirmed: check it on chain. */
 async function settle(a: typeof integrationActions.$inferSelect) {
-  if (a.status !== "submitted" || !a.txSig) return a;
+  if (a.status !== "submitted" || !a.txSig || a.chain === "lexari" || a.chain === "hyperliquid") return a;
   if (a.chain === "tempo") {
     const rc = await tempoReceipt(a.txSig).catch(() => null);
     if (rc?.status === "0x1") return finish(a.id, { status: "confirmed" });

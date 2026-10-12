@@ -49,6 +49,14 @@ export function IntegrationLogo({ id, size = 44, className = "" }: { id: Integra
       return tile("linear-gradient(140deg,#0f9f6e,#22c55e)", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="18" height="12" rx="3" /><path d="M3 10h18M7 15h3" /></svg>
       ));
+    case "hyperliquid":
+      return tile("#072723", (
+        <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#97fce4" d="M21 12.2c0 4.6-2.9 6.5-5.3 4.8-1.9-1.4-2.4-4-3.7-4s-1.8 2.6-3.7 4C5.9 18.7 3 16.8 3 12.2S5.9 5.3 8.3 7c1.9 1.4 2.4 4 3.7 4s1.8-2.6 3.7-4c2.4-1.7 5.3.2 5.3 5.2z" /></svg>
+      ));
+    case "self":
+      return tile("linear-gradient(140deg,#5b2bff,#8f6bff)", (
+        <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="9" r="3.5" /><path d="M5.5 19.5c1.2-3 3.7-4.5 6.5-4.5s5.3 1.5 6.5 4.5" /><path d="m17.5 4 1.2 1.2M19.8 7.4h1.7" /></svg>
+      ));
     case "ore":
       return tile("#1a1206", (
         <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#f5a524" d="m12 3 7.5 4.5v9L12 21l-7.5-4.5v-9z" /><path fill="#1a1206" d="m12 7.2 3.8 2.3v4.9L12 16.8l-3.8-2.4V9.5z" /></svg>

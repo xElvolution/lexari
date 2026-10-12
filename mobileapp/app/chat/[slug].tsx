@@ -24,7 +24,7 @@ type M = { id: string; from: string; text?: string; at: number; call?: number; v
   tx?: Tx; send?: SendAsk; meet?: MeetAsk; task?: TaskRef; secret?: SecretCard; takeover?: { reason: string }; action?: ActionCard; email?: EmailCard; shots?: number[]; re?: Record<string, string[]> };
 type Mood = "idle" | "thinking" | "speaking" | "happy";
 
-const SHORT: Record<string, string> = { lamina: "Lamina", "claude-sonnet": "Sonnet", "claude-opus": "Opus", grok: "Grok", "gemini-flash": "Gemini", "grok-fast": "Grok Fast", "grok-4.6": "Grok 4.6" };
+const SHORT: Record<string, string> = { lamina: "Lamina", "claude-sonnet": "Sonnet", "claude-opus": "Opus", grok: "Grok", "gemini-flash": "Gemini", "grok-fast": "Grok Fast", "grok-4.6": "Grok 4.6", kimi: "Kimi", qwen: "Qwen", zg: "0G" };
 const SUGGEST = ["Compare three note-taking apps in a table", "Draft a short update email for my team"];
 const fmtSecs = (n: number) => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
 function dayLabel(ms: number, now: number) {
@@ -161,6 +161,14 @@ export default function Chat() {
       .then((r) => { { const md = r.mode ?? (r.box as { mode?: string } | undefined)?.mode; setMailOn(!!md && md !== "off"); }; setUnread(r.unread ?? r.box?.unread ?? 0); }).catch(() => {});
     if (taskAgent) api<{ tasks: TaskView[] }>(`/api/tasks?agent=${encodeURIComponent(taskAgent)}`, {}, token).then((r) => setTasks(r.tasks || [])).catch(() => {});
   }, [token, id, group, taskAgent]);
+  // The agent can switch its own model from chat (a confirmed self card reloads the account): the chip follows it.
+  const agentRow = me?.agents.find((a) => a.slug === id);
+  useEffect(() => {
+    if (!token || !agentRow) return;
+    api<{ models?: { default?: string; agents?: Record<string, string>; chats?: Record<string, string> } }>("/api/billing", {}, token)
+      .then((b) => setModel(b.models?.chats?.[id] || (!group ? b.models?.agents?.[id] : undefined) || b.models?.default || "lamina")).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentRow?.name, agentRow?.model]);
   const taskMap = useMemo(() => Object.fromEntries(tasks.map((t) => [t.id, t])), [tasks]);
   const latest = new Map<string, number>();
   msgs.forEach((m, i) => { if (m.from !== "you" && m.from !== "system") latest.set(m.from, i); });

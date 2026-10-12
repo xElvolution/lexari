@@ -47,7 +47,7 @@ export async function loadAccount(user: SessionUser) {
     biometric: (me?.lockCreds || []).length > 0,
     prefs: (me?.prefs || {}) as Record<string, unknown>,
     agents: agentRows.map((a) => ({
-      slug: a.slug, kind: a.kind, name: a.name, role: a.role, tone: a.tone, about: a.about, skills: a.skills, memoryOn: a.memoryOn,
+      slug: a.slug, kind: a.kind, name: a.name, role: a.role, tone: a.tone, about: a.about, skills: a.skills, memoryOn: a.memoryOn, model: a.model,
       look: (a.lookJson as { v?: unknown })?.v ?? null, meta: a.meta, asset: a.asset, agentPda: a.agentPda,
       mintedAt: a.mintedAt?.getTime() ?? null, createdAt: a.createdAt.getTime(),
     })),
