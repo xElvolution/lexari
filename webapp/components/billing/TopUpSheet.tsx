@@ -189,8 +189,8 @@ function CryptoPay({ usd, intent, title, setBusy, after }: { usd: number; intent
       await api("/api/faucet", { body: { need: Math.max(0, SOL_FOR_FEES - (sol ?? 0)) } });
       for (let i = 0; i < 8; i++) { const b = await balanceOf(addr).catch(() => null); if (b !== null && b >= SOL_FOR_FEES) break; await new Promise((x) => setTimeout(x, 1200)); }
       await refresh();
-      toast({ text: "Devnet SOL for fees added" });
-    } catch (e) { setErr(friendly(e, "Couldn't get devnet SOL.")); }
+      toast({ text: "SOL for fees added" });
+    } catch (e) { setErr(friendly(e, "Couldn't get SOL for fees.")); }
     setPhase("ready");
   };
   const openOther = async () => {
@@ -204,7 +204,7 @@ function CryptoPay({ usd, intent, title, setBusy, after }: { usd: number; intent
       <dl className="divide-y divide-[var(--line)] rounded-2xl bg-tint px-4 text-[14px] max-[430px]:text-[13px]">
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Amount</dt><dd className="font-bold text-ink">{usd} USDC</dd></div>
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">For</dt><dd className="truncate pl-3 font-semibold text-ink">{title}</dd></div>
-        <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Network</dt><dd className="font-semibold text-ink">{devnet ? "Solana devnet" : "Solana"}</dd></div>
+        <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Network</dt><dd className="font-semibold text-ink">{"Solana"}</dd></div>
         <div className="flex items-center justify-between gap-2 py-2.5"><dt className="text-ink/65">From</dt><dd className="flex items-center gap-1.5 font-mono text-[12.5px] text-ink">{addr ? <button onClick={() => copy(addr, "Address")} className="flex items-center gap-1 text-brand-ink">{isEmbedded() ? "Lexari wallet " : ""}{short(addr)}<Icon name="copy" size={12} /></button> : phase === "nowallet" ? "No wallet" : "…"}</dd></div>
         <div className="flex items-center justify-between py-2.5"><dt className="text-ink/65">Your USDC</dt><dd data-usdc-balance className={`font-bold tabular-nums ${shortUsdc ? "text-[#e5484d]" : "text-ink"}`}>{usdc === null ? (phase === "loading" ? "Checking…" : "Unavailable") : (usdc / 1e6).toFixed(2)}</dd></div>
       </dl>
@@ -213,7 +213,7 @@ function CryptoPay({ usd, intent, title, setBusy, after }: { usd: number; intent
       {shortUsdc && phase !== "done" && (
         <div data-need-usdc className="mt-3 rounded-2xl bg-grape/10 p-3.5 ring-1 ring-grape/30">
           <p className="text-[14px] font-bold text-ink">You need {usd} USDC{usdc ? `, you have ${(usdc / 1e6).toFixed(2)}` : ""}</p>
-          <p className="mt-0.5 text-[12.5px] leading-snug text-ink/65">{devnet ? <>Get free devnet USDC at <a className="font-bold text-brand-ink underline" href="https://faucet.circle.com" target="_blank" rel="noreferrer">faucet.circle.com</a> for the address above (choose Solana Devnet), or pay from another wallet.</> : "Add USDC on Solana to the address above, or pay from another wallet."}</p>
+          <p className="mt-0.5 text-[12.5px] leading-snug text-ink/65">{devnet ? <>Add USDC on Solana to the address above, or pay from another wallet.</> : "Add USDC on Solana to the address above, or pay from another wallet."}</p>
         </div>
       )}
       {!shortUsdc && shortSol && phase !== "done" && (

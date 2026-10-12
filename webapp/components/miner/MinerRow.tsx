@@ -70,7 +70,7 @@ export function MinerSheet({ onClose }: { onClose: () => void }) {
     <Sheet label="mining" title="Mining" sub="Your own servers. The ORE Miner installs, runs and watches the miner there." icon={<Icon name="server" size={20} />} onClose={onClose}>
       <div className="mb-3 flex items-start gap-2 rounded-2xl bg-[#fff4d6] px-3 py-2.5 text-[12.5px] leading-snug text-[#7a5200]">
         <Icon name="info" size={15} className="mt-px shrink-0" />
-        <span>Devnet practice mode: real hashing on your CPU, real hashrate. ORE rewards are on mainnet, so none are earned here.</span>
+        <span>Practice mode: real hashing on your CPU, real hashrate. ORE rewards are on mainnet, so none are earned here.</span>
       </div>
       {hosts === null ? <div className="grid h-24 place-items-center"><Spinner /></div> : (
         <div className="space-y-2.5">
