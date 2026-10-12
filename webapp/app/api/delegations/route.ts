@@ -26,7 +26,7 @@ async function view(userId: string) {
     db().select().from(agentDelegations).where(and(eq(agentDelegations.userId, userId), isNull(agentDelegations.revokedAt))).orderBy(desc(agentDelegations.createdAt)),
   ]);
   return {
-    chainId: MONAD.chainId, rpc: MONAD.rpc(),
+    chainId: MONAD.chainId, rpc: process.env.MONAD_PUBLIC_RPC || "https://testnet-rpc.monad.xyz",
     agents: team.map((a) => ({ slug: a.slug, name: a.name, address: evmAddress(userId, a.slug) })),
     delegations: rows.filter((r) => r.expiresAt.getTime() > Date.now()).map((r) => ({ id: r.id, agent: r.agentSlug, delegator: r.delegator, owner: r.owner, maxWei: r.maxWei, spentWei: r.spentWei, expiresAt: r.expiresAt.getTime() })),
   };

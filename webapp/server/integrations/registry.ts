@@ -18,6 +18,7 @@ import { HL_TOOLS } from "./hyperliquid";
 import { MONAD_TOOLS } from "./monad";
 import { cardPay } from "./tempoCard";
 import { DELEGATION_TOOLS } from "./delegation";
+import { INTENTS_TOOLS } from "./intents";
 import { bridgeQuote } from "./bridge";
 import { SOL_RESERVE_LAMPORTS, balances, feePayer, fmtAmount, isDevnet, network, orcaQuote, orcaSwap, parseAddress, transfer, type Asset } from "./solana";
 
@@ -240,5 +241,5 @@ const pricesTool: ToolDef = {
   },
 };
 
-export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, ...DELEGATION_TOOLS, ...SELF_TOOLS];
+export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, ...DELEGATION_TOOLS, ...INTENTS_TOOLS, ...SELF_TOOLS];
 export const toolByName = (name: string) => TOOLS.find((t) => t.name === name.trim().toLowerCase());

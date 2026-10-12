@@ -15,7 +15,7 @@ import type { AgentRef, Executed, GrantLimits, Prepared, ToolDef } from "./regis
 
 export const MONAD = {
   name: "Monad", network: "Monad testnet", chainId: 10143,
-  rpc: () => process.env.MONAD_RPC || "https://testnet-rpc.monad.xyz",
+  rpc: () => process.env.MONAD_RPC || (process.env.ALCHEMY_API_KEY ? `https://monad-testnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` : "https://testnet-rpc.monad.xyz"),
   explorerAddr: (a: string) => `https://testnet.monadexplorer.com/address/${a}`,
 };
 const isAddr = (s: string) => /^0x[0-9a-fA-F]{40}$/.test(s);
@@ -72,6 +72,47 @@ const nansenWallet: ToolDef = {
     return { summary: "Read a wallet on Nansen", text: rows.length ? `Nansen, ${address} on ${chain}: top holdings ${list}. About $${total.toFixed(2)} in these.` : `Nansen has no balances for ${address} on ${chain}.` };
   },
 };
+
+
+/* ---------- Nansen smart money ---------- */
+type Flow = { token_symbol?: string; chain?: string; net_flow_24h_usd?: number; net_flow_7d_usd?: number; trader_count?: number };
+export async function nansenNetflow(chains: string[], limit = 20): Promise<Flow[]> {
+  const base = (process.env.NANSEN_API_URL || "https://api.nansen.ai/api/v1").replace(/\/+$/, "");
+  const r = await fetch(`${base}/smart-money/netflow`, {
+    method: "POST", headers: { "content-type": "application/json", apiKey: process.env.NANSEN_API_KEY! },
+    body: JSON.stringify({ chains, pagination: { page: 1, per_page: limit }, order_by: [{ field: "net_flow_24h_usd", direction: "DESC" }] }), signal: AbortSignal.timeout(12000),
+  });
+  if (!r.ok) throw new Reject(`Nansen didn't answer (HTTP ${r.status}).`);
+  const j = (await r.json()) as { data?: Flow[] };
+  return j.data || [];
+}
+const usd0 = (n?: number) => `${(n || 0) < 0 ? "-" : "+"}$${Math.abs(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+const smIn = z.object({ chains: z.array(z.string().max(20)).max(5).optional(), chain: z.string().max(20).optional(), token: z.string().max(20).optional() }).passthrough();
+const nansenSmart: ToolDef = {
+  name: "nansen.smartmoney", connector: "nansen", risk: "read", input: smIn,
+  hint: 'nansen.smartmoney {"chains":["solana","ethereum"],"token":"SOL"} : Nansen smart money net flows (what top wallets are buying or selling, 24h and 7d). Check it before any trade.',
+  run: async (i: never) => {
+    const p = i as z.output<typeof smIn>;
+    if (!nansenReady()) throw new Reject("Nansen is not set up on this server yet (no API key).");
+    const chains = (p.chains?.length ? p.chains : [p.chain || "solana"]).map((c) => c.toLowerCase());
+    let rows = await nansenNetflow(chains, 25);
+    if (p.token) rows = rows.filter((r) => (r.token_symbol || "").toUpperCase() === p.token!.toUpperCase());
+    const list = rows.slice(0, 8).map((r) => `${r.token_symbol} (${r.chain}): 24h ${usd0(r.net_flow_24h_usd)}, 7d ${usd0(r.net_flow_7d_usd)}`).join("; ");
+    return { summary: "Nansen smart money flows", text: list ? `Nansen smart money net flows: ${list}.` : `Nansen shows no smart money flow${p.token ? ` for ${p.token}` : ""} on ${chains.join(", ")} right now.` };
+  },
+};
+/** One line for a Confirm card: what Nansen smart money did with this token. Never throws. */
+export async function nansenCheck(symbol: string, chain = "solana"): Promise<string> {
+  if (!nansenReady()) return "Skipped: Nansen isn't set up on this server";
+  const sym = symbol.toUpperCase().replace(/^W(?=SOL|ETH|MON)/, "");
+  try {
+    const rows = await nansenNetflow([chain], 50);
+    const r = rows.find((x) => (x.token_symbol || "").toUpperCase().replace(/^W(?=SOL|ETH|MON)/, "") === sym);
+    if (!r) return `No smart money flow for ${sym} on ${chain} in the last day`;
+    const f = r.net_flow_24h_usd || 0;
+    return `Smart money ${f >= 0 ? "buying" : "selling"} ${sym}: ${usd0(f)} in 24h, ${usd0(r.net_flow_7d_usd)} in 7d`;
+  } catch { return "Skipped: Nansen didn't answer in time"; }
+}
 
 /* ---------- Kuru (@kuru-labs/kuru-sdk, Monad testnet) ---------- */
 // Pools come from Kuru's API (KURU_API_URL, the base the SDK's PoolFetcher takes). Swaps go through Kuru's router
@@ -157,4 +198,4 @@ const kuruSwap: ToolDef = {
   },
 };
 
-export const MONAD_TOOLS: ToolDef[] = [monadWallet, nansenWallet, kuruQuote, kuruSwap];
+export const MONAD_TOOLS: ToolDef[] = [monadWallet, nansenWallet, nansenSmart, kuruQuote, kuruSwap];

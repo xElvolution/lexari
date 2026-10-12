@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -45,7 +45,7 @@ export const STATUS_LABEL: Record<IntegrationStatus, string> = {
   devnet: "Live on devnet",
   live: "Live on testnet",
   testnet: "Testnet wallet",
-  needskey: "Needs API key",
+  needskey: "Setup needed",
   market: "Market data",
   soon: "Coming soon",
 };
@@ -125,7 +125,7 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     id: "nansen", name: "Nansen", category: "data", status: process.env.NEXT_PUBLIC_NANSEN_READY === "1" ? "live" : "needskey", addable: true, moves: false, chains: ["Ethereum", "Solana", "Base", "Monad"],
     blurb: "Wallet profiles and holdings from Nansen.",
     about: "Your agents look up any wallet on Nansen and read its current holdings in USD before they answer. Read only. Needs a Nansen API key on the server.",
-    can: [{ text: "Current holdings of any wallet", live: true }, { text: "Smart money flows", live: false }],
+    can: [{ text: "Current holdings of any wallet", live: true }, { text: "Smart money flows, checked before every trade", live: true }],
     tags: "nansen smart money wallet profiler data labels",
   },
   {
@@ -141,6 +141,13 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     about: "You delegate from your MetaMask smart account to an agent with ERC-7710 caveats: a MON cap and an expiry, checked onchain by MetaMask's DelegationManager. The agent never holds your funds, sends only go to your linked wallets, and every send waits for your Confirm. Set it up in Settings > Wallets.",
     can: [{ text: "See the delegation and what's left", live: true }, { text: "Send MON to your linked wallets, after you confirm", live: true }, { text: "Token and contract call scopes", live: false }],
     tags: "metamask delegation erc7710 smart account caveats monad",
+  },
+  {
+    id: "intents", name: "Aurora Intents", category: "trading", status: process.env.NEXT_PUBLIC_INTENTS_READY === "1" ? "live" : "needskey", addable: true, moves: true, chains: ["Any chain"],
+    blurb: "Moves your balance to whichever chain a trade needs.",
+    about: "Your agent keeps one balance. When a trade or payment needs funds on another chain, it routes them through Aurora Intents (any-chain liquidity, powered by NEAR Intents) in one Confirm card, with refunds back to your balance if it can't fill. Quotes work with an API key; moving real funds is switched on per server.",
+    can: [{ text: "Cross-chain quotes to 25+ chains", live: true }, { text: "One Confirm card that routes and delivers", live: true }, { text: "Route status", live: true }],
+    tags: "aurora intents near cross chain bridge swap any chain liquidity route",
   },
   {
     id: "hyperliquid", name: "Hyperliquid", category: "trading", status: "live", addable: true, moves: true, chains: ["Hyperliquid testnet"],
@@ -260,6 +267,7 @@ const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
   hyperliquid: ["read", "trade"],
   kuru: ["read", "trade"],
   metamask: ["read", "withdraw"],
+  intents: ["read", "trade"],
   panta: ["read", "bet"],
 };
 /** The scopes an integration can ask for. */
