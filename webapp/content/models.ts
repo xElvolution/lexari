@@ -24,7 +24,7 @@ export type ModelInfo = {
   house?: { provider: HouseProvider; fallback: string[] };
 };
 /** Providers Lexari runs on its own keys (server env). A missing key shows the model as unavailable. */
-export type HouseProvider = "moonshot" | "dashscope" | "zg";
+export type HouseProvider = "moonshot" | "dashscope" | "zg" | "zg-openai" | "zg-claude";
 
 export const LAMINA: ModelInfo = {
   id: "lamina",
@@ -48,8 +48,7 @@ export const PREMIUM: ModelInfo[] = [
  * so they are only offered when that relay is up (server/engram/engines.ts RELAY).
  */
 export const INCLUDED: ModelInfo[] = [
-  { id: "grok-fast", label: "Grok 4.7 Fast", short: "Grok Fast", maker: "xAI", blurb: "Quickest replies for everyday chat.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
-  { id: "grok-4.6", label: "Grok 4.6", short: "Grok 4.6", maker: "xAI", blurb: "The previous Grok. Steady and thorough.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
+  { id: "grok-fast", label: "Grok", short: "Grok", maker: "xAI", blurb: "Quick, direct and current. Strong on live topics.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
 ];
 
 /**
@@ -57,12 +56,15 @@ export const INCLUDED: ModelInfo[] = [
  * model and then to Lamina when its provider is down, busy or out of credit (only before any text reached the person).
  */
 export const HOUSE: ModelInfo[] = [
-  { id: "kimi", label: "Kimi", short: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 }, house: { provider: "moonshot", fallback: ["qwen", "zg"] } },
-  { id: "qwen", label: "Qwen 3.8 Max", short: "Qwen", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 }, house: { provider: "dashscope", fallback: ["zg", "kimi"] } },
-  { id: "zg", label: "0G Compute", short: "0G", maker: "0G", blurb: "Open models on 0G's decentralized network, with automatic failover.", pool: "lamina", price: { in: 0.5, out: 1.6 }, house: { provider: "zg", fallback: ["qwen", "kimi"] } },
+  { id: "kimi", label: "Kimi", short: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 }, house: { provider: "moonshot", fallback: ["qwen", "openai"] } },
+  { id: "qwen", label: "Qwen", short: "Qwen", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 }, house: { provider: "dashscope", fallback: ["kimi", "openai"] } },
+  { id: "openai", label: "OpenAI", short: "OpenAI", maker: "OpenAI", blurb: "OpenAI's quick everyday model. Clear and reliable.", pool: "lamina", price: { in: 0.25, out: 2 }, house: { provider: "zg-openai", fallback: ["kimi", "qwen"] } },
+  { id: "claude", label: "Claude", short: "Claude", maker: "Anthropic", blurb: "Careful writing and reasoning from Anthropic.", pool: "lamina", price: { in: 3, out: 15 }, house: { provider: "zg-claude", fallback: ["openai", "kimi"] } },
 ];
 export const isHouse = (m: ModelInfo | null | undefined) => !!m?.house;
 
+/** What the model pickers show, in order: Lamina, Grok, Kimi, Qwen, OpenAI, Claude. Model ids never reach the person. */
+export const PICKER: ModelInfo[] = [LAMINA, ...INCLUDED, ...HOUSE];
 export const MODELS: ModelInfo[] = [LAMINA, ...INCLUDED, ...HOUSE, ...PREMIUM];
 export const modelById = (id: string | null | undefined): ModelInfo | null => (id ? MODELS.find((m) => m.id === id) ?? null : null);
 export const isModelId = (id: string) => MODELS.some((m) => m.id === id);
@@ -149,7 +151,6 @@ export function modelCatalog(keys: KeyProvider[], prefs: ModelPrefs | null | und
   for (const m of INCLUDED) if (available[m.id]) rows.push({ m, enabled: state(m.id, true), locked: false, provider: null, added: false });
   // Open models are always listed; without their provider key they show as unavailable and can't be switched on.
   for (const m of HOUSE) rows.push(available[m.id] ? { m, enabled: state(m.id, true), locked: false, provider: null, added: false } : { m, enabled: false, locked: false, provider: null, added: false, unavailable: true });
-  for (const m of PREMIUM) if (available[m.id]) rows.push({ m, enabled: state(m.id, true), locked: false, provider: null, added: false });
   for (const p of KEY_PROVIDERS) {
     if (!keys.includes(p.id)) continue;
     const seen = new Set<string>();

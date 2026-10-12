@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { TOPUP_MAX_USD, TOPUP_PACKS } from "@/content/billing";
+import { TOPUP_MAX_USD } from "@/content/billing";
 import { api, friendly } from "@/lib/api";
 import { closeBillingSheet, payCrypto, startCard, startCrypto, usdcBalance, verifyPayment, useBilling, type CryptoRequest, type BuyIntent, type PayStep, type TopUpIntent } from "@/lib/billing";
 import { balanceOf, isEmbedded, payer } from "@/lib/pay";
@@ -9,9 +9,8 @@ import { toast } from "@/lib/store";
 import { celebrate } from "../Celebrate";
 import Icon from "../Icon";
 import { CardGlyph, Sheet, Spinner, money } from "./parts";
-import { CoinPicker, CoinTileLabel, DepositPay, TokenPay, isWalletRail } from "./CoinPay";
-import { CoinWithNetwork } from "../Logos";
-import { railById } from "@/content/topup";
+import { AllCoinPicker, AuroraPay, RailPay, type Opt } from "./TopUpCrypto";
+import { TOPUP_MIN_USD } from "@/content/topup";
 import { useMask } from "@/lib/privacy";
 
 type Rail = "card" | "crypto";
@@ -24,29 +23,27 @@ export default function TopUpSheet({ intent }: { intent: TopUpIntent }) {
   const mask = useMask();
   const { state } = useBilling();
   const need = intent.need;
-  // Packs that cover a shortfall; when none does (a yearly plan), the shortfall itself in whole dollars.
-  const exact = need ? Math.min(TOPUP_MAX_USD, Math.ceil(need.shortMicros / 1e6)) : 0;
-  const covering = need ? TOPUP_PACKS.filter((v) => v * 1e6 >= need.shortMicros) : [...TOPUP_PACKS];
-  const amounts: number[] = covering.length ? covering : [exact];
-  const [pack, setPack] = useState<number>(() => { const want = intent.id ? Number(intent.id) : need ? amounts[0] : 10; return amounts.includes(want) ? want : amounts[0]; });
+  // $5 and $10, or exactly what's missing (rounded up to the dollar, never under $5); any amount can be typed.
+  const exact = need ? Math.max(TOPUP_MIN_USD, Math.min(TOPUP_MAX_USD, Math.ceil(need.shortMicros / 1e6))) : 0;
+  const chips = need && exact > 10 ? [exact] : [5, 10];
+  const [amt, setAmt] = useState<string>(() => String(intent.id && Number(intent.id) >= TOPUP_MIN_USD ? Number(intent.id) : need ? Math.max(exact, 5) : 5));
+  const usd = Math.round(Number(amt) * 100) / 100;
+  const okAmt = usd >= TOPUP_MIN_USD && usd <= TOPUP_MAX_USD;
   const cardReady = !!state?.rails.card.ready;
   const [rail, setRail] = useState<Rail>(() => (state?.rails.card.ready ? "card" : "crypto"));
-  const [coin, setCoin] = useState("USDC:solana");
+  const [opt, setOpt] = useState<{ o: Opt; symbol: string } | null>(null);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const close = () => { closeBillingSheet(); intent.cancel?.(); };
-  const after = intent.then ? () => intent.then?.() : undefined;
-  const usd = pack;
-  const id = String(pack);
+  const id = String(usd);
 
   if (picking) {
     return (
-      <Sheet label="topup" wide title="Pay with crypto" sub="Pick a coin, then the network you'll send on." icon={<Icon name="wallet" size={20} />} onClose={() => setPicking(false)}>
-        <CoinPicker value={coin} onBack={() => setPicking(false)} onPick={(k) => { setCoin(k); setRail("crypto"); setPicking(false); }} />
+      <Sheet label="topup" wide title="Pay with crypto" sub="Pick any coin, then the network you'll send on." icon={<Icon name="wallet" size={20} />} onClose={() => setPicking(false)}>
+        <AllCoinPicker onBack={() => setPicking(false)} onPick={(o, e) => { setOpt({ o, symbol: e.symbol }); setRail("crypto"); setPicking(false); }} />
       </Sheet>
     );
   }
-  const coinRail = railById(coin)!;
   return (
     <Sheet label="topup" wide title="Top up" sub={need ? "Add to your balance and the purchase goes through." : "Add to your Lexari balance."} icon={<Icon name="wallet" size={20} />} onClose={close} closable={!busy}>
       {need && (
@@ -55,14 +52,18 @@ export default function TopUpSheet({ intent }: { intent: TopUpIntent }) {
           <div className="mt-0.5">Your balance is {mask(money(need.haveMicros, { cents: true }))}. Add at least <b>{money(need.shortMicros, { cents: true })}</b> to continue.</div>
         </div>
       )}
-      <div className={`grid gap-2 ${amounts.length === 1 ? "grid-cols-1" : "grid-cols-3"}`} role="radiogroup" aria-label="Amount">
-        {amounts.map((v) => (
-          <button key={v} role="radio" aria-checked={pack === v} data-pack={v} disabled={busy} onClick={() => setPack(v)} className={`rounded-[16px] px-3 py-2.5 text-center transition ${pack === v ? "bg-grape text-white ring-1 ring-grape" : "bg-card ring-1 ring-line hover:ring-grape/50"}`}>
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Amount">
+        {chips.map((v) => (
+          <button key={v} role="radio" aria-checked={usd === v} data-pack={v} disabled={busy} onClick={() => setAmt(String(v))} className={`rounded-[16px] px-3 py-2.5 text-center transition ${usd === v ? "bg-grape text-white ring-1 ring-grape" : "bg-card ring-1 ring-line hover:ring-grape/50"}`}>
             <span className="display block text-[24px] leading-none tabular-nums max-[430px]:text-[21px]">${v}</span>
-            {amounts.length === 1 && need && <span className="mt-1 block text-[11.5px] leading-tight text-white/80">Exactly what&apos;s missing, rounded up to the dollar</span>}
           </button>
         ))}
+        <label className={`flex items-center gap-1 rounded-[16px] bg-card px-3 py-2 ring-1 ${chips.includes(usd) ? "ring-line" : "ring-2 ring-grape"}`}>
+          <span className="text-[18px] font-bold text-ink/50">$</span>
+          <input data-custom-amount value={amt} onChange={(e) => setAmt(e.target.value.replace(/[^0-9.]/g, "").slice(0, 7))} inputMode="decimal" aria-label="Custom amount" placeholder="Other" disabled={busy} className="min-w-0 flex-1 bg-transparent text-[20px] font-bold tabular-nums text-ink outline-none" />
+        </label>
       </div>
+      {!okAmt && <p role="alert" className="mt-2 text-[12.5px] font-semibold text-[#e5484d]">{usd > TOPUP_MAX_USD ? `Top ups go up to $${TOPUP_MAX_USD} at a time.` : `The minimum top up is $${TOPUP_MIN_USD}.`}</p>}
 
       <h3 className="label mb-2 mt-5 text-[9.5px] text-ink/50">Pay with</h3>
       <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Payment method">
@@ -70,21 +71,20 @@ export default function TopUpSheet({ intent }: { intent: TopUpIntent }) {
           <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${rail === "card" ? "bg-white/15" : "bg-tint"}`}><CardGlyph size={19} /></span>
           <span className="min-w-0"><span className="block text-[14.5px] font-bold">Card</span><span className={`block truncate text-[11.5px] ${rail === "card" ? "opacity-70" : "text-ink/55"}`}>{cardReady ? state?.rails.card.label || "Visa, Mastercard" : "Coming soon"}</span></span>
         </button>
-        <button role="radio" aria-checked={rail === "crypto"} data-rail="crypto" disabled={busy} onClick={() => (rail === "crypto" ? setPicking(true) : setRail("crypto"))} className={`flex items-center gap-2.5 rounded-[18px] p-3 text-left transition ${rail === "crypto" ? "bg-ink text-[var(--bg)] ring-1 ring-ink" : "bg-card ring-1 ring-line hover:ring-grape/50"}`}>
-          <span className={`grid h-9 w-9 shrink-0 place-items-center ${rail === "crypto" ? "" : ""}`}><CoinWithNetwork coin={coinRail.coin} chain={coinRail.chain} size={32} /></span>
-          <span className="min-w-0 flex-1"><CoinTileLabel railKey={coin} /></span>
+        <button role="radio" aria-checked={rail === "crypto"} data-rail="crypto" disabled={busy} onClick={() => { setRail("crypto"); if (!opt) setPicking(true); }} className={`flex items-center gap-2.5 rounded-[18px] p-3 text-left transition ${rail === "crypto" ? "bg-ink text-[var(--bg)] ring-1 ring-ink" : "bg-card ring-1 ring-line hover:ring-grape/50"}`}>
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${rail === "crypto" ? "bg-white/15" : "bg-tint"}`}><Icon name="wallet" size={18} /></span>
+          <span className="min-w-0 flex-1"><span className="block text-[14.5px] font-bold">{opt ? opt.symbol : "Crypto"}</span><span className={`block truncate text-[11.5px] ${rail === "crypto" ? "opacity-70" : "text-ink/55"}`}>{opt ? opt.o.chainName : "Any coin, any network"}</span></span>
           <span data-coin-change onClick={(e) => { e.stopPropagation(); if (!busy) setPicking(true); }} aria-label="Change coin" className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${rail === "crypto" ? "bg-white/15" : "bg-tint"}`}><Icon name="right" size={12} className="rotate-90" /></span>
         </button>
       </div>
 
       <div className="mt-4">
         {rail === "card"
-          ? <CardPay ready={cardReady} usd={usd} intent={{ product: "credits", id }} onCrypto={() => setRail("crypto")} setBusy={setBusy} />
-          : coin === "USDC:solana"
-            ? <CryptoPay key={`credits-${id}`} usd={usd} intent={{ product: "credits", id }} title={`$${pack} for your Lexari balance`} setBusy={setBusy} after={after} />
-            : isWalletRail(coin)
-              ? <TokenPay key={`${coin}-${id}`} usd={usd} railKey={coin} setBusy={setBusy} after={after} />
-              : <DepositPay key={coin} usd={usd} railKey={coin} />}
+          ? (okAmt ? <CardPay ready={cardReady} usd={usd} intent={{ product: "credits", id }} onCrypto={() => { setRail("crypto"); setPicking(true); }} setBusy={setBusy} /> : null)
+          : !opt ? <button onClick={() => setPicking(true)} className="btn btn-brand btn-sm w-full">Choose a coin</button>
+          : !okAmt ? null
+          : opt.o.kind === "rail" ? <RailPay key={`${opt.o.key}-${usd}`} usd={usd} railKey={opt.o.key} />
+          : <AuroraPay key={`${opt.o.assetId}-${usd}`} usd={usd} assetId={opt.o.assetId} symbol={opt.symbol} />}
       </div>
       <p className="mt-3 text-center text-[11.5px] leading-snug text-ink/45">Your balance pays for AI usage, hires, agent cards and funding agents. It can&apos;t be withdrawn.</p>
     </Sheet>

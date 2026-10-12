@@ -28,7 +28,7 @@
  */
 
 export type ChainId =
-  | "solana" | "ethereum" | "base" | "arbitrum" | "bnb" | "tempo" | "bitcoin" | "litecoin" | "tron" | "xrpl" | "dogecoin";
+  | "solana" | "solmain" | "ethereum" | "base" | "arbitrum" | "bnb" | "tempo" | "monad" | "hyperevm" | "bitcoin" | "litecoin" | "tron" | "xrpl" | "dogecoin";
 export type Family = "solana" | "evm" | "btc" | "tron" | "xrpl";
 
 export type ChainInfo = {
@@ -50,7 +50,11 @@ export type ChainInfo = {
 };
 
 export const CHAINS: Record<ChainId, ChainInfo> = {
-  solana: { id: "solana", name: "Solana", network: "Solana devnet", family: "solana", confirmations: 1, eta: "a few seconds", live: true, explorerAddress: (a) => `https://explorer.solana.com/address/${a}?cluster=devnet` },
+  solana: { id: "solana", name: "Solana", network: "Solana", family: "solana", confirmations: 1, eta: "a few seconds", live: true, explorerAddress: (a) => `https://explorer.solana.com/address/${a}?cluster=devnet` },
+  // Real USDC on Solana mainnet: where Aurora Intents delivers every other coin you top up with (never picked directly).
+  solmain: { id: "solmain", name: "Solana", network: "Solana", family: "solana", confirmations: 1, eta: "about a minute", live: true, explorerAddress: (a) => `https://solscan.io/account/${a}` },
+  monad: { id: "monad", name: "Monad", network: "Monad testnet", family: "evm", chainId: 10143, confirmations: 2, eta: "a few seconds", live: true, explorerAddress: (a) => `https://testnet.monadexplorer.com/address/${a}` },
+  hyperevm: { id: "hyperevm", name: "HyperEVM", network: "Hyperliquid testnet (HyperEVM)", family: "evm", chainId: 998, confirmations: 2, eta: "a few seconds", live: true, explorerAddress: (a) => `https://testnet.purrsec.com/address/${a}` },
   // MAINNET: chainId 1, 12+ confirmations
   ethereum: { id: "ethereum", name: "Ethereum", network: "Ethereum Sepolia testnet", family: "evm", chainId: 11155111, confirmations: 3, eta: "about 1 minute", live: true, explorerAddress: (a) => `https://sepolia.etherscan.io/address/${a}` },
   // MAINNET: chainId 8453
@@ -72,7 +76,7 @@ export const CHAINS: Record<ChainId, ChainInfo> = {
   dogecoin: { id: "dogecoin", name: "Dogecoin", network: "Dogecoin mainnet", family: "btc", confirmations: 6, eta: "about 6 minutes", live: false, why: "Dogecoin has no public testnet indexer, so it opens with mainnet.", explorerAddress: (a) => `https://dogechain.info/address/${a}` },
 };
 
-export type CoinId = "SOL" | "USDC" | "USDT" | "SKR" | "ORE" | "BTC" | "ETH" | "BNB" | "XRP" | "TRX" | "LTC" | "DOGE" | "BONK" | "JUP" | "PATHUSD" | "ALPHAUSD";
+export type CoinId = "SOL" | "USDC" | "USDT" | "SKR" | "ORE" | "BTC" | "ETH" | "BNB" | "XRP" | "TRX" | "LTC" | "DOGE" | "BONK" | "JUP" | "PATHUSD" | "ALPHAUSD" | "AUSD" | "MON" | "HYPE";
 
 /** One coin on one chain. `token` is the mint / contract (absent for the chain's own coin). */
 export type Rail = {
@@ -86,6 +90,8 @@ export type Rail = {
   test: boolean;
   /** XRP: pay to the Lexari address with your destination tag */
   tag?: boolean;
+  /** not offered in the picker (Aurora Intents delivers here) */
+  hidden?: boolean;
   live: boolean;
   why?: string;
 };
@@ -119,6 +125,9 @@ export const COINS: CoinInfo[] = [
   { id: "BONK", symbol: "BONK", name: "Bonk", price: { jupiter: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" }, color: "#F8A21B", tags: "bonk meme solana" },
   { id: "JUP", symbol: "JUP", name: "Jupiter", price: { jupiter: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" }, color: "#2BB8A2", tags: "jup jupiter solana" },
   { id: "PATHUSD", symbol: "pathUSD", name: "pathUSD", stable: true, price: { usd: 1 }, color: "#111111", tags: "pathusd tempo stablecoin stripe" },
+  { id: "AUSD", symbol: "AUSD", name: "Agora USD", stable: true, price: { usd: 1 }, color: "#1b1b3a", tags: "ausd agora dollar stablecoin monad" },
+  { id: "MON", symbol: "MON", name: "Monad", price: { coinbase: "MON" }, color: "#836ef9", tags: "mon monad" },
+  { id: "HYPE", symbol: "HYPE", name: "Hyperliquid", price: { coinbase: "HYPE" }, color: "#97fce4", tags: "hype hyperliquid hyperevm" },
   { id: "ALPHAUSD", symbol: "AlphaUSD", name: "AlphaUSD", stable: true, price: { usd: 1 }, color: "#4B5563", tags: "alphausd tempo stablecoin test" },
 ];
 
@@ -142,6 +151,7 @@ export const RAILS: Rail[] = [
   { coin: "ORE", chain: "solana", token: SOL_DEVNET_TEST.ORE, decimals: 11, min: 0.005, test: true, live: true }, // MAINNET: oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp
   { coin: "BONK", chain: "solana", token: SOL_DEVNET_TEST.BONK, decimals: 5, min: 20_000, test: true, live: true },
   { coin: "JUP", chain: "solana", token: SOL_DEVNET_TEST.JUP, decimals: 6, min: 1, test: true, live: true },
+  { coin: "USDC", chain: "solmain", token: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6, min: 1, test: false, live: true, hidden: true },
   // Stablecoins on other chains
   { coin: "USDC", chain: "ethereum", token: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", decimals: 6, min: 1, test: false, live: true }, // Circle Sepolia. MAINNET: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
   { coin: "USDC", chain: "base", token: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", decimals: 6, min: 1, test: false, live: true }, // Circle Base Sepolia. MAINNET: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
@@ -154,6 +164,9 @@ export const RAILS: Rail[] = [
   { coin: "USDT", chain: "arbitrum", decimals: 6, min: 1, test: false, live: false, why: "There is no USDT on Arbitrum Sepolia. It opens with mainnet." },
   { coin: "PATHUSD", chain: "tempo", token: "0x20c0000000000000000000000000000000000000", decimals: 6, min: 1, test: true, live: true },
   { coin: "ALPHAUSD", chain: "tempo", token: "0x20c0000000000000000000000000000000000001", decimals: 6, min: 1, test: true, live: true },
+  { coin: "AUSD", chain: "monad", token: "0xa9012a055bd4e0eDfF8Ce09f960291C09D5322dC", decimals: 6, min: 1, test: true, live: true },
+  { coin: "MON", chain: "monad", decimals: 18, min: 0.01, test: true, live: true },
+  { coin: "HYPE", chain: "hyperevm", decimals: 18, min: 0.01, test: true, live: true },
   // Native coins
   { coin: "BTC", chain: "bitcoin", decimals: 8, min: 0.00002, test: true, live: true },
   { coin: "ETH", chain: "ethereum", decimals: 18, min: 0.0005, test: true, live: true },
@@ -170,7 +183,10 @@ export const railId = (r: Pick<Rail, "coin" | "chain">) => `${r.coin}:${r.chain}
 export const railById = (id: string) => RAILS.find((r) => railId(r) === id);
 export const coinById = (id: string) => COINS.find((c) => c.id === id);
 export const railsFor = (coin: CoinId) => RAILS.filter((r) => r.coin === coin);
-export const payKind = (r: Rail): "wallet" | "deposit" => (r.chain === "solana" ? "wallet" : "deposit");
+/** Every top up is a deposit to your own address now (no paying from the sign-in wallet). */
+export const payKind = (_r: Rail): "wallet" | "deposit" => "deposit";
+/** Smallest top up, in dollars. */
+export const TOPUP_MIN_USD = 5;
 /** What the sheet calls it: "USDT on Tron", "test SKR on Solana devnet". */
 export const railLabel = (r: Rail) => `${r.test ? "test " : ""}${coinById(r.coin)?.symbol || r.coin} on ${CHAINS[r.chain].name}`;
 /** Display decimals for an amount of this coin. */

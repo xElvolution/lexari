@@ -1,5 +1,6 @@
 "use client";
 
+import Capped from "../Capped";
 import { useCallback, useEffect, useState } from "react";
 import { api, friendly } from "@/lib/api";
 import { setHideBalance, useHideBalance, useMask } from "@/lib/privacy";
@@ -76,12 +77,12 @@ export default function SecurityCenter() {
         <Addresses d={d} setD={setD} />
         <Sessions d={d} setD={setD} />
         <Group title="Recent security activity">
-          {d.events.length ? d.events.slice(0, 8).map((e) => (
+          {d.events.length ? <Capped className="divide-y divide-[var(--line)]">{d.events.slice(0, 40).map((e) => (
             <div key={e.id} data-sec-event={e.kind} className="flex items-center gap-3 py-3">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-tint text-ink/70"><Icon name={(EV_ICON[e.kind] || "info") as never} size={15} /></span>
               <span className="min-w-0 flex-1"><span className="block text-[14px] font-semibold leading-snug text-ink [overflow-wrap:anywhere]">{e.detail}</span><span className="block text-[12px] text-ink/50">{[e.device, ago(e.at)].filter(Boolean).join(" · ")}</span></span>
             </div>
-          )) : <Row title="Nothing yet" desc="Sign-ins and security changes show here." />}
+          ))}</Capped> : <Row title="Nothing yet" desc="Sign-ins and security changes show here." />}
         </Group>
       </>}
       {!d && !err && <div className="mt-6 h-40 animate-pulse rounded-[22px] bg-tint" />}
@@ -126,13 +127,13 @@ function Addresses({ d, setD }: { d: Data; setD: (f: (x: Data | null) => Data | 
   };
   return (
     <Group title="Saved addresses">
-      {d.addresses.map((a) => (
+      <Capped className="divide-y divide-[var(--line)]">{d.addresses.map((a) => (
         <div key={a.id} data-saved-address className="flex items-center gap-3 py-3">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-grape/12 text-brand-ink"><Icon name="verified" size={15} /></span>
           <span className="min-w-0 flex-1"><span className="block truncate text-[14px] font-semibold text-ink">{a.label || "Saved address"}</span><span className="block font-mono text-[12px] text-ink/55">{short(a.address)} · {a.chain === "evm" ? "EVM" : "Solana"}</span></span>
           <button onClick={() => void remove(a.id)} aria-label={`Remove ${a.label || short(a.address)}`} className="grid h-9 w-9 place-items-center rounded-full text-ink/55 hover:bg-tint hover:text-[#e5484d]"><Icon name="trash" size={15} /></button>
         </div>
-      ))}
+      ))}</Capped>
       {open ? (
         <form className="grid gap-2 py-4" onSubmit={(e) => { e.preventDefault(); void add(); }}>
           <input value={addr} onChange={(e) => setAddr(e.target.value.trim())} placeholder="Solana or 0x… address" aria-label="Address" autoComplete="off" spellCheck={false} className={`${input} font-mono text-[13px]`} />
@@ -160,13 +161,13 @@ function Sessions({ d, setD }: { d: Data; setD: (f: (x: Data | null) => Data | n
   const others = d.sessions.filter((x) => !x.current).length;
   return (
     <Group title="Where you're signed in">
-      {d.sessions.map((x) => (
+      <Capped className="divide-y divide-[var(--line)]">{d.sessions.map((x) => (
         <div key={x.id} data-session={x.current ? "current" : "other"} className="flex items-center gap-3 py-3">
           <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${x.current ? "bg-grape text-white" : "bg-tint text-ink/70"}`}><Icon name={/iPhone|Android|iPad/.test(x.device) ? "phone" : "laptop"} size={15} /></span>
           <span className="min-w-0 flex-1"><span className="block truncate text-[14px] font-semibold text-ink">{x.device}{x.current && <span className="ml-1.5 rounded-full bg-grape/12 px-2 py-0.5 text-[11px] font-bold text-brand-ink">This device</span>}</span><span className="block truncate text-[12px] text-ink/50">{[x.network && `Network ${x.network}`, x.current ? "Active now" : ago(x.lastSeenAt)].filter(Boolean).join(" · ")}</span></span>
           {!x.current && <button onClick={() => void end({ id: x.id })} disabled={busy} className="h-9 shrink-0 rounded-full px-3 text-[13px] font-bold text-[#e5484d] hover:bg-[#fde8e8] disabled:opacity-50">Sign out</button>}
         </div>
-      ))}
+      ))}</Capped>
       <Row title="Sign out everywhere else" desc={others ? `Ends ${others} other ${others === 1 ? "session" : "sessions"}. This device stays signed in.` : "You're only signed in here."}>
         <button data-signout-others onClick={() => void end({ others: true })} disabled={busy || !others} className={smallBtn}><Icon name="out" size={15} />Sign out others</button>
       </Row>

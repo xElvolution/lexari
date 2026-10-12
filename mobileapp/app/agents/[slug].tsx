@@ -84,8 +84,8 @@ export default function AgentPage() {
                 </View>
               </View>
             ) : null}
-            <UnifiedBalance slug={slug} name={name} token={token} />
-            <TempoCard slug={slug} name={name} token={token} />
+            {kind !== "Hired" ? <UnifiedBalance slug={slug} name={name} token={token} /> : null}
+            {kind !== "Hired" ? <TempoCard slug={slug} name={name} token={token} /> : null}
           </View>
         </ScrollView>
       )}

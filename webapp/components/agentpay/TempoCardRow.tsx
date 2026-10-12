@@ -1,5 +1,6 @@
 "use client";
 
+import Capped from "../Capped";
 import { useCallback, useEffect, useState } from "react";
 import { api, friendly } from "@/lib/api";
 import { toast } from "@/lib/store";
@@ -66,7 +67,7 @@ function CardSheet({ agent, name, c, onSaved, onClose }: { agent: string; name: 
       <div className="mt-4">
         <div className="label mb-1.5 text-[10px] text-ink/50">History</div>
         {c.history.length ? (
-          <ul className="divide-y divide-line rounded-2xl ring-1 ring-line">
+          <Capped className="rounded-2xl ring-1 ring-line"><ul className="divide-y divide-line">
             {c.history.map((r) => (
               <li key={r.id} className="flex items-center gap-2 px-3 py-2.5 text-[13px]">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${r.status === "confirmed" ? "bg-[#22c55e]" : r.status === "prepared" ? "bg-[#e0a100]" : r.status === "failed" || r.status === "rejected" ? "bg-[#e5484d]" : "bg-ink/30"}`} />
@@ -75,7 +76,7 @@ function CardSheet({ agent, name, c, onSaved, onClose }: { agent: string; name: 
                 {r.explorer && <a href={r.explorer} target="_blank" rel="noreferrer" aria-label="View transaction" className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-ink/50 hover:bg-tint"><Icon name="link" size={14} /></a>}
               </li>
             ))}
-          </ul>
+          </ul></Capped>
         ) : <p className="text-[13px] text-ink/60">No card payments yet. Ask {name} to pay with its Tempo card in chat.</p>}
       </div>
     </Sheet>

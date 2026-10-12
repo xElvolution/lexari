@@ -11,32 +11,26 @@ import { GRAPE, Label, T, WSheet, useC } from "@/web/kit";
 type M = { id: string; label: string; maker: string; blurb: string; pool: "lamina" | "premium"; price: { in: number; out: number } };
 const LAMINA: M = { id: "lamina", label: "Lamina", maker: "Lexari", blurb: "Lexari's own model. Fast, tuned for your agents.", pool: "lamina", price: { in: 0.45, out: 2.25 } };
 const INCLUDED: M[] = [
-  { id: "grok-fast", label: "Grok 4.7 Fast", maker: "xAI", blurb: "Quickest replies for everyday chat.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
-  { id: "grok-4.6", label: "Grok 4.6", maker: "xAI", blurb: "The previous Grok. Steady and thorough.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
+  { id: "grok-fast", label: "Grok", maker: "xAI", blurb: "Quick, direct and current. Strong on live topics.", pool: "lamina", price: { in: 0.45, out: 2.25 } },
 ];
-/** content/models.ts HOUSE: open models on Lexari's provider keys. Unavailable when the server has no key for them. */
+/** content/models.ts HOUSE. Unavailable when the server has no key for them. Model ids are never shown. */
 const HOUSE: M[] = [
   { id: "kimi", label: "Kimi", maker: "Moonshot AI", blurb: "Moonshot's flagship. Long context, strong at planning and tools.", pool: "lamina", price: { in: 0.6, out: 2.5 } },
-  { id: "qwen", label: "Qwen 3.8 Max", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 } },
-  { id: "zg", label: "0G Compute", maker: "0G", blurb: "Open models on 0G's decentralized network, with automatic failover.", pool: "lamina", price: { in: 0.5, out: 1.6 } },
+  { id: "qwen", label: "Qwen", maker: "Alibaba", blurb: "Alibaba's strongest Qwen. Careful multi-step reasoning.", pool: "lamina", price: { in: 1.2, out: 6 } },
+  { id: "openai", label: "OpenAI", maker: "OpenAI", blurb: "OpenAI's quick everyday model. Clear and reliable.", pool: "lamina", price: { in: 0.25, out: 2 } },
+  { id: "claude", label: "Claude", maker: "Anthropic", blurb: "Careful writing and reasoning from Anthropic.", pool: "lamina", price: { in: 3, out: 15 } },
 ];
-const LETTER: Record<string, [string, string]> = { "Moonshot AI": ["K", "#16191e"], Alibaba: ["Q", "#615ced"], "0G": ["0G", "#b75fff"] };
-const PREMIUM: M[] = [
-  { id: "claude-sonnet", label: "Claude Sonnet 5.5", maker: "Anthropic", blurb: "Careful writing and reasoning. The everyday premium pick.", pool: "premium", price: { in: 2, out: 10 } },
-  { id: "claude-opus", label: "Claude Opus 5.5", maker: "Anthropic", blurb: "Anthropic's strongest model for hard, long tasks.", pool: "premium", price: { in: 4, out: 20 } },
-  { id: "grok", label: "Grok 4.7", maker: "xAI", blurb: "Quick, direct and current. Strong on live topics.", pool: "premium", price: { in: 2, out: 6 } },
-  { id: "gemini-flash", label: "Gemini 3.8 Flash", maker: "Google", blurb: "Fast and light on usage, with a huge context window.", pool: "premium", price: { in: 0.75, out: 3.75 } },
-];
+const LETTER: Record<string, [string, string]> = {};
 const turn = (p: M["price"]) => 3000 * p.in + 400 * p.out;
-const burn = (m: M) => { const x = turn(m.price) / turn(PREMIUM[0].price); return x >= 1 ? Math.round(x) : Math.round(x * 10) / 10; };
-const LOGO: Record<string, number> = { Anthropic: require("../../assets/models/claude.png"), xAI: require("../../assets/models/xai.png"), Google: require("../../assets/models/gemini.png") };
+const burn = (m: M) => { const x = turn(m.price) / turn({ in: 2, out: 10 }); return x >= 1 ? Math.round(x) : Math.round(x * 10) / 10; };
+const LOGO: Record<string, number> = { "Moonshot AI": require("../../assets/models/kimi.png"), Alibaba: require("../../assets/models/qwen.png"), OpenAI: require("../../assets/models/openai.png"), Anthropic: require("../../assets/models/claude.png"), xAI: require("../../assets/models/xai.png"), Google: require("../../assets/models/gemini.png") };
 
 type Billing = { plan: { id: string }; usage: { lamina: { used: number; limit: number }; free?: { resetsAt: number } }; credits: { balance: number; spent: number }; models: { gateway: boolean; available: Record<string, boolean>; agents: Record<string, string | null>; chats: Record<string, string>; default: string; keys: unknown[]; prefs: { off: string[] } } };
 
 export function LaminaMark({ size = 20, color = "#fff" }: { size?: number; color?: string }) {
   return <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M12 3.5 20.5 8 12 12.5 3.5 8z" fill={color} /><Path d="m3.5 12 8.5 4.5 8.5-4.5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.75} /><Path d="m3.5 16 8.5 4.5 8.5-4.5" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" opacity={0.45} /></Svg>;
 }
-const TILE: Record<string, { bg: string; tint?: string }> = { xAI: { bg: "#0a0a0a", tint: "#fff" }, Anthropic: { bg: "#d97757", tint: "#fff" }, Google: { bg: "#fff" } };
+const TILE: Record<string, { bg: string; tint?: string }> = { "Moonshot AI": { bg: "#16191e", tint: "#fff" }, Alibaba: { bg: "#615ced", tint: "#fff" }, OpenAI: { bg: "#10a37f", tint: "#fff" }, xAI: { bg: "#0a0a0a", tint: "#fff" }, Anthropic: { bg: "#d97757", tint: "#fff" }, Google: { bg: "#fff" } };
 function Mark({ m, size = 40 }: { m: M; size?: number }) {
   if (m.id === "lamina") return <View style={{ width: size, height: size, borderRadius: 12, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><LaminaMark size={size * 0.5} /></View>;
   const letter = LETTER[m.maker];
@@ -114,17 +108,9 @@ export function ModelSheet({ open, onClose, convo, agent, agentName, group, onCh
         <View style={{ gap: 8 }}>
           <Row m={LAMINA} />
           {INCLUDED.filter((m) => s.models.available[m.id] && !s.models.prefs.off.includes(m.id)).map((m) => <Row key={m.id} m={m} />)}
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, marginTop: 12 }}><Label s={9.5} c={k.ink45}>Open models</Label><T s={11.5} c={k.ink45}>Included · falls back if busy</T></View>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, marginTop: 12 }}><Label s={9.5} c={k.ink45}>More models</Label><T s={11.5} c={k.ink45}>Included · falls back if busy</T></View>
           {HOUSE.filter((m) => !s.models.available[m.id] || !s.models.prefs.off.includes(m.id)).map((m) => <Row key={m.id} m={m} />)}
           <Pressable onPress={() => { onClose(); router.push("/(tabs)/settings"); }} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4, marginTop: 4 }}><Icon name="key" size={13} color={k.brandInk} /><T f="bold" s={12.5} c={k.brandInk}>{s.models.keys.length ? "Manage models and API keys" : "Use your own API keys"}</T></Pressable>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4, marginTop: 12 }}><Label s={9.5} c={k.ink45}>Premium</Label><T s={11.5} c={k.ink45}>Uses premium usage at API price + 20%</T></View>
-          {!s.models.gateway ? (
-            <View style={{ flexDirection: "row", gap: 12, padding: 14, borderRadius: 18, backgroundColor: "rgba(91,43,255,0.08)", borderWidth: 1, borderColor: "rgba(91,43,255,0.25)" }}>
-              <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: "rgba(91,43,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name="spark" size={17} color={k.brandInk} /></View>
-              <View style={{ flex: 1 }}><T f="bold" s={14}>Premium models are coming soon</T><T s={12.5} c={k.ink60} style={{ marginTop: 2, lineHeight: 17 }}>Claude, Grok and Gemini switch on here shortly. Lamina is ready for every agent right now.</T></View>
-            </View>
-          ) : null}
-          {PREMIUM.map((m) => <Row key={m.id} m={m} />)}
         </View>
       )}
     </WSheet>

@@ -10,14 +10,14 @@
  *    balance pays for real AI usage). Anything over waits and is credited on a later check.
  */
 import { and, eq, gt, sql } from "drizzle-orm";
-import { CHAINS, TESTNET_TOPUP_DAILY_USD, coinById, payKind, railById, railId, type Rail } from "@/content/topup";
+import { CHAINS, TESTNET_TOPUP_DAILY_USD, TOPUP_MIN_USD, coinById, payKind, railById, railId, type Rail } from "@/content/topup";
 import { db } from "../db";
 import { topupCredits, topupWatches, topupXrpTags } from "../db/topupSchema";
 import { HttpError } from "../http";
 import { credit } from "../billing/balance";
 import { notify } from "../notify";
 import { held, xrplEnsureAccount, xrplPayments } from "./chains";
-import { btcDepositAddress, evmDepositAddress, ltcDepositAddress, tronDepositAddress, xrpLexariAddress } from "./derive";
+import { btcDepositAddress, evmDepositAddress, solDepositAddress, ltcDepositAddress, tronDepositAddress, xrpLexariAddress } from "./derive";
 import { coinUsd } from "./prices";
 
 const MICROS = 1_000_000;
@@ -36,6 +36,7 @@ export function depositRail(id: string) {
 function addressFor(userId: string, r: Rail) {
   switch (CHAINS[r.chain].family) {
     case "evm": return evmDepositAddress(userId);
+    case "solana": return solDepositAddress(userId);
     case "btc": return r.chain === "litecoin" ? ltcDepositAddress(userId) : btcDepositAddress(userId);
     case "tron": return tronDepositAddress(userId);
     case "xrpl": return xrpLexariAddress();
@@ -104,7 +105,8 @@ export async function checkDeposit(userId: string, id: string): Promise<DepositV
       else if (price === null) status = "incoming"; // priced on the next check
       else {
         const micros = usdMicrosOf(delta, r, price);
-        if (micros > capLeft) status = "capped";
+        if (micros < TOPUP_MIN_USD * MICROS) status = "below";
+        else if (micros > capLeft && r.chain !== "solmain") status = "capped";
         else if (micros > 0) {
           const ref = `dep:${railId(r)}:${userId}:${h.confirmed.toString()}`;
           const [row] = await tx.insert(topupCredits).values({ userId, rail: railId(r), atoms: delta.toString(), usdMicros: micros, price, ref }).onConflictDoNothing().returning({ id: topupCredits.id });

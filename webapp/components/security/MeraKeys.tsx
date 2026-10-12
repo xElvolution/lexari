@@ -1,5 +1,6 @@
 "use client";
 
+import Capped from "../Capped";
 import { useEffect, useState } from "react";
 import { api, friendly } from "@/lib/api";
 import { linkPasskey, passkeySupported } from "@/lib/mera";
@@ -21,9 +22,8 @@ export default function MeraKeys({ agents }: { agents: { slug: string; name: str
   };
   const name = (s: string) => agents.find((a) => a.slug === s)?.name || s;
   return (
-    <section data-mera className="rounded-[22px] bg-card p-5 ring-1 ring-line">
-      <h3 className="text-[17px] font-extrabold text-ink">Passkey</h3>
-      <p className="mt-1 text-[13.5px] text-ink/65">One passkey, many keys. Sign in with Face ID, Touch ID or a security key, and each agent gets its own key derived from the same passkey. Powered by Mera; nothing secret is stored.</p>
+    <section data-mera className="mt-6"><h3 className="label mb-1 text-[9.5px] text-ink/50">Passkey</h3><div className="rounded-[22px] bg-card p-5 ring-1 ring-line max-[430px]:p-4">
+      <p className=" text-[13.5px] text-ink/65">One passkey, many keys. Link a passkey to this account to sign in with Face ID, Touch ID or a security key, and each agent gets its own key derived from it. Powered by Mera; nothing secret is stored.</p>
       {!passkeySupported() && <p className="mt-2 text-[13px] text-ink/60">This browser doesn&apos;t support passkeys.</p>}
       <div className="mt-3 flex flex-wrap gap-2">
         <button disabled={busy || !passkeySupported()} onClick={() => go(!k?.passkeys.length)} className="rounded-full bg-grape px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-50">{busy ? "Waiting for passkey…" : k?.passkeys.length ? "Refresh agent keys" : "Add a passkey"}</button>
@@ -31,10 +31,10 @@ export default function MeraKeys({ agents }: { agents: { slug: string; name: str
       </div>
       {err && <p className="mt-2 text-[13px] text-[#e5484d]">{err}</p>}
       {!!k?.keys.length && (
-        <ul className="mt-3 divide-y divide-line">
+        <Capped className="mt-3"><ul className="divide-y divide-line">
           {k.keys.map((x) => <li key={x.agent} className="flex items-center justify-between py-2 text-[13.5px]"><span className="font-bold text-ink">{name(x.agent)}</span><span className="font-mono text-[12px] text-ink/70">{x.address.slice(0, 6)}…{x.address.slice(-4)}</span></li>)}
-        </ul>
+        </ul></Capped>
       )}
-    </section>
+    </div></section>
   );
 }

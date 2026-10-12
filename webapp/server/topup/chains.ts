@@ -6,6 +6,7 @@
 import type { ChainId, Rail } from "@/content/topup";
 import { CHAINS } from "@/content/topup";
 import { tronHex } from "./derive";
+import { rpcUrl } from "../rpc";
 
 const RPC: Partial<Record<ChainId, string>> = {
   ethereum: "https://ethereum-sepolia-rpc.publicnode.com",
@@ -13,12 +14,17 @@ const RPC: Partial<Record<ChainId, string>> = {
   arbitrum: "https://sepolia-rollup.arbitrum.io/rpc",
   bnb: "https://bsc-testnet-rpc.publicnode.com",
   tempo: "https://rpc.moderato.tempo.xyz",
+  monad: "https://testnet-rpc.monad.xyz",
+  hyperevm: "https://rpc.hyperliquid-testnet.xyz/evm",
   bitcoin: "https://mempool.space/testnet4/api",
   litecoin: "https://litecoinspace.org/testnet/api",
   tron: "https://nile.trongrid.io",
   xrpl: "https://testnet.xrpl-labs.com/",
 };
-export const rpcFor = (c: ChainId) => process.env[`TOPUP_RPC_${c.toUpperCase()}`] || RPC[c] || "";
+export const rpcFor = (c: ChainId) => process.env[`TOPUP_RPC_${c.toUpperCase()}`]
+  || (c === "solana" ? rpcUrl() : "")
+  || (c === "solmain" ? process.env.SOLANA_MAINNET_RPC || "https://api.mainnet-beta.solana.com" : "")
+  || RPC[c] || "";
 
 async function fetchJson<T>(url: string, init?: RequestInit, tries = 3): Promise<T> {
   let last = "";
@@ -96,6 +102,7 @@ export async function held(r: Rail, address: string): Promise<Held> {
   if (fam === "evm") return evmHeld(r, address);
   if (fam === "btc") return utxoHeld(r, address);
   if (fam === "tron") return tronHeld(r, address);
+  if (fam === "solana") return solHeld(r, address);
   throw new Error(`no balance reader for ${r.chain}`);
 }
 
@@ -124,4 +131,20 @@ export async function xrplEnsureAccount(account: string) {
   const info = await xrplCall<{ error?: string }>("account_info", { account, ledger_index: "validated" });
   if (info.error !== "actNotFound") return;
   await fetch("https://faucet.altnet.rippletest.net/accounts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ destination: account }), signal: AbortSignal.timeout(15000) }).catch(() => null);
+}
+
+/** Solana: confirmed = finalized, latest = confirmed. SOL in lamports, tokens summed over the owner's token accounts. */
+async function solHeld(r: Rail, address: string): Promise<Held> {
+  const call = async <T,>(method: string, params: unknown[]) => {
+    const j = await fetchJson<{ result?: T; error?: { message: string } }>(rpcFor(r.chain), { method: "POST", body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+    if (j.error) throw new Error(j.error.message);
+    return j.result as T;
+  };
+  const read = async (commitment: "finalized" | "confirmed") => {
+    if (!r.token) return BigInt((await call<{ value: number }>("getBalance", [address, { commitment }])).value || 0);
+    const res = await call<{ value: { account: { data: { parsed: { info: { tokenAmount: { amount: string } } } } } }[] }>("getTokenAccountsByOwner", [address, { mint: r.token }, { encoding: "jsonParsed", commitment }]);
+    return res.value.reduce((a, v) => a + BigInt(v.account.data.parsed.info.tokenAmount.amount || "0"), BigInt(0));
+  };
+  const [confirmed, latest] = await Promise.all([read("finalized"), read("confirmed")]);
+  return { confirmed, latest };
 }

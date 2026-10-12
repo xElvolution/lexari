@@ -24,10 +24,16 @@ const COIN_FILE: Record<CoinId, string> = {
   JUP: "JUP.webp",
   PATHUSD: "PATHUSD.png",
   ALPHAUSD: "ALPHAUSD.svg",
+  AUSD: "AUSD.png",
+  MON: "MON.png",
+  HYPE: "HYPE.png",
 };
 
 const CHAIN_FILE: Record<ChainId | "polygon", string> = {
   solana: "solana.png",
+  solmain: "solana.png",
+  monad: "monad.png",
+  hyperevm: "hyperevm.png",
   ethereum: "ethereum.png",
   base: "base.png",
   arbitrum: "arbitrum.png",
@@ -58,6 +64,8 @@ const MAKER_FILE: Record<string, string> = {
   Google: "gemini.png",
   xAI: "xai.png",
   OpenRouter: "openrouter.png",
+  "Moonshot AI": "kimi.png",
+  Alibaba: "qwen.png",
   Custom: "",
 };
 

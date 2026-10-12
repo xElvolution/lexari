@@ -24,6 +24,9 @@ const SPECS: Record<HouseProvider, Spec> = {
     extra: { enable_thinking: false }, viaZg: { model: "ZG_QWEN_MODEL", modelDefault: "qwen3.8-max", extra: { enable_thinking: false } } },
   zg: { key: "ZG_COMPUTE_API_KEY", base: "ZG_COMPUTE_BASE_URL", baseDefault: "https://router-api.0g.ai/v1", model: "ZG_COMPUTE_MODEL", modelDefault: "glm-5.2", who: "0G Compute",
     extra: { chat_template_kwargs: { enable_thinking: false } } },
+  // OpenAI and Claude in the picker run on the 0G router too, on the cheaper tiers (ids from router-api.0g.ai/v1/models).
+  "zg-openai": { key: "ZG_COMPUTE_API_KEY", base: "ZG_COMPUTE_BASE_URL", baseDefault: "https://router-api.0g.ai/v1", model: "ZG_OPENAI_MODEL", modelDefault: "gpt-5.4-mini", who: "OpenAI on 0G Compute" },
+  "zg-claude": { key: "ZG_COMPUTE_API_KEY", base: "ZG_COMPUTE_BASE_URL", baseDefault: "https://router-api.0g.ai/v1", model: "ZG_CLAUDE_MODEL", modelDefault: "claude-sonnet-5", who: "Claude on 0G Compute" },
 };
 
 /** The env var names, for setup docs and the health page. */

@@ -13,7 +13,7 @@ import { connection } from "../hub/chain";
 import { fetchConfirmed } from "../hub/confirm";
 import { HttpError } from "../http";
 import { markPaid } from "./entitlements";
-import { CHAINS, payKind, railById, railId, type Rail } from "@/content/topup";
+import { CHAINS, railById, railId, type Rail } from "@/content/topup";
 import { coinUsd } from "../topup/prices";
 import { topupCredits } from "../db/topupSchema";
 
@@ -30,7 +30,7 @@ export function solanaPayUrl(p: { recipient: string; amountMinor: number; mint: 
 /** The Solana rail to pay with: USDC by default, or any Solana coin in content/topup.ts (SOL, SKR, ORE, ...). */
 export function solanaRail(id?: string): Rail {
   const r = railById(id || "USDC:solana");
-  if (!r || payKind(r) !== "wallet" || !r.live) throw new HttpError(400, "Pick a Solana coin to pay with.");
+  if (!r || r.chain !== "solana" || !r.live) throw new HttpError(400, "Pick a Solana coin to pay with.");
   return r;
 }
 /** The mint a Solana rail pays in (USDC follows the server's configured mint), or null for SOL. */

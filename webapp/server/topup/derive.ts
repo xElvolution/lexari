@@ -22,7 +22,7 @@ const secret = () => {
   return s;
 };
 /** The private key for a family; `who` is a person id, or "lexari" for shared Lexari accounts. */
-export function depositKey(family: "evm" | "btc" | "ltc" | "tron" | "xrpl", who: string): Uint8Array {
+export function depositKey(family: "evm" | "btc" | "ltc" | "tron" | "xrpl" | "sol", who: string): Uint8Array {
   let k = createHmac("sha256", secret()).update(`lexari-deposit:v1:${family}:${who}`).digest();
   // a valid secp256k1 scalar (astronomically unlikely to need a second round)
   while (!secp256k1.utils.isValidPrivateKey(k)) k = createHash("sha256").update(k).digest();
@@ -93,4 +93,12 @@ export function tronHex(addr: string) {
   const b = base58checkDecode(addr);
   if (!b || b.length !== 21 || b[0] !== 0x41) throw new Error("bad tron address");
   return Buffer.from(b).toString("hex");
+}
+
+/** Solana: an ed25519 key from the same per-person seed (the 32-byte HMAC output is the seed). */
+export function solDepositAddress(userId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Keypair } = require("@solana/web3.js") as typeof import("@solana/web3.js");
+  const seed = createHmac("sha256", secret()).update(`lexari-deposit:v1:sol:${userId}`).digest();
+  return Keypair.fromSeed(new Uint8Array(seed)).publicKey.toBase58();
 }
