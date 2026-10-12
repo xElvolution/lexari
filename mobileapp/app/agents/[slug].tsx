@@ -8,6 +8,7 @@ import { specialist } from "@/content/roster";
 import { AgentTile, GRAPE, Label, T, useC } from "@/web/kit";
 import { useSession } from "@/state/session";
 import { useData, youName } from "@/web/data";
+import TempoCard from "@/components/TempoCard";
 
 
 export default function AgentPage() {
@@ -82,6 +83,7 @@ export default function AgentPage() {
                 </View>
               </View>
             ) : null}
+            <TempoCard slug={slug} name={name} token={token} />
           </View>
         </ScrollView>
       )}

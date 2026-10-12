@@ -23,6 +23,7 @@ import AgentMoney from "../wallet/AgentMoney";
 import AgentModelRow from "../billing/AgentModelRow";
 import AgentEmailRow from "../email/AgentEmailRow";
 import BudgetRow from "../agentpay/BudgetRow";
+import TempoCardRow from "../agentpay/TempoCardRow";
 import MinerRow from "../miner/MinerRow";
 import { lookVariant } from "@shared/components/avatar";
 import type { AgentLook } from "@/lib/store";
@@ -152,6 +153,7 @@ function Panel({ s, id }: { s: State; id: string }) {
                 <AgentEmailRow agent={id} name={info.name} />
                 {id === "ore" && <MinerRow />}
                 <BudgetRow agent={id} name={info.name} />
+                <TempoCardRow agent={id} name={info.name} />
                 <AgentMoney s={s} id={id} name={info.name} />
                 {k !== "hired" && <OnchainCard s={s} id={id} name={info.name} role={info.role} bg={info.bg}
                   v={k === "home" ? lookVariant(s.agent?.look) : variant({ shape: c!.shape, color: c!.color, eyes: c!.eyes, mouth: c!.mouth, extra: c!.extra, blush: c!.blush ?? (c!.tone === "warm" || c!.tone === "playful"), brows: c!.brows, orbit: c!.orbit, dots: c!.dots, bg: c!.bg })} />}
