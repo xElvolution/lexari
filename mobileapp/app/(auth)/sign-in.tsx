@@ -180,11 +180,16 @@ function SignInView({ methods }: { methods: Methods }) {
         await methods.sendCode(email.trim()); setSent(true);
       } else {
         if (code.replace(/\D/g, "").length < 6) throw new Error("Enter the 6-digit code.");
-        setLoading(true);
+        // the code is in: drop the card and show the full-screen loader while we sign in
+        setAuthOpen(false); setLoading(true);
         await methods.verify(email.trim(), code.trim());
-        setAuthOpen(false);
       }
-    } catch (e) { setLoading(false); console.warn("[lexari] email", e); setEmailMsg(said(e, "That didn't work. Please try again.")); }
+    } catch (e) {
+      console.warn("[lexari] email", e);
+      setLoading(false);
+      // back to the code step with the error so they can retry (the Privy session was dropped)
+      setCode(""); setAuthOpen(true); setEmailMsg(said(e, "That didn't work. Please try again."));
+    }
     finally { setBusy(""); }
   };
 
@@ -204,16 +209,16 @@ function SignInView({ methods }: { methods: Methods }) {
             </View>
             <ThemeToggle />
           </View>
-          <Rise delay={80} style={{ marginTop: 24 }}><Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 0.44, textTransform: "uppercase", color: "rgba(255,255,255,0.8)" }}>Day one · getting in</Text></Rise>
-          <Rise delay={150}><Text accessibilityRole="header" style={{ marginTop: 16, fontFamily: F.display, fontSize: 24, lineHeight: 22.8, letterSpacing: -1.08, color: "#fff" }}>{"Sign in.\nMeet your agent."}</Text></Rise>
-          <Rise delay={220}><Text style={{ marginTop: 16, maxWidth: 448, fontFamily: F.sans, fontSize: 15, lineHeight: 24.4, color: "rgba(255,255,255,0.9)" }}>Use Google or email. Then you name your agent and it clocks in on its own computer.</Text></Rise>
+          <Rise delay={0} style={{ marginTop: 24 }}><Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 0.44, textTransform: "uppercase", color: "rgba(255,255,255,0.8)" }}>Day one · getting in</Text></Rise>
+          <Rise delay={30}><Text accessibilityRole="header" style={{ marginTop: 16, fontFamily: F.display, fontSize: 24, lineHeight: 22.8, letterSpacing: -1.08, color: "#fff" }}>{"Sign in.\nMeet your agent."}</Text></Rise>
+          <Rise delay={60}><Text style={{ marginTop: 16, maxWidth: 448, fontFamily: F.sans, fontSize: 15, lineHeight: 24.4, color: "rgba(255,255,255,0.9)" }}>Use Google or email. Then you name your agent and it clocks in on its own computer.</Text></Rise>
           <View style={{ marginTop: 24, flexDirection: "row", alignItems: "center", gap: 8 }}>
             {["scout", "quill", "tally", "frame", "patch"].map((s, i) => (
-              <PopIn key={s} delay={200 + i * 80}>
+              <PopIn key={s} delay={40 + i * 40}>
                 <View style={{ width: 40, height: 44, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center" }}><Face slug={s} size={40} /></View>
               </PopIn>
             ))}
-            <PopIn delay={600} style={{ flex: 1, minWidth: 0 }}>
+            <PopIn delay={240} style={{ flex: 1, minWidth: 0 }}>
               <View style={{ height: 44, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.4)", paddingHorizontal: 12, justifyContent: "center" }}>
                 <Text style={{ fontFamily: F.mono, fontSize: 11, lineHeight: 16.5, letterSpacing: 0.44, textTransform: "uppercase", color: "rgba(255,255,255,0.8)" }}>hire more later</Text>
               </View>
@@ -224,9 +229,9 @@ function SignInView({ methods }: { methods: Methods }) {
         {/* Welcome in. */}
         <View style={{ flexGrow: 1, justifyContent: "center", paddingHorizontal: 20, paddingTop: 28, paddingBottom: insets.bottom + 28 }}>
         <View style={{ maxWidth: 440, width: "100%", alignSelf: "center" }}>
-          <Rise delay={360}><Text accessibilityRole="header" style={{ fontFamily: F.display, fontSize: 22, letterSpacing: -0.99, lineHeight: 21, color: k.ink }}>Welcome in.</Text></Rise>
-          <Rise delay={430}><Text style={{ marginTop: 8, fontFamily: F.sans, fontSize: 15, lineHeight: 22, color: k.ink75 }}>Pick how you want to sign in. No new password to remember.</Text></Rise>
-          <Rise delay={500} style={{ marginTop: 24, gap: 10 }}>
+          <Rise delay={90}><Text accessibilityRole="header" style={{ fontFamily: F.display, fontSize: 22, letterSpacing: -0.99, lineHeight: 21, color: k.ink }}>Welcome in.</Text></Rise>
+          <Rise delay={120}><Text style={{ marginTop: 8, fontFamily: F.sans, fontSize: 15, lineHeight: 22, color: k.ink75 }}>Pick how you want to sign in. No new password to remember.</Text></Rise>
+          <Rise delay={150} style={{ marginTop: 24, gap: 10 }}>
             <Pressable accessibilityRole="button" accessibilityLabel="Continue with Google" disabled={!!busy} onPress={() => { tap(); void google(); }}
               style={({ pressed }) => ({ height: 50, borderRadius: 999, backgroundColor: "#fff", borderWidth: 1, borderColor: k.line, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 20, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
               <GoogleG size={18} /><Text style={{ fontFamily: F.bold, fontSize: 15, color: "#0a0a0a" }}>Continue with Google</Text>

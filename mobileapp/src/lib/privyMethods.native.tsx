@@ -16,6 +16,14 @@ function readable(e: unknown): Error {
   return e as Error;
 }
 
+/** The embedded Solana provider takes the message as base64 of its bytes (Privy signs with encoding "base64").
+ *  Sending the plain text made it sign the base64-decoded bytes, so the server's UTF-8 check failed. */
+function utf8Base64(text: string) {
+  let bin = "";
+  for (const b of new TextEncoder().encode(text)) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>): Methods {
@@ -55,11 +63,11 @@ export function usePlatformMethods(onSession: (s: SavedSession) => Promise<void>
     if (!wallet) throw new Error("We couldn't set up your wallet. Please try again.");
     const provider = await wallet.getProvider();
     const message = await nonceFor(wallet.address);
-    const signed = await provider.request({ method: "signMessage", params: { message } });
+    const signed = await provider.request({ method: "signMessage", params: { message: utf8Base64(message) } });
     const token = await privyRef.current.getAccessToken();
     const session = await signInWithServer({ wallet: wallet.address, message, signature: signed.signature, privyToken: token || undefined, email });
     // the memory key, from the same embedded wallet (no prompt), so memories open on this phone like on the web
-    try { const k = await provider.request({ method: "signMessage", params: { message: KEY_MESSAGE } }); await rememberKeys(wallet.address, k.signature); } catch { /* memories stay sealed until next sign-in */ }
+    try { const k = await provider.request({ method: "signMessage", params: { message: utf8Base64(KEY_MESSAGE) } }); await rememberKeys(wallet.address, k.signature); } catch { /* memories stay sealed until next sign-in */ }
     await onSessionRef.current(session);
   };
   // one exchange at a time: the mount/user effect and a button tap can both ask for it
@@ -100,7 +108,7 @@ export function usePrivySigner(): ((message: string) => Promise<string>) | null 
   if (!wallet) return null;
   return async (message: string) => {
     const provider = await wallet.getProvider();
-    const signed = await provider.request({ method: "signMessage", params: { message } });
+    const signed = await provider.request({ method: "signMessage", params: { message: utf8Base64(message) } });
     return signed.signature;
   };
 }
