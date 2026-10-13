@@ -88,6 +88,22 @@ export function IntegrationLogo({ id, size = 44, className = "" }: { id: Integra
       return tile("linear-gradient(140deg,#70d44b,#1f7a3c)", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 3 20h18z" /><path d="M8.5 14h7" /></svg>
       ));
+    case "arbitrum":
+      return tile("#213147", (
+        <svg width={g} height={g} viewBox="0 0 24 24"><path fill="none" stroke="#9dcced" strokeWidth="1.8" strokeLinejoin="round" d="M12 2.8 20 7.4v9.2L12 21.2 4 16.6V7.4z" /><path fill="#28a0f0" d="m12.9 7.6 4.3 7.3-1.6.9-4.3-7.3zM10.4 9.3l3.4 5.9-1.6.9-3.4-5.9z" /><path fill="#fff" d="m8.7 7.6 1.6.9-4 7-1.1-.6.2-1z" /></svg>
+      ));
+    case "robinhood":
+      return tile("#00c805", (
+        <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#0b0b0b" d="M18.9 3.6c-4.8.6-9.3 3.6-11.7 8.6l-2.6 7.6c-.1.4.3.7.6.4l3.2-3.4c.7-2.6 2-5 3.8-7 1.9-2.2 4.4-3.7 7.1-4.6.4-.1.4-1.6-.4-1.6z" /></svg>
+      ));
+    case "zcash":
+      return tile("#f4b728", (
+        <svg width={g} height={g} viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#1a1a1a" strokeWidth="1.8" /><path fill="#1a1a1a" d="M11 5.5h2v2h3.2v2.1l-5 5.7h5v2.2H13v2h-2v-2H7.8v-2.1l5-5.7h-5V7.5H11z" /></svg>
+      ));
+    case "uniswap":
+      return tile("#ff007a", (
+        <svg width={g} height={g} viewBox="0 0 24 24" fill="#fff"><path d="M7.2 4.2c3.5.7 5 2.6 6.3 5 1 1.8 2.2 2.4 4 2.6 1.5.2 2.7 1.3 2.7 2.9 0 2.5-2.6 4.5-6.1 4.5-4.4 0-8.3-2.8-9-7.2-.3-1.9.4-3.1 1.6-3.6-.8-1.4-.9-2.8.5-4.2z" opacity=".95" /><circle cx="16.4" cy="14.6" r="1" fill="#ff007a" /></svg>
+      ));
     case "mera":
     case "agora":
     case "alchemy":

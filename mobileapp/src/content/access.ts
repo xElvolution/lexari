@@ -20,6 +20,14 @@ const SCOPES: Record<string, Scope[]> = {
   panta: ["read", "bet"],
   intents: ["read", "trade"],
   agora: ["read", "transfer"],
+  base: ["read", "withdraw", "transfer"],
+  ethereum: ["read", "withdraw", "transfer"],
+  arbitrum: ["read", "withdraw", "transfer"],
+  robinhood: ["read", "withdraw", "transfer"],
+  monad: ["read", "withdraw", "transfer"],
+  uniswap: ["read", "trade"],
+  polymarket: ["read", "bet"],
+  zcash: ["read", "trade"],
 };
 export const scopesOf = (id: string): Scope[] => SCOPES[id] ?? ["read"];
 export const defaultScopes = (id: string): Scope[] => scopesOf(id).filter((s) => s !== "transfer");
@@ -33,14 +41,14 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   orca: { name: "Orca", color: "#ffd15c", moves: true, trading: true, chains: "Solana" },
   jupiter: { name: "Jupiter", color: "#1e2b38", moves: false, chains: "Solana" },
   bridge: { name: "Cross-chain", color: "#5b2bff", moves: false, chains: "Many chains" },
-  polymarket: { name: "Polymarket", color: "#2e5cff", moves: false, chains: "Polygon" },
+  polymarket: { name: "Polymarket", color: "#2e5cff", moves: true, chains: "Polygon" },
   panta: { name: "Panta", color: "#0f9d76", moves: true, chains: "Solana" },
-  base: { name: "Base", color: "#0052ff", moves: false, chains: "Base" },
-  ethereum: { name: "Ethereum", color: "#627eea", moves: false, chains: "Ethereum" },
+  base: { name: "Base", color: "#0052ff", moves: true, chains: "Base" },
+  ethereum: { name: "Ethereum", color: "#627eea", moves: true, chains: "Ethereum" },
   tempo: { name: "Tempo", color: "#0a0a0a", moves: true, chains: "Tempo" },
   prices: { name: "Market prices", color: "#f5a524", moves: false, chains: "Market data" },
   hyperliquid: { name: "Hyperliquid", color: "#50e3c2", moves: true, trading: true, chains: "Hyperliquid" },
-  monad: { name: "Monad", color: "#836ef9", moves: false, chains: "Monad" },
+  monad: { name: "Monad", color: "#836ef9", moves: true, chains: "Monad" },
   nansen: { name: "Nansen", color: "#1a1a2e", moves: false, chains: "Many chains" },
   kuru: { name: "Kuru", color: "#ff6b35", moves: true, trading: true, chains: "Monad" },
   metamask: { name: "MetaMask Delegation", color: "#f6851b", moves: true, chains: "Monad" },
@@ -49,9 +57,15 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   alchemy: { name: "Alchemy", color: "#363ff9", moves: false, chains: "Monad" },
   mera: { name: "Mera", color: "#111111", moves: false, chains: "Passkeys", addable: false },
   skr: { name: "SKR", color: "#14F1D9", moves: false, chains: "Solana", addable: false },
+  arbitrum: { name: "Arbitrum", color: "#213147", moves: true, chains: "Arbitrum Sepolia" },
+  robinhood: { name: "Robinhood Chain", color: "#00c805", moves: true, chains: "Robinhood Chain testnet" },
+  zcash: { name: "Zcash", color: "#f4b728", moves: true, chains: "Zcash" },
+  uniswap: { name: "Uniswap", color: "#ff007a", moves: true, trading: true, chains: "Base, Ethereum, Arbitrum testnets" },
 };
+/** Same labels as the web catalog (webapp/content/integrations.ts STATUS_LABEL). */
+export const STATUS_LABEL: Record<string, string> = { devnet: "Live on devnet", live: "Live on testnet", testnet: "Testnet wallet", needskey: "Setup needed", market: "Market data", soon: "Coming soon" };
 /** Each partner's site, for its logo. */
-export const INTEGRATION_DOMAIN: Record<string, string> = { skr: "solanamobile.com", solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", metamask: "metamask.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com" };
+export const INTEGRATION_DOMAIN: Record<string, string> = { skr: "solanamobile.com", solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", metamask: "metamask.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com", arbitrum: "arbitrum.io", robinhood: "robinhood.com", zcash: "z.cash", uniswap: "uniswap.org" };
 
 export type AddedIntegration = {
   id: string; connector: string; enabled: boolean; agents: string[]; perTxUsd: number; dailyUsd: number; maxSlippageBps: number;
