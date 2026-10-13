@@ -55,7 +55,7 @@ const payServices: ToolDef = {
 };
 const payService: ToolDef = {
   name: "pay.service", connector: "payments", risk: "sign", auto: true, input: svcInput,
-  hint: `pay.service {"service":"market-brief"} or {"service":"token-price","symbol":"BTC"} : buy one x402 service request from your wallet; inside your budget it's paid right away and the data comes back to you.`,
+  hint: `pay.service {"service":"market-brief"} or {"service":"token-price","symbol":"BTC"} : buy one x402 service request from your wallet; the person confirms it, then the data comes back to you.`,
   prepare: async (i: z.output<typeof svcInput>, agent) => {
     const s = serviceById(i.service.trim().toLowerCase());
     if (!s) throw new Reject(`There's no x402 service called ${i.service.slice(0, 30)}. Available: ${SERVICES.map((x) => x.id).join(", ")}.`);
@@ -96,7 +96,7 @@ async function targetOf(userId: string, ref: string, self: string): Promise<Targ
 const hireInput = z.object({ agent: z.string().min(1).max(40), task: z.string().min(3).max(600) }).passthrough();
 const payAgent: ToolDef = {
   name: "pay.agent", connector: "payments", risk: "sign", auto: true, input: hireInput,
-  hint: `pay.agent {"agent":"scout","task":"three facts about ORE mining, with links"} : hire another agent (on your team or in the marketplace) for one task, ${money(AGENT_TASK_USD)} in test USDC from your wallet; its answer comes back to you.`,
+  hint: `pay.agent {"agent":"scout","task":"three facts about ORE mining, with links"} : hire another agent (on your team or in the marketplace) for one task, ${money(AGENT_TASK_USD)} in test USDC from your wallet; the person confirms it, then its answer comes back to you.`,
   prepare: async (i: z.output<typeof hireInput>, agent) => {
     const t = await targetOf(agent.userId, i.agent, agent.slug);
     const micros = Math.round(AGENT_TASK_USD * 1e6);

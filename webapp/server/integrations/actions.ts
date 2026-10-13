@@ -47,7 +47,7 @@ export function agentRef(userId: string, a: { slug: string; kind: string; name: 
   return { userId, slug: a.slug, kind: a.kind, name: (a.meta as { nick?: string } | null)?.nick || a.name, keypair: () => (kp ??= solanaKeypair(userId, a.slug, a.kind)) };
 }
 
-/** untrusted: this turn read content the person didn't write (email, web pages), so nothing pays on its own. */
+/** untrusted: this turn read content the person didn't write (email, web pages), so the card says why you're asked. */
 type Ctx = { userId: string; agent: AgentRef; convo: string; messageId: string; untrusted?: boolean };
 export type CallResult =
   | { kind: "read"; tool: string; ok: true; text: string; markets?: MarketsCard }
@@ -181,10 +181,10 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
     return { kind: "action", tool: tool.name, card: cardOf(row) };
   }
   if (tool.auto) {
-    // Inside the agent's budget it pays on its own (with a receipt); over it, you get a Confirm card.
+    // Agent payments always wait for your Confirm card; going over the agent's budget is called out on it.
     const why = await overBudget(ctx.userId, ctx.agent.slug, prep.usdMicros);
-    if (!why) return autoRun(ctx, tool, parsed.data, preview, prep);
-    const row = await record(ctx, tool, parsed.data, "prepared", { preview: { ...preview, rows: [...preview.rows, ["Why you're asked", why[0].toUpperCase() + why.slice(1)]] }, usdMicros: prep.usdMicros, chain: prep.chain });
+    const rows: [string, string][] = why ? [...preview.rows, ["Why you're asked", why[0].toUpperCase() + why.slice(1)]] : preview.rows;
+    const row = await record(ctx, tool, parsed.data, "prepared", { preview: { ...preview, rows }, usdMicros: prep.usdMicros, chain: prep.chain });
     return { kind: "action", tool: tool.name, card: cardOf(row) };
   }
   const over = await overLimit(ctx.userId, info.name, grant, prep.usdMicros);
@@ -197,22 +197,6 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
 }
 
 const netOf = (chain: string) => (chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : chain === "lexari" ? "Lexari settings" : chain === "hyperliquid" ? HL_NETWORK : chain === "monad" ? "Monad testnet" : chain === "intents" ? "Aurora Intents" : network());
-
-/** A payment inside the agent's budget: counted toward today first, then executed, with a receipt in the chat. */
-async function autoRun(ctx: Ctx, tool: ToolDef, input: unknown, preview: Preview, prep: { usdMicros: number; chain: string; summary: string }): Promise<CallResult> {
-  const row = await record(ctx, tool, input, "submitting", { preview, usdMicros: prep.usdMicros, chain: prep.chain });
-  try {
-    const r = await tool.execute!(preview.plan as never, ctx.agent);
-    const a = await finish(row.id, { status: r.confirmed ? "confirmed" : "submitted", txSig: r.sig || null, preview: { ...preview, ...(r.rows ? { result: r.rows } : {}) } });
-    await receipt(ctx.userId, a, r);
-    return { kind: "read", tool: tool.name, ok: true, text: r.text || `${prep.summary}.` };
-  } catch (e) {
-    const why = e instanceof SimError || e instanceof Reject ? e.message : e instanceof ChainError ? e.message : "It didn't go through. Nothing was paid.";
-    if (!(e instanceof SimError || e instanceof Reject)) console.error(`[integrations] auto ${tool.name}: ${(e as Error).message?.slice(0, 300)}`);
-    await finish(row.id, { status: "failed", error: why, ...(e instanceof ChainError && e.sig ? { txSig: e.sig } : {}) });
-    return { kind: "read", tool: tool.name, ok: false, text: why };
-  }
-}
 
 /** The chat receipt row for something that moved money (agent payments, Tempo). */
 async function receipt(userId: string, a: typeof integrationActions.$inferSelect, r: Executed) {

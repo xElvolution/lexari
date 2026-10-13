@@ -49,7 +49,7 @@ function BudgetSheet({ agent, name, b, onSaved, onClose }: { agent: string; name
     finally { setBusy(false); }
   };
   return (
-    <Sheet label="budget" title="Budget" sub={`${name} pays x402 services and other agents from its own wallet. Inside this budget it pays on its own; over it, you confirm.`} icon={<Icon name="gauge" size={20} />} onClose={onClose}
+    <Sheet label="budget" title="Budget" sub={`${name} pays x402 services and other agents from its own wallet. You confirm every payment; the budget caps what it may ask for.`} icon={<Icon name="gauge" size={20} />} onClose={onClose}
       footer={<button disabled={!dirty || busy} onClick={save} className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-grape text-[15px] font-bold text-white disabled:opacity-40">{busy ? <Spinner /> : null}Save</button>}>
       <div className="rounded-2xl bg-tint/60 p-3">
         <div className="flex items-baseline justify-between text-[13px] font-bold text-ink"><span>Today</span><span>{mask(usd(b.spentTodayUsd))} <span className="font-semibold text-ink/50">of {usd(b.dailyUsd)}</span></span></div>

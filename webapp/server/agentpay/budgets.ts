@@ -1,7 +1,7 @@
 /**
- * Agent budgets: how much an agent may spend on its own, per task and per day (UTC), from its own wallet (which you
- * fund from your Lexari balance). Within the budget an agent pays x402 services and other agents without asking;
- * anything over it becomes a Confirm card. Spending is summed from integration_actions (connector "payments").
+ * Agent budgets: how much an agent may spend, per task and per day (UTC), from its own wallet (which you
+ * fund from your Lexari balance). Every agent payment is a Confirm card;
+ * one over the budget says so on the card. Spending is summed from integration_actions (connector "payments").
  */
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "../db";
