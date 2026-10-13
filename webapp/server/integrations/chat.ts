@@ -33,7 +33,7 @@ export async function turnTools(userId: string, slug: string): Promise<TurnTools
   let budget = "";
   if (grants.some((g) => g.connector === "payments")) {
     const [b, spent] = await Promise.all([budgetOf(userId, slug), agentSpentToday(userId, slug)]).catch(() => [null, 0] as const);
-    if (b) budget = `Your own budget for payments (pay.service, pay.agent): $${(b.perTaskMicros / 1e6).toFixed(2)} per task and $${(b.dailyMicros / 1e6).toFixed(2)} a day ($${(Number(spent) / 1e6).toFixed(2)} used today). Inside it you pay on your own and get the result back; over it, Lexari shows the person a Confirm card. Only pay when it actually helps the person's request.`;
+    if (b) budget = `Your own budget for payments (pay.service, pay.agent): $${(b.perTaskMicros / 1e6).toFixed(2)} per task and $${(b.dailyMicros / 1e6).toFixed(2)} a day ($${(Number(spent) / 1e6).toFixed(2)} used today). Every payment shows the person a Confirm card and only goes out after they confirm; the card flags anything over this budget. Never say you paid until the card is confirmed. Only pay when it actually helps the person's request.`;
   }
   const hint = [
     INTEGRATIONS_MARK,
