@@ -2,6 +2,7 @@ import type { ActionCard, ActionStatus, IntegrationId } from "@/content/integrat
 import type { integrationActions } from "../db/integrationsSchema";
 import { network, txExplorer } from "./solana";
 import { TEMPO } from "./tempo";
+import { EVM, isEvmChain } from "./evm";
 
 type Row = typeof integrationActions.$inferSelect;
 export type Preview = { title: string; rows: [string, string][]; network: string; plan?: Record<string, unknown>; summary?: string; result?: [string, string][] };
@@ -16,6 +17,10 @@ const LABEL: Record<string, string> = {
   "self.rename": "Rename", "self.setavatar": "New face", "self.setpersona": "New persona", "self.setmodel": "Switch model",
   "hyperliquid.account": "Checked its Hyperliquid account", "hyperliquid.price": "Hyperliquid prices", "hyperliquid.order": "Order on Hyperliquid",
   "monad.wallet": "Checked its Monad wallet", "nansen.wallet": "Nansen wallet read", "kuru.quote": "Kuru quote", "kuru.swap": "Swap on Kuru", "card.pay": "Tempo card payment", "metamask.delegation": "Checked its MetaMask delegation", "metamask.send": "Delegated MON send", "nansen.smartmoney": "Nansen smart money", "intents.quote": "Aurora Intents quote", "intents.route": "Cross-chain route", "intents.status": "Aurora Intents status",
+  "base.transfer": "Send on Base", "ethereum.transfer": "Send on Ethereum", "arbitrum.wallet": "Checked its Arbitrum wallet", "arbitrum.transfer": "Send on Arbitrum",
+  "robinhood.wallet": "Checked its Robinhood Chain wallet", "robinhood.transfer": "Send on Robinhood Chain", "monad.transfer": "Send on Monad",
+  "uniswap.quote": "Uniswap quote", "uniswap.swap": "Swap on Uniswap", "polymarket.market": "Polymarket market", "polymarket.order": "Order on Polymarket",
+  "zcash.wallet": "Checked its Zcash wallet", "zcash.quote": "ZEC quote", "zcash.buy": "Buy ZEC",
   "panta.markets": "Panta markets", "panta.position": "Position on Panta", "panta.positions": "Panta positions",
 };
 /** A readable title for an action that never got a preview (refused before it was prepared). */
@@ -34,6 +39,6 @@ export function cardOf(a: Row): ActionCard {
   return {
     id: a.id, connector: a.connector as IntegrationId, tool: a.tool, agent: a.agentSlug,
     title: p.title || p.summary || toolLabel(a.tool, a.input), rows: [...(p.rows || []), ...(p.result || [])], usd: a.usdMicros / 1e6, network: p.network || (a.chain === "solana" ? network() : a.chain === "tempo" ? TEMPO.network : ""),
-    status: a.status as ActionStatus, ...(a.txSig ? { sig: a.txSig, explorer: a.chain === "tempo" ? TEMPO.explorerTx(a.txSig) : a.chain === "monad" ? `https://testnet.monadexplorer.com/tx/${a.txSig}` : a.chain === "intents" ? `https://solscan.io/tx/${a.txSig}` : a.chain === "hyperliquid" ? String((p.plan as { explorer?: string } | undefined)?.explorer || "") || undefined : txExplorer(a.txSig) } : {}), ...(a.error ? { error: a.error } : {}),
+    status: a.status as ActionStatus, ...(a.txSig ? { sig: a.txSig, explorer: a.chain === "tempo" ? TEMPO.explorerTx(a.txSig) : isEvmChain(a.chain) ? `${EVM[a.chain].txExplorer}${a.txSig}` : a.chain === "polygon" ? (a.txSig.startsWith("0x") && a.txSig.length === 66 ? `https://polygonscan.com/tx/${a.txSig}` : undefined) : a.chain === "intents" ? `https://solscan.io/tx/${a.txSig}` : a.chain === "hyperliquid" ? String((p.plan as { explorer?: string } | undefined)?.explorer || "") || undefined : txExplorer(a.txSig) } : {}), ...(a.error ? { error: a.error } : {}),
   };
 }

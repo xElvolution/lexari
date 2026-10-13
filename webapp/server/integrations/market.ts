@@ -6,7 +6,7 @@
 import type { MarketItem } from "@/content/integrations";
 
 const cache = new Map<string, { at: number; v: unknown }>();
-async function getJson<T>(url: string, opts: { ttl?: number; headers?: Record<string, string> } = {}): Promise<T> {
+export async function getJson<T>(url: string, opts: { ttl?: number; headers?: Record<string, string> } = {}): Promise<T> {
   const hit = cache.get(url);
   if (hit && Date.now() - hit.at < (opts.ttl ?? 20_000)) return hit.v as T;
   let last = "";

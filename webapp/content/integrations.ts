@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora" | "alchemy" | "skr";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora" | "alchemy" | "skr" | "arbitrum" | "robinhood" | "zcash" | "uniswap";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -80,25 +80,53 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "bridge cross-chain lifi li.fi across wormhole debridge thorchain btc eth base arbitrum",
   },
   {
-    id: "polymarket", name: "Polymarket", category: "prediction", status: "market", addable: true, moves: false, chains: ["Polygon"],
-    blurb: "Trending prediction markets and live odds.",
-    about: "Your agents search Polymarket and bring live markets and odds into chat. Read only: no bets are placed.",
-    can: [{ text: "Trending markets and search", live: true }, { text: "Live odds and volume", live: true }, { text: "Placing orders", live: false }],
-    tags: "prediction betting odds election sports crypto markets",
+    id: "polymarket", name: "Polymarket", category: "prediction", status: "market", addable: true, moves: true, chains: ["Polygon"],
+    blurb: "Live prediction markets, odds and order book prices.",
+    about: "Your agents search Polymarket, read live odds and each outcome's order book price. Polymarket only trades with real USDC on Polygon (there is no test order book), so placing orders stays off until it's switched on for your account. When it is on, every order waits for your Confirm inside your per-trade and daily limits.",
+    can: [{ text: "Trending markets and search", live: true }, { text: "Live odds and order book prices", live: true }, { text: "Buy an outcome on Polygon mainnet, after you confirm", live: process.env.NEXT_PUBLIC_POLYMARKET_LIVE === "1" }],
+    tags: "prediction betting odds election sports crypto markets clob order polygon",
   },
   {
-    id: "base", name: "Base", category: "chains", status: "testnet", addable: true, moves: false, chains: ["Base Sepolia"],
-    blurb: "Agent wallets on Base Sepolia.",
-    about: "Each agent gets its own address on Base. Agents read their Base Sepolia balances and live ETH prices. Swaps and transfers on Base are coming soon.",
-    can: [{ text: "Its Base Sepolia address and balances", live: true }, { text: "Live ETH price", live: true }, { text: "Swaps and transfers", live: false }],
-    tags: "evm l2 coinbase eth sepolia",
+    id: "base", name: "Base", category: "chains", status: "live", addable: true, moves: true, chains: ["Base Sepolia"],
+    blurb: "Agent wallet and sends on Base Sepolia.",
+    about: "Each agent has its own address on Base. Agents read their Base Sepolia ETH and test USDC and send to an address you approve. Every send waits for your Confirm. Test funds only.",
+    can: [{ text: "Its Base Sepolia address and balances", live: true }, { text: "Send test ETH or USDC, after you confirm", live: true }, { text: "Swaps through Uniswap", live: true }, { text: "Mainnet", live: false }],
+    tags: "evm l2 coinbase eth sepolia send transfer",
   },
   {
-    id: "ethereum", name: "Ethereum", category: "chains", status: "testnet", addable: true, moves: false, chains: ["Sepolia"],
-    blurb: "Agent wallets on Ethereum Sepolia.",
-    about: "Each agent gets its own Ethereum address. Agents read their Sepolia balances and live ETH prices. Swaps and transfers on Ethereum are coming soon.",
-    can: [{ text: "Its Sepolia address and balances", live: true }, { text: "Live ETH price", live: true }, { text: "Swaps and transfers", live: false }],
-    tags: "evm eth mainnet sepolia",
+    id: "ethereum", name: "Ethereum", category: "chains", status: "live", addable: true, moves: true, chains: ["Sepolia"],
+    blurb: "Agent wallet and sends on Ethereum Sepolia.",
+    about: "Each agent has its own Ethereum address. Agents read their Sepolia ETH and test USDC and send to an address you approve. Every send waits for your Confirm. Test funds only.",
+    can: [{ text: "Its Sepolia address and balances", live: true }, { text: "Send test ETH or USDC, after you confirm", live: true }, { text: "Swaps through Uniswap", live: true }, { text: "Mainnet", live: false }],
+    tags: "evm eth l1 mainnet sepolia send transfer",
+  },
+  {
+    id: "arbitrum", name: "Arbitrum", category: "chains", status: "live", addable: true, moves: true, chains: ["Arbitrum Sepolia"],
+    blurb: "Agent wallet and sends on Arbitrum Sepolia.",
+    about: "Each agent uses its EVM address on Arbitrum Sepolia. Agents read their test ETH and USDC and send to an address you approve. Every send waits for your Confirm. Test funds only.",
+    can: [{ text: "Its Arbitrum Sepolia address and balances", live: true }, { text: "Send test ETH or USDC, after you confirm", live: true }, { text: "Swaps through Uniswap", live: true }, { text: "Mainnet", live: false }],
+    tags: "arbitrum arb l2 evm rollup sepolia send transfer",
+  },
+  {
+    id: "robinhood", name: "Robinhood Chain", category: "chains", status: "live", addable: true, moves: true, chains: ["Robinhood Chain testnet"],
+    blurb: "Agent wallet and sends on Robinhood Chain testnet.",
+    about: "Each agent uses its EVM address on Robinhood Chain testnet (chain 46630). Agents read their test ETH and send to an address you approve. Every send waits for your Confirm. Test funds only.",
+    can: [{ text: "Its Robinhood Chain testnet address and ETH balance", live: true }, { text: "Send test ETH, after you confirm", live: true }, { text: "Tokenized stocks", live: false }, { text: "Mainnet", live: false }],
+    tags: "robinhood chain evm l2 arbitrum orbit testnet stocks send",
+  },
+  {
+    id: "zcash", name: "Zcash", category: "chains", status: "market", addable: true, moves: true, chains: ["Zcash"],
+    blurb: "A Zcash address for your agent and live ZEC quotes.",
+    about: "Each agent has its own transparent Zcash address. Agents quote how much ZEC part of your balance buys, delivered straight to that address. Zcash has no test network for this, so buying uses real funds and stays off until it's switched on for your account. When it is on, every buy waits for your Confirm.",
+    can: [{ text: "Its own Zcash address", live: true }, { text: "Live ZEC quotes from your balance", live: true }, { text: "Buy ZEC from your balance, after you confirm", live: process.env.NEXT_PUBLIC_ZCASH_LIVE === "1" }, { text: "Send ZEC from its address", live: false }, { text: "Shielded addresses", live: false }],
+    tags: "zcash zec privacy transparent t-address intents",
+  },
+  {
+    id: "uniswap", name: "Uniswap", category: "trading", status: "live", addable: true, moves: true, chains: ["Base Sepolia", "Sepolia", "Arbitrum Sepolia"],
+    blurb: "Quotes and swaps on Uniswap v3 testnets.",
+    about: "Your agents get live Uniswap v3 quotes and swap ETH and test USDC from their own wallet on Base Sepolia, Ethereum Sepolia and Arbitrum Sepolia. You see the price and the minimum you get before you confirm. Testnet pool prices are not market prices.",
+    can: [{ text: "Live quotes across pool fee tiers", live: true }, { text: "Swap ETH and test USDC, after you confirm", live: true }, { text: "Mainnet swaps", live: false }],
+    tags: "uniswap dex swap amm v3 evm eth usdc base arbitrum sepolia",
   },
   {
     id: "prices", name: "Market prices", category: "data", status: "market", addable: true, moves: false, chains: ["Any"],
@@ -115,11 +143,11 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "stablecoin payments stripe pathusd alphausd tip20 moderato",
   },
   {
-    id: "monad", name: "Monad", category: "chains", status: "testnet", addable: true, moves: false, chains: ["Monad testnet"],
-    blurb: "Its Monad testnet address and MON balance.",
-    about: "Each agent uses its EVM address on Monad testnet (chain 10143). Agents read their MON balance. Read only for now.",
-    can: [{ text: "Its Monad testnet address and MON balance", live: true }, { text: "Sends and swaps on Monad", live: false }],
-    tags: "monad evm testnet mon",
+    id: "monad", name: "Monad", category: "chains", status: "live", addable: true, moves: true, chains: ["Monad testnet"],
+    blurb: "Agent wallet and sends on Monad testnet.",
+    about: "Each agent uses its EVM address on Monad testnet (chain 10143). Agents read their MON balance and send test MON or USDC to an address you approve. Every send waits for your Confirm. Test funds only.",
+    can: [{ text: "Its Monad testnet address and MON balance", live: true }, { text: "Send test MON or USDC, after you confirm", live: true }, { text: "Swaps on Kuru", live: true }, { text: "Mainnet", live: false }],
+    tags: "monad evm testnet mon send transfer",
   },
   {
     id: "nansen", name: "Nansen", category: "data", status: process.env.NEXT_PUBLIC_NANSEN_READY === "1" ? "live" : "needskey", addable: true, moves: false, chains: ["Ethereum", "Solana", "Base", "Monad"],
@@ -298,6 +326,14 @@ const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
   metamask: ["read", "withdraw"],
   intents: ["read", "trade"],
   panta: ["read", "bet"],
+  base: ["read", "withdraw", "transfer"],
+  ethereum: ["read", "withdraw", "transfer"],
+  arbitrum: ["read", "withdraw", "transfer"],
+  robinhood: ["read", "withdraw", "transfer"],
+  monad: ["read", "withdraw", "transfer"],
+  uniswap: ["read", "trade"],
+  polymarket: ["read", "bet"],
+  zcash: ["read", "trade"],
 };
 /** The scopes an integration can ask for. */
 export const scopesOf = (id: string): Scope[] => SCOPES[id as IntegrationId] ?? ["read"];
@@ -307,7 +343,7 @@ export const defaultScopes = (id: string): Scope[] => scopesOf(id).filter((s) =>
 export function scopeOfTool(tool: string, risk: "read" | "sign"): Scope {
   if (risk === "read") return "read";
   if (/\.transfer$/.test(tool)) return "transfer";
-  if (tool === "panta.position") return "bet";
+  if (tool === "panta.position" || tool === "polymarket.order") return "bet";
   if (tool === "metamask.send") return "withdraw";
   if (tool.startsWith("ausd.")) return "transfer";
   return "trade";

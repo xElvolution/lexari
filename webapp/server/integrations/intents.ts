@@ -14,6 +14,7 @@ import { z } from "zod";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, type TransactionInstruction } from "@solana/web3.js";
 import { createAssociatedTokenAccountIdempotentInstruction, createTransferCheckedInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { evmAddress } from "./evm";
+import { zcashAddress } from "./zcash";
 import { Reject } from "./reject";
 import type { AgentRef, Executed, GrantLimits, Prepared, ReadResult, ToolDef } from "./registry";
 
@@ -22,7 +23,7 @@ const key = () => process.env.AURORA_INTENTS_API_KEY?.trim() || "";
 export const intentsReady = () => !!key();
 export const intentsLive = () => intentsReady() && process.env.AURORA_INTENTS_LIVE === "1" && !!process.env.SOLANA_MAINNET_RPC;
 const MAINNET_USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-const CHAIN_ALIAS: Record<string, string> = { solana: "sol", sol: "sol", ethereum: "eth", eth: "eth", base: "base", arbitrum: "arb", arb: "arb", monad: "monad", hyperliquid: "hypercore", hypercore: "hypercore", polygon: "pol", bsc: "bsc", bnb: "bsc", optimism: "op", op: "op", avalanche: "avax", near: "near", bitcoin: "btc", btc: "btc", sui: "sui", tron: "tron", gnosis: "gnosis" };
+const CHAIN_ALIAS: Record<string, string> = { solana: "sol", sol: "sol", ethereum: "eth", eth: "eth", base: "base", arbitrum: "arb", arb: "arb", monad: "monad", hyperliquid: "hypercore", hypercore: "hypercore", polygon: "pol", bsc: "bsc", bnb: "bsc", optimism: "op", op: "op", avalanche: "avax", near: "near", bitcoin: "btc", btc: "btc", sui: "sui", tron: "tron", gnosis: "gnosis", zcash: "zec", zec: "zec" };
 const chainOf = (s: string) => CHAIN_ALIAS[s.trim().toLowerCase()] || s.trim().toLowerCase();
 
 export type Token = { assetId: string; decimals: number; blockchain: string; symbol: string; price: number; contractAddress?: string };
@@ -53,6 +54,7 @@ type Quote = { quote: { depositAddress?: string; amountIn: string; amountInForma
 function recipientFor(agent: AgentRef, chain: string) {
   const c = chainOf(chain);
   if (c === "sol") return agent.keypair().publicKey.toBase58();
+  if (c === "zec") return zcashAddress(agent.userId, agent.slug);
   if (["eth", "base", "arb", "monad", "hypercore", "pol", "bsc", "op", "avax", "gnosis"].includes(c)) return evmAddress(agent.userId, agent.slug);
   throw new Reject(`I don't have my own wallet on ${chain}, so I can't receive there.`);
 }
