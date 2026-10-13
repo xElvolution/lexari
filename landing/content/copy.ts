@@ -175,7 +175,7 @@ export const copy = {
     title: "The interview.",
     body: "The things people usually ask before they hire.",
     items: [
-      ["Who is my agent, exactly?", "The first agent you name. It has its own computer, its own memory and your job history. It sits at desk one on your team and stays there."],
+      ["Who is my agent, exactly?", "The agent you name. It has its own computer, its own memory and your job history. It sits at desk one on your team and stays there."],
       ["What does its computer do?", "It is a persistent machine with a terminal, a browser and files. Your agent uses it to research, run tools and save real outputs you can download."],
       ["What does it remember?", "Useful things from finished jobs, like your preferences, your tools and your team. It reads those notes before starting new work."],
       ["What is a specialist?", "An agent from the roster that is good at one kind of work, like research, writing or design. You hire it into an open seat on your team."],

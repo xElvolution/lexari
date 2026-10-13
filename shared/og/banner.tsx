@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { OG_FACES } from "./faces";
 
 export const OG_SIZE = { width: 1200, height: 630 };
-export const OG_TAGLINE = "Meet your first personalized AI agent";
+export const OG_TAGLINE = "Meet your personalized AI agent";
 export const OG_SUB = "An AI agent with its own computer and a memory that lasts. Free to start.";
 
 async function font(name: string) {
