@@ -50,7 +50,7 @@ export type ToolDef = {
   run?: (input: never, agent: AgentRef) => Promise<ReadResult>;
   prepare?: (input: never, agent: AgentRef, limits: GrantLimits) => Promise<Prepared>;
   execute?: (plan: never, agent: AgentRef) => Promise<Executed>;
-  /** sign tools that run on their own inside the agent's budget (server/agentpay/budgets.ts); over it they're a Confirm card */
+  /** agent payments checked against the agent's budget (server/agentpay/budgets.ts); always a Confirm card, flagged when over budget */
   auto?: boolean;
   /** changes Lexari settings, not a chain (the agent's own name, face, persona, model): no network or money checks */
   offchain?: boolean;

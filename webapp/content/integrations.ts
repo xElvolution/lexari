@@ -193,8 +193,8 @@ export const INTEGRATIONS: IntegrationInfo[] = [
   },
   {
     id: "payments", name: "Agent payments", category: "data", status: "devnet", addable: false, moves: true, chains: ["Solana"], builtin: "all",
-    blurb: "Agents pay x402 services and other agents within their budget.",
-    about: "Agents pay per request for x402 services and hire other agents per task, in test USDC from their own wallet. Inside the agent's budget it pays on its own; anything over asks you first.",
+    blurb: "Agents pay x402 services and other agents after you confirm.",
+    about: "Agents pay per request for x402 services and hire other agents per task, in test USDC from their own wallet. Every payment waits for your Confirm, and the card flags anything over the agent's budget.",
     can: [{ text: "Pay x402 services in devnet USDC", live: true }, { text: "Hire another agent per task", live: true }],
     tags: "x402 pay budget agent hire",
   },
