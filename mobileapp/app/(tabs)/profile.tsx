@@ -84,7 +84,7 @@ export default function Profile() {
           ) : null}
           </View>
           <View style={{ flexDirection: "row", gap: 22, marginTop: 14 }}>
-            {[[team.length, "agents"], [groups, "groups"], [me?.memories?.length ?? 0, "memories"]].map(([n, l]) => <T key={String(l)} s={14} c={k.ink60}><T f="bold" s={14}>{String(n)}</T>{` ${l}`}</T>)}
+            {[[team.length, "agent", "agents"], [groups, "group", "groups"], [me?.memories?.length ?? 0, "memory", "memories"]].map(([n, one, many]) => [n, n === 1 ? one : many]).map(([n, l]) => <T key={String(l)} s={14} c={k.ink60}><T f="bold" s={14}>{String(n)}</T>{` ${l}`}</T>)}
           </View>
         </View>
         <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: k.line }}>

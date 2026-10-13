@@ -131,9 +131,9 @@ export default function ProfilePage() {
               ))}{plan.id === "free" && <Link data-badge-note href="/settings#billing" className="inline-flex h-8 items-center gap-1 px-1.5 text-[12.5px] font-semibold text-ink/50 hover:text-brand-ink"><Icon name="verified" size={13} stroke={2.2} />Verified badge comes with Pro</Link>}</div>
             : social.loaded && <Link href="/settings#social" className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-tint px-3 text-[13px] font-semibold text-ink/75 hover:bg-grape hover:text-white"><Icon name="link" size={14} />Link X, Discord or Telegram</Link>}
           <div className="mt-4 flex flex-wrap gap-6 text-[14px]">
-            <span><b className="text-ink">{team.length}</b> <span className="text-ink/60">agents</span></span>
-            <span><b className="text-ink">{s.groups.length}</b> <span className="text-ink/60">groups</span></span>
-            <span><b className="text-ink">{s.memory.length}</b> <span className="text-ink/60">memories</span></span>
+            <span><b className="text-ink">{team.length}</b> <span className="text-ink/60">{team.length === 1 ? "agent" : "agents"}</span></span>
+            <span><b className="text-ink">{s.groups.length}</b> <span className="text-ink/60">{s.groups.length === 1 ? "group" : "groups"}</span></span>
+            <span><b className="text-ink">{s.memory.length}</b> <span className="text-ink/60">{s.memory.length === 1 ? "memory" : "memories"}</span></span>
           </div>
         </div>
         <div role="tablist" aria-label="Profile" className="flex border-t border-[var(--line)] px-2 sm:px-5">
