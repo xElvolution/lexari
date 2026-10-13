@@ -178,7 +178,7 @@ export function TokenPay({ usd, railKey, setBusy, after }: { usd: number; railKe
       {short && phase !== "done" && (
         <div className="mt-3 rounded-2xl bg-grape/10 p-3 ring-1 ring-grape/30">
           <p className="text-[13.5px] font-bold text-ink">Not enough {r.test ? "test " : ""}{c.symbol} in your wallet</p>
-          {r.test ? <button data-drip onClick={drip} disabled={busy} className="btn btn-ghost btn-sm mt-2 w-full !h-10">{phase === "drip" ? <><Spinner className="mr-2" />Minting test {c.symbol}…</> : `Get test ${c.symbol}`}</button>
+          {r.test ? <button data-drip onClick={drip} disabled={busy} className="btn btn-ghost btn-sm mt-2 w-full !h-10">{phase === "drip" ? <><Spinner className="mr-2" />Minting test {c.symbol}…</> : `Add ${c.symbol} to wallet`}</button>
             : <p className="mt-0.5 text-[12.5px] text-ink/65">{r.coin === "SOL" ? "Add SOL to this wallet, or pay from another wallet." : "Add some to this wallet, or pay from another wallet."}</p>}
         </div>
       )}
