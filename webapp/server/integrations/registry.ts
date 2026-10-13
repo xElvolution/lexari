@@ -10,9 +10,12 @@
 import { z } from "zod";
 import type { Keypair } from "@solana/web3.js";
 import type { IntegrationId, MarketsCard } from "@/content/integrations";
-import { EVM, evmAddress, evmBalances, type EvmChain } from "./evm";
 import { jupiterQuote, polymarketMarkets, spotUsd } from "./market";
 import { EXTRA_TOOLS } from "./extra";
+import { EVMCHAIN_TOOLS } from "./evmchains";
+import { UNISWAP_TOOLS } from "./uniswap";
+import { POLYMARKET_TOOLS } from "./polymarket";
+import { ZCASH_TOOLS } from "./zcash";
 import { SELF_TOOLS } from "./self";
 import { HL_TOOLS } from "./hyperliquid";
 import { MONAD_TOOLS } from "./monad";
@@ -217,20 +220,6 @@ const polymarketTool: ToolDef = {
   },
 };
 
-/* ---------- Base and Ethereum (testnet reads) ---------- */
-function evmWallet(chain: EvmChain): ToolDef {
-  const c = EVM[chain];
-  return {
-    name: `${chain}.wallet`, connector: chain, risk: "read", input: z.object({}).passthrough(),
-    hint: `${chain}.wallet {} : your own ${c.name} address and its ${c.network} balances, plus the live ETH price. Swaps and transfers on ${c.name} are coming soon.`,
-    run: async (_i: never, agent) => {
-      const address = evmAddress(agent.userId, agent.slug);
-      const [b, eth] = await Promise.all([evmBalances(chain, address), spotUsd("ETH").catch(() => 0)]);
-      return { summary: `Checked its ${c.name} wallet`, text: `Your ${c.name} address: ${address} (the same address works on every EVM chain). On ${c.network} it holds ${+b.eth.toFixed(6)} test ETH and ${b.usdc.toFixed(2)} test USDC.${eth ? ` Live ETH price: $${eth.toFixed(2)}.` : ""} Swaps and transfers on ${c.name} are coming soon in Lexari, so you can't send from it yet.` };
-    },
-  };
-}
-
 /* ---------- Market prices ---------- */
 const priceInput = z.object({ symbols: z.array(z.string().max(12)).max(6).optional(), symbol: z.string().max(12).optional() }).passthrough();
 const pricesTool: ToolDef = {
@@ -244,5 +233,5 @@ const pricesTool: ToolDef = {
   },
 };
 
-export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, evmWallet("base"), evmWallet("ethereum"), pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, cardMpp, ...DELEGATION_TOOLS, ...INTENTS_TOOLS, ...AUSD_TOOLS, ...ALCHEMY_TOOLS, ...SELF_TOOLS];
+export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, ...POLYMARKET_TOOLS, ...EVMCHAIN_TOOLS, ...UNISWAP_TOOLS, ...ZCASH_TOOLS, pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, cardMpp, ...DELEGATION_TOOLS, ...INTENTS_TOOLS, ...AUSD_TOOLS, ...ALCHEMY_TOOLS, ...SELF_TOOLS];
 export const toolByName = (name: string) => TOOLS.find((t) => t.name === name.trim().toLowerCase());

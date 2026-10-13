@@ -35,6 +35,8 @@ async function nansenRowFor(tool: string, input: unknown): Promise<[string, stri
 import type { Executed } from "./registry";
 import { Reject, toolByName, type AgentRef, type ToolDef } from "./registry";
 import { ChainError, SimError, isDevnet, network } from "./solana";
+import { EVM, isEvmChain } from "./evm";
+import { evmTxState } from "./evmchains";
 import { cardOf, type Preview } from "./cards";
 import { checkMoney, type SendCheck } from "../security";
 
@@ -196,7 +198,7 @@ export async function runCall(ctx: Ctx, grants: Grant[], name: string, input: un
   return { kind: "action", tool: tool.name, card: cardOf(row) };
 }
 
-const netOf = (chain: string) => (chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : chain === "lexari" ? "Lexari settings" : chain === "hyperliquid" ? HL_NETWORK : chain === "monad" ? "Monad testnet" : chain === "intents" ? "Aurora Intents" : network());
+const netOf = (chain: string) => (isEvmChain(chain) ? EVM[chain].network : chain === "polygon" ? "Polygon mainnet" : chain === "tempo" ? TEMPO.network : chain === "panta" ? "Panta (paper, devnet)" : chain === "lexari" ? "Lexari settings" : chain === "hyperliquid" ? HL_NETWORK : chain === "monad" ? "Monad testnet" : chain === "intents" ? "Aurora Intents" : network());
 
 /** The chat receipt row for something that moved money (agent payments, Tempo). */
 async function receipt(userId: string, a: typeof integrationActions.$inferSelect, r: Executed) {
@@ -293,7 +295,15 @@ export async function cancelAction(userId: string, id: string): Promise<ActionCa
 
 /** A transaction that was sent but not yet confirmed: check it on chain. */
 async function settle(a: typeof integrationActions.$inferSelect) {
-  if (a.status !== "submitted" || !a.txSig || a.chain === "lexari" || a.chain === "hyperliquid" || a.chain === "monad" || a.chain === "intents") return a;
+  if (a.status !== "submitted" || !a.txSig || a.chain === "lexari" || a.chain === "hyperliquid" || a.chain === "intents" || a.chain === "polygon") return a;
+  if (isEvmChain(a.chain)) {
+    if (!a.txSig.startsWith("0x")) return a;
+    const st = await evmTxState(a.chain, a.txSig).catch(() => "pending" as const);
+    if (st === "confirmed") return finish(a.id, { status: "confirmed" });
+    if (st === "failed") return finish(a.id, { status: "failed", error: `The transaction failed on ${EVM[a.chain].network}.` });
+    if (Date.now() - a.createdAt.getTime() > 10 * 60_000) return finish(a.id, { status: "failed", error: "The transaction never landed. Nothing moved." });
+    return a;
+  }
   if (a.chain === "tempo") {
     const rc = await tempoReceipt(a.txSig).catch(() => null);
     if (rc?.status === "0x1") return finish(a.id, { status: "confirmed" });

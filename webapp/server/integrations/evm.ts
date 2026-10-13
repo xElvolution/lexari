@@ -1,18 +1,31 @@
 /**
  * EVM side of an agent: one address per agent (the same on every EVM chain), derived from SESSION_SECRET per
- * (person, agent) like its Solana wallet, so no key is stored. For now agents only READ on Base Sepolia and Ethereum
- * Sepolia (native ETH and Circle's test USDC); swaps and transfers on EVM chains are listed as coming soon.
+ * (person, agent) like its Solana wallet, so no key is stored. Agents read and send on Base Sepolia, Ethereum
+ * Sepolia, Arbitrum Sepolia, Robinhood Chain testnet and Monad testnet; see evmchains.ts for sends and uniswap.ts for swaps.
  */
 import { createHmac } from "node:crypto";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { HttpError } from "../http";
 
-export type EvmChain = "base" | "ethereum";
-export const EVM: Record<EvmChain, { name: string; network: string; chainId: number; rpc: () => string; usdc: string; explorer: string }> = {
-  base: { name: "Base", network: "Base Sepolia", chainId: 84532, rpc: () => process.env.BASE_SEPOLIA_RPC || "https://sepolia.base.org", usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", explorer: "https://sepolia.basescan.org/address/" },
-  ethereum: { name: "Ethereum", network: "Sepolia", chainId: 11155111, rpc: () => process.env.SEPOLIA_RPC || "https://ethereum-sepolia-rpc.publicnode.com", usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", explorer: "https://sepolia.etherscan.io/address/" },
+export type EvmChain = "base" | "ethereum" | "arbitrum" | "robinhood" | "monad";
+export type EvmInfo = { name: string; network: string; chainId: number; rpc: () => string; usdc: string; native: string; explorer: string; txExplorer: string; testnet: true };
+const alchemy = (sub: string) => (process.env.ALCHEMY_API_KEY ? `https://${sub}.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` : "");
+/** Every EVM chain an agent can use. All are testnets: Lexari does not move real funds on EVM chains. */
+export const EVM: Record<EvmChain, EvmInfo> = {
+  base: { name: "Base", network: "Base Sepolia", chainId: 84532, rpc: () => process.env.BASE_SEPOLIA_RPC || "https://sepolia.base.org", usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", native: "ETH", explorer: "https://sepolia.basescan.org/address/", txExplorer: "https://sepolia.basescan.org/tx/", testnet: true },
+  ethereum: { name: "Ethereum", network: "Sepolia", chainId: 11155111, rpc: () => process.env.SEPOLIA_RPC || "https://ethereum-sepolia-rpc.publicnode.com", usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", native: "ETH", explorer: "https://sepolia.etherscan.io/address/", txExplorer: "https://sepolia.etherscan.io/tx/", testnet: true },
+  arbitrum: { name: "Arbitrum", network: "Arbitrum Sepolia", chainId: 421614, rpc: () => process.env.ARBITRUM_SEPOLIA_RPC || alchemy("arb-sepolia") || "https://sepolia-rollup.arbitrum.io/rpc", usdc: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d", native: "ETH", explorer: "https://sepolia.arbiscan.io/address/", txExplorer: "https://sepolia.arbiscan.io/tx/", testnet: true },
+  robinhood: { name: "Robinhood Chain", network: "Robinhood Chain testnet", chainId: 46630, rpc: () => process.env.ROBINHOOD_TESTNET_RPC || "https://rpc.testnet.chain.robinhood.com", usdc: "", native: "ETH", explorer: "https://explorer.testnet.chain.robinhood.com/address/", txExplorer: "https://explorer.testnet.chain.robinhood.com/tx/", testnet: true },
+  monad: { name: "Monad", network: "Monad testnet", chainId: 10143, rpc: () => process.env.MONAD_RPC || alchemy("monad-testnet") || "https://testnet-rpc.monad.xyz", usdc: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea", native: "MON", explorer: "https://testnet.monadexplorer.com/address/", txExplorer: "https://testnet.monadexplorer.com/tx/", testnet: true },
 };
+export const isEvmChain = (s: string): s is EvmChain => Object.prototype.hasOwnProperty.call(EVM, s);
+/** "base", "Base Sepolia", "arb", "robinhood chain" ... to a chain id, or null. */
+export function evmChainOf(s: string): EvmChain | null {
+  const k = s.trim().toLowerCase().replace(/[^a-z]/g, "");
+  const map: Record<string, EvmChain> = { base: "base", basesepolia: "base", ethereum: "ethereum", eth: "ethereum", sepolia: "ethereum", ethereumsepolia: "ethereum", arbitrum: "arbitrum", arb: "arbitrum", arbitrumsepolia: "arbitrum", robinhood: "robinhood", robinhoodchain: "robinhood", robinhoodchaintestnet: "robinhood", monad: "monad", monadtestnet: "monad" };
+  return map[k] || null;
+}
 
 const hex = (b: Uint8Array) => Buffer.from(b).toString("hex");
 
@@ -39,7 +52,7 @@ export function addressOfKey(priv: Uint8Array) {
   return checksum(hex(keccak_256(pub).subarray(12)));
 }
 
-async function rpc<T>(chain: EvmChain, method: string, params: unknown[]): Promise<T> {
+export async function rpc<T>(chain: EvmChain, method: string, params: unknown[]): Promise<T> {
   let last = "";
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -58,7 +71,7 @@ export async function evmBalances(chain: EvmChain, address: string) {
   const data = `0x70a08231${address.toLowerCase().replace(/^0x/, "").padStart(64, "0")}`;
   const [wei, usdc] = await Promise.all([
     rpc<string>(chain, "eth_getBalance", [address, "latest"]),
-    rpc<string>(chain, "eth_call", [{ to: EVM[chain].usdc, data }, "latest"]).catch(() => "0x0"),
+    EVM[chain].usdc ? rpc<string>(chain, "eth_call", [{ to: EVM[chain].usdc, data }, "latest"]).catch(() => "0x0") : Promise.resolve("0x0"),
   ]);
   return { eth: Number(BigInt(wei)) / 1e18, usdc: Number(BigInt(usdc === "0x" ? "0x0" : usdc)) / 1e6 };
 }

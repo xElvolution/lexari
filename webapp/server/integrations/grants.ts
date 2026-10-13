@@ -9,7 +9,8 @@ import { agents } from "../db/schema";
 import { integrationActions, integrationAudit, integrationGrants } from "../db/integrationsSchema";
 import { HttpError } from "../http";
 import { solanaKeypair } from "../agentWallets";
-import { EVM, evmAddress } from "./evm";
+import { EVM, evmAddress, type EvmChain } from "./evm";
+import { zcashAddress, zcashExplorer } from "./zcash";
 import { TEMPO } from "./tempo";
 import { HL_NETWORK, hlExplorer, revokeApiWallet } from "./hyperliquid";
 import { addrExplorer } from "./solana";
@@ -32,7 +33,7 @@ export async function teamOf(userId: string) {
   return rows.sort((a, b) => Number(b.slug === "home") - Number(a.slug === "home")).map((r) => ({ slug: r.slug, kind: r.kind, name: (r.meta as { nick?: string } | null)?.nick || r.name }));
 }
 
-const CHAIN_OF: Partial<Record<IntegrationId, "solana" | "base" | "ethereum" | "tempo" | "hyperliquid">> = { solana: "solana", orca: "solana", base: "base", ethereum: "ethereum", tempo: "tempo", panta: "solana", hyperliquid: "hyperliquid" };
+const CHAIN_OF: Partial<Record<IntegrationId, "solana" | EvmChain | "tempo" | "hyperliquid" | "zcash" | "polygon">> = { solana: "solana", orca: "solana", base: "base", ethereum: "ethereum", arbitrum: "arbitrum", robinhood: "robinhood", monad: "monad", uniswap: "base", tempo: "tempo", panta: "solana", hyperliquid: "hyperliquid", zcash: "zcash", polymarket: "polygon" };
 
 function addressesFor(userId: string, g: Grant, team: { slug: string; kind: string }[]) {
   const chain = CHAIN_OF[g.connector as IntegrationId];
@@ -42,7 +43,9 @@ function addressesFor(userId: string, g: Grant, team: { slug: string; kind: stri
     if (!a) return [];
     try {
       if (chain === "solana") { const addr = solanaKeypair(userId, slug, a.kind).publicKey.toBase58(); return [{ agent: slug, chain: "Solana", address: addr, explorer: addrExplorer(addr) }]; }
+      if (chain === "zcash") { const z = zcashAddress(userId, slug); return [{ agent: slug, chain: "Zcash", address: z, explorer: zcashExplorer(z) }]; }
       const addr = evmAddress(userId, slug);
+      if (chain === "polygon") return [{ agent: slug, chain: "Polygon", address: addr, explorer: `https://polygonscan.com/address/${addr}` }];
       if (chain === "tempo") return [{ agent: slug, chain: TEMPO.network, address: addr, explorer: TEMPO.explorerAddr(addr) }];
       if (chain === "hyperliquid") return [{ agent: slug, chain: HL_NETWORK, address: addr, explorer: hlExplorer(addr) }];
       return [{ agent: slug, chain: EVM[chain].network, address: addr, explorer: `${EVM[chain].explorer}${addr}` }];
