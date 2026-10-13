@@ -14,7 +14,7 @@ import { useSession } from "@/state/session";
 import { AgentTile, GRAPE, Label, PopIn, Rise, T, WSheet, WToggle, short, useC } from "@/web/kit";
 import { useData } from "@/web/data";
 import {
-  AUDIT_LABEL, CHAIN_COLOR, CLIENT_COLOR, DEFAULT_EXPIRY_DAYS, EXPIRY_DAYS, INTEGRATION_META, INTEGRATION_DOMAIN, LIMITS, SCOPE_INFO, WALLET_CHAINS,
+  AUDIT_LABEL, CHAIN_COLOR, CLIENT_COLOR, DEFAULT_EXPIRY_DAYS, EXPIRY_DAYS, INTEGRATION_META, INTEGRATION_DOMAIN, LIMITS, SCOPE_INFO, STATUS_LABEL, WALLET_CHAINS,
   clientName, defaultScopes, scopesOf, type AddedIntegration, type AuditRow, type LinkedWallet, type Scope, type WalletsReply,
 } from "@/content/access";
 
@@ -201,8 +201,8 @@ type Sheet = null | { kind: "consent"; draft: Draft } | { kind: "audit"; connect
 
 /** Same groups as the web page (webapp/components/integrations/IntegrationsSection.tsx). */
 const GROUPS: [string, string[]][] = [
-  ["Trading", ["orca", "jupiter", "kuru", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
-  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "monad", "tempo", "agora", "metamask", "mera", "payments"]],
+  ["Trading", ["orca", "jupiter", "kuru", "uniswap", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
+  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "arbitrum", "robinhood", "monad", "zcash", "tempo", "agora", "metamask", "mera", "payments"]],
   ["Data", ["prices", "nansen", "alchemy", "ore", "solami"]],
   ["AI", ["self"]],
 ];
@@ -273,7 +273,7 @@ export function IntegrationsSec() {
                   <Pressable key={id} testID={`card-${id}`} onPress={() => { tap(); if (g) setDetail(g.id); else if (canAdd) setSheet({ kind: "consent", draft: { connector: id, agents: [], perTxUsd: LIMITS.perTx.def, dailyUsd: LIMITS.daily.def, maxSlippageBps: LIMITS.slippageBps.def } }); else setInfo(id); }}
                     style={{ height: 60, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, borderRadius: 16, backgroundColor: k.card, borderWidth: 1, borderColor: k.line }}>
                     <Logo id={id} size={32} off={!!g && !g.enabled} />
-                    <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={14} lines={1}>{c?.name ?? m.name}</T><T s={12} c={k.ink60} lines={1}>{c?.blurb ?? m.chains}</T></View>
+                    <View style={{ flex: 1, minWidth: 0 }}><T f="bold" s={14} lines={1}>{c?.name ?? m.name}</T><T s={12} c={k.ink60} lines={1}>{c?.status && STATUS_LABEL[c.status] ? `${STATUS_LABEL[c.status]} · ` : ""}{c?.blurb ?? m.chains}</T></View>
                     <Chip label={on ? "Connected" : setup ? "Setup" : g ? "Off" : "Available"} color={on ? "#137a3d" : setup ? "#9a6700" : k.ink60} bg={on ? "#e7f8ee" : setup ? "rgba(245,165,36,0.16)" : k.tint} />
                   </Pressable>
                 );
