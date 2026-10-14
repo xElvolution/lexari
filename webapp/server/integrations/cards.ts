@@ -16,7 +16,7 @@ const LABEL: Record<string, string> = {
   "ore.servers": "Checked the mining servers", "ore.control": "Miner command",
   "self.rename": "Rename", "self.setavatar": "New face", "self.setpersona": "New persona", "self.setmodel": "Switch model",
   "hyperliquid.account": "Checked its Hyperliquid account", "hyperliquid.price": "Hyperliquid prices", "hyperliquid.order": "Order on Hyperliquid",
-  "monad.wallet": "Checked its Monad wallet", "nansen.wallet": "Nansen wallet read", "kuru.quote": "Kuru quote", "kuru.swap": "Swap on Kuru", "card.pay": "Tempo card payment", "metamask.delegation": "Checked its MetaMask delegation", "metamask.send": "Delegated MON send", "nansen.smartmoney": "Nansen smart money", "intents.quote": "Aurora Intents quote", "intents.route": "Cross-chain route", "intents.status": "Aurora Intents status",
+  "monad.wallet": "Checked its Monad wallet", "nansen.wallet": "Nansen wallet read", "kuru.quote": "Kuru quote", "kuru.swap": "Swap on Kuru", "card.pay": "Tempo card payment", "nansen.smartmoney": "Nansen smart money", "intents.quote": "Aurora Intents quote", "intents.route": "Cross-chain route", "intents.status": "Aurora Intents status",
   "base.transfer": "Send on Base", "ethereum.transfer": "Send on Ethereum", "arbitrum.wallet": "Checked its Arbitrum wallet", "arbitrum.transfer": "Send on Arbitrum",
   "robinhood.wallet": "Checked its Robinhood Chain wallet", "robinhood.transfer": "Send on Robinhood Chain", "monad.transfer": "Send on Monad",
   "uniswap.quote": "Uniswap quote", "uniswap.swap": "Swap on Uniswap", "polymarket.market": "Polymarket market", "polymarket.order": "Order on Polymarket",

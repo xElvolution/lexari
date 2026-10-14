@@ -8,7 +8,7 @@
  * moves), "needskey" is built but waits for an API key on the server, "soon" is listed but can't be added.
  * `builtin` ones aren't in the catalog: every agent has them (payments) or one agent does (the ORE Miner's servers).
  */
-export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "metamask" | "intents" | "mera" | "agora" | "alchemy" | "skr" | "arbitrum" | "robinhood" | "zcash" | "uniswap";
+export type IntegrationId = "solana" | "orca" | "jupiter" | "bridge" | "polymarket" | "panta" | "base" | "ethereum" | "tempo" | "prices" | "payments" | "ore" | "solami" | "hyperliquid" | "self" | "monad" | "nansen" | "kuru" | "intents" | "mera" | "agora" | "alchemy" | "skr" | "arbitrum" | "robinhood" | "zcash" | "uniswap";
 export type IntegrationCategory = "chains" | "trading" | "prediction" | "data";
 export type IntegrationStatus = "devnet" | "live" | "testnet" | "market" | "needskey" | "soon";
 
@@ -164,13 +164,6 @@ export const INTEGRATIONS: IntegrationInfo[] = [
     tags: "kuru monad orderbook clob dex swap quote",
   },
   {
-    id: "metamask", name: "MetaMask Delegation", category: "chains", status: "live", addable: true, moves: true, chains: ["Monad testnet"],
-    blurb: "Capped spending from your MetaMask smart account.",
-    about: "You delegate from your MetaMask smart account to an agent with ERC-7710 caveats: a MON cap and an expiry, checked onchain by MetaMask's DelegationManager. The agent never holds your funds, sends only go to your linked wallets, and every send waits for your Confirm. Set it up in Settings > Wallets.",
-    can: [{ text: "See the delegation and what's left", live: true }, { text: "Send MON to your linked wallets, after you confirm", live: true }, { text: "Token and contract call scopes", live: false }],
-    tags: "metamask delegation erc7710 smart account caveats monad",
-  },
-  {
     id: "intents", name: "Aurora Intents", category: "trading", status: process.env.NEXT_PUBLIC_INTENTS_READY === "1" ? "live" : "needskey", addable: true, moves: true, chains: ["Any chain"],
     blurb: "Moves your balance to whichever chain a trade needs.",
     about: "Your agent keeps one balance. When a trade or payment needs funds on another chain, it routes them through Aurora Intents (any-chain liquidity, powered by NEAR Intents) in one Confirm card, with refunds back to your balance if it can't fill. Quotes work with an API key; moving real funds is switched on per server.",
@@ -323,7 +316,6 @@ const SCOPES: Partial<Record<IntegrationId, Scope[]>> = {
   hyperliquid: ["read", "trade"],
   kuru: ["read", "trade"],
   agora: ["read", "transfer"],
-  metamask: ["read", "withdraw"],
   intents: ["read", "trade"],
   panta: ["read", "bet"],
   base: ["read", "withdraw", "transfer"],
@@ -344,7 +336,6 @@ export function scopeOfTool(tool: string, risk: "read" | "sign"): Scope {
   if (risk === "read") return "read";
   if (/\.transfer$/.test(tool)) return "transfer";
   if (tool === "panta.position" || tool === "polymarket.order") return "bet";
-  if (tool === "metamask.send") return "withdraw";
   if (tool.startsWith("ausd.")) return "transfer";
   return "trade";
 }

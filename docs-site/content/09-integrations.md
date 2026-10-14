@@ -23,7 +23,6 @@ Every integration is **off until you add it**, granted to specific agents and bo
 | Tempo | Tempo Moderato testnet | pathUSD and AlphaUSD balances, faucet, sends, top ups | [[testnet]] |
 | Tempo agent card | Tempo Moderato testnet | Merchant payments in stablecoins with per payment and daily limits, freeze | [[testnet]] |
 | Hyperliquid | Hyperliquid testnet | Prices, positions, market and limit orders with a trade-only key | [[testnet]] |
-| MetaMask Delegation | Monad testnet | Capped MON sends from your smart account to your linked wallets | [[testnet]] |
 | Agora AUSD | Monad testnet | AUSD balance and payments | [[testnet]] |
 | Monad | Monad testnet | MON balance | [[testnet]] |
 | Kuru | Monad testnet | Swaps | [[soon]] |

@@ -47,7 +47,7 @@ const TRY: Partial<Record<string, string>> = {
 /** The page's groups, in order. Anything not listed (new integrations) shows under Data. */
 const GROUPS: [string, string[]][] = [
   ["Trading", ["orca", "jupiter", "kuru", "uniswap", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
-  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "arbitrum", "robinhood", "monad", "zcash", "tempo", "agora", "metamask", "mera", "payments"]],
+  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "arbitrum", "robinhood", "monad", "zcash", "tempo", "agora", "mera", "payments"]],
   ["Data", ["prices", "nansen", "alchemy", "ore", "solami"]],
   ["AI", ["self"]],
 ];
