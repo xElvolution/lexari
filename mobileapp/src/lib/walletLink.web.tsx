@@ -3,8 +3,6 @@ import { useIdentityToken, useLinkAccount, usePrivy } from "@privy-io/react-auth
 import { useRef } from "react";
 import { api } from "./api";
 
-export const METAMASK_DAPP = "https://metamask.app.link/dapp/app.lexari.ai/settings#wallets";
-
 export function useWalletLink(token: string | null) {
   const { getAccessToken, ready, user } = usePrivy();
   const { identityToken } = useIdentityToken();

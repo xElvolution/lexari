@@ -80,10 +80,6 @@ export function IntegrationLogo({ id, size = 44, className = "" }: { id: Integra
       return tile("#111111", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#ff7a1a" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v16M18 4l-9 8 9 8" /></svg>
       ));
-    case "metamask":
-      return tile("#fff3e6", (
-        <svg width={g} height={g} viewBox="0 0 24 24"><path fill="#e2761b" d="M20.5 3 13 8.6l1.4-3.3z" /><path fill="#e4761b" d="m3.5 3 7.4 5.6-1.3-3.3zM17.8 16.2l-2 3.1 4.3 1.2 1.2-4.2zM2.7 16.3l1.2 4.2 4.3-1.2-2-3.1z" /><path fill="#f6851b" d="m8 10.6-1.2 1.8 4.3.2-.2-4.6zm8 0-3-2.7-.1 4.7 4.3-.2zM8.2 19.3l2.6-1.3-2.2-1.7zm5-1.3 2.6 1.3-.4-3z" /><path fill="#763d16" d="m8.6 14 1-2-2.9-.1z" /></svg>
-      ));
     case "intents":
       return tile("linear-gradient(140deg,#70d44b,#1f7a3c)", (
         <svg width={g} height={g} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 3 20h18z" /><path d="M8.5 14h7" /></svg>

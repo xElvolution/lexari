@@ -145,7 +145,6 @@ Every integration is **off until you add it**, granted to specific agents, and b
 | Solami (RPC, webhooks, Beam) | Solana mainnet | ⚪ | ⚪ | ⚪ arrives with mainnet |
 | Hyperliquid (trade-only API wallet, perps) | Hyperliquid testnet | 🟢 prices, positions, orders | 🟢 market and limit orders after Confirm | 🟢 |
 | Monad (Kuru, AUSD, Nansen data) | Monad testnet | 🟢 MON balance; 🟡 Nansen wallet reads and Kuru routes (need API keys) | 🟡 Kuru swaps after Confirm (need the Kuru API and router); ⚪ AUSD | 🟡 |
-| MetaMask Delegation (ERC-7710) | Monad testnet | 🟢 delegation status and what is left | 🟢 capped MON sends from your smart account to your linked wallets, after Confirm | 🟢 web (phone: chat tools only) |
 | Tempo agent card | Tempo testnet | 🟢 balance, limits, history | 🟢 merchant payments in stablecoins after Confirm, per payment and daily limits, freeze | 🟢 web and phone |
 
 ### Models
@@ -327,7 +326,6 @@ flowchart LR
 
   subgraph TARGET["Before any mainnet money"]
     PSW[Privy server wallets<br/>one per agent per chain family]:::next --> POLS[Privy policies<br/>max value, allowed programs,<br/>key quorum]:::next
-    DEL[MetaMask Delegation<br/>user to agent, with caveats]:::next
     HLW[Venue-scoped keys<br/>Hyperliquid API wallet: trade only]:::next
   end
 
@@ -455,7 +453,7 @@ Package ids `ai.lexari.app.testnet` (preview) and `ai.lexari.app` (production), 
 | **Published sites** | Served with `Content-Security-Policy: sandbox`, an opaque origin with no access to Lexari cookies | 🟢 |
 | **ORE Miner** | Never mines on Lexari machines. One-time install code, hashed host token, uninstall on removal | 🟢 |
 | **Agent key custody** | HMAC-derived keys today (testnets only) | 🟡 |
-| **Policy-bound signing** | MetaMask delegation caveats and trade-only venue keys are live. Privy server wallets with policies are next | 🟡 |
+| **Policy-bound signing** | Trade-only venue keys are live. Privy server wallets with policies are next | 🟡 |
 | **Transaction simulation** | Simulate EVM signs and show the balance diff on the Confirm card | ⚪ |
 | **Withdraw only to linked wallets, freeze all agents** | Consent with scopes, limits and expiry, audit log, revoke and switch off all | 🟢 |
 
@@ -463,9 +461,8 @@ Package ids `ai.lexari.app.testnet` (preview) and `ai.lexari.app` (production), 
 
 1. **Now:** testnet only, HMAC-derived agent keys, every send behind a Confirm card, limits and step-up.
 2. **Before mainnet:** move each agent to a **Privy server wallet** per chain family with **Privy policies** (max value, allowed programs and contracts, key quorum). Sweep test balances to the new addresses.
-3. **Power users:** a **MetaMask Delegation** mode, where your smart account delegates a capped, expiring, target-restricted allowance to the agent. The agent never holds your funds.
-4. **Venues:** scoped keys where the venue supports them, such as Hyperliquid API wallets that can trade but cannot withdraw.
-5. **Linked wallets:** withdrawals allowed only to wallets you linked, and a kill switch that revokes every grant at once.
+3. **Venues:** scoped keys where the venue supports them, such as Hyperliquid API wallets that can trade but cannot withdraw.
+4. **Linked wallets:** withdrawals allowed only to wallets you linked, and a kill switch that revokes every grant at once.
 
 <br/>
 
@@ -642,7 +639,6 @@ Lexari gives everyone personalized AI agents that act onchain. These partners an
 | <img src="https://www.google.com/s2/favicons?domain=intents.aurora.dev&sz=64" width="20" height="20" alt="" /> | **Aurora Intents** | Cross-chain engine for the one balance. When a trade needs funds on another chain, the agent routes them through the Aurora Intents Swap API in a single Confirm card. | Signer layer to Adapter Registry (routing) |
 | <img src="https://www.google.com/s2/favicons?domain=nansen.ai&sz=64" width="20" height="20" alt="" /> | **Nansen** | Smart money flows and wallet profiles. Every trade Confirm card carries a Nansen check line, and agents consult it before proposing a trade. | Adapter Registry: data |
 | <img src="https://www.google.com/s2/favicons?domain=kuru.io&sz=64" width="20" height="20" alt="" /> | **Kuru** | Orderbook routes and swaps on Monad testnet through the Kuru SDK, behind Confirm cards. | Adapter Registry: Monad |
-| <img src="https://www.google.com/s2/favicons?domain=metamask.io&sz=64" width="20" height="20" alt="" /> | **MetaMask** | Smart account delegations (ERC-7710) with onchain caveats, so an agent can spend a capped amount without holding your funds. Agent Wallet plugin is in progress. | Signer layer: delegation |
 | <img src="https://www.google.com/s2/favicons?domain=agora.finance&sz=64" width="20" height="20" alt="" /> | **Agora AUSD** | Planned stablecoin for holding and paying in the unified balance. | Adapter Registry: Monad |
 | <img src="https://www.google.com/s2/favicons?domain=mera.xyz&sz=64" width="20" height="20" alt="" /> | **Mera** | Planned passkey sign-in and per-agent keys. | Sign-in |
 | <img src="https://www.google.com/s2/favicons?domain=alchemy.com&sz=64" width="20" height="20" alt="" /> | **Alchemy** | RPC for Monad and EVM chains when ALCHEMY_API_KEY is set. | Adapter Registry: RPC |
@@ -671,7 +667,7 @@ flowchart LR
   S2["Identity and linking<br/>external wallet linking<br/>wallet and chain switcher<br/>withdraw to linked only"]:::next
   S3["Router v2<br/>provider table, fallback chains<br/>cost ledger, per-agent caps<br/>Kimi, Qwen, 0G"]:::next
   S4["Integrations v2<br/>scopes and expiry in consent<br/>Polymarket orders, Base writes<br/>MPP on Tempo"]:::later
-  S5["New venues<br/>Hyperliquid perps<br/>Monad: Kuru, AUSD<br/>MetaMask Delegation"]:::later
+  S5["New venues<br/>Hyperliquid perps<br/>Monad: Kuru, AUSD"]:::later
   S6["Mainnet<br/>program deploy, ID cards<br/>real agent cards<br/>ORE rewards with disclosure"]:::later
 
   NOW --> S1 --> S2 --> S3 --> S4 --> S5 --> S6
@@ -684,7 +680,7 @@ flowchart LR
 | **Self-management** | Finish and ship rename, face, tone and model changes by chat. Then `requestIntegration` (opens your consent sheet, never grants itself) and undo for the last change |
 | **Models** | Ship the Kimi, Qwen and 0G Compute house models. Fallback chains that respect tool support. Usage and cost per agent |
 | **Integrations** | Declared scopes, expiry and allowlists. Polymarket CLOB orders. Base and Ethereum writes. MPP on Tempo |
-| **New venues** | Hyperliquid TP and SL are live; next is position management. Monad testnet with Kuru, AUSD and Nansen. MetaMask Delegation as a wallet mode |
+| **New venues** | Hyperliquid TP and SL are live; next is position management. Monad testnet with Kuru, AUSD and Nansen |
 | **ORE Miner gift** | Gift reveal after your agent is created, practice mode label everywhere, quests tied to reported hashrate, never implied earnings |
 | **Mainnet** | Deploy the Lexari program and Hub PDAs. Onchain ID cards. Stripe Issuing or Lithic agent cards wired to the same limits. Mainnet ORE with clear risk disclosure |
 

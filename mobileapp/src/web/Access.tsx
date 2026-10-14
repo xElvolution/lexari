@@ -5,7 +5,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Image, Linking, Pressable, View } from "react-native";
 import { useWalletLink } from "@/lib/walletLink";
-import MetaMaskPhone from "@/components/MetaMaskPhone";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import Icon from "@/components/Icon";
@@ -202,7 +201,7 @@ type Sheet = null | { kind: "consent"; draft: Draft } | { kind: "audit"; connect
 /** Same groups as the web page (webapp/components/integrations/IntegrationsSection.tsx). */
 const GROUPS: [string, string[]][] = [
   ["Trading", ["orca", "jupiter", "kuru", "uniswap", "intents", "bridge", "hyperliquid", "polymarket", "panta"]],
-  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "arbitrum", "robinhood", "monad", "zcash", "tempo", "agora", "metamask", "mera", "payments"]],
+  ["Wallets & Payments", ["skr", "solana", "base", "ethereum", "arbitrum", "robinhood", "monad", "zcash", "tempo", "agora", "mera", "payments"]],
   ["Data", ["prices", "nansen", "alchemy", "ore", "solami"]],
   ["AI", ["self"]],
 ];
@@ -424,8 +423,7 @@ export function WalletsSec() {
           </Pressable>
         ))}
       </View>
-      <T s={12.5} c={k.ink60} style={{ marginTop: 8, lineHeight: 17 }}>{wl.inApp.solana ? "Privy checks the wallet is yours right here: your Solana wallet app signs a message (no fee). EVM wallets link inside MetaMask." : "Linking opens lexari.ai, where Privy checks the wallet is yours. It shows here right after."}</T>
-      <MetaMaskPhone token={token} />
+      <T s={12.5} c={k.ink60} style={{ marginTop: 8, lineHeight: 17 }}>{wl.inApp.solana ? "Privy checks the wallet is yours right here: your Solana wallet app signs a message (no fee). EVM wallets link on lexari.ai." : "Linking opens lexari.ai, where Privy checks the wallet is yours. It shows here right after."}</T>
       <View style={{ marginTop: 18, flexDirection: "row", gap: 12, borderRadius: 22, borderWidth: 1, borderColor: k.line, backgroundColor: k.card, padding: 16 }}>
         <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: "rgba(91,43,255,0.12)", alignItems: "center", justifyContent: "center" }}><Icon name="lock" size={19} color={GRAPE} /></View>
         <View style={{ flex: 1 }}>

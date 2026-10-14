@@ -8,7 +8,6 @@ import { toast, type State } from "@/lib/store";
 import { forgetWallet, loadWallets, setActiveWallet, syncWallets, useWallets, type WalletsState } from "@/lib/wallets";
 import { WALLET_CHAINS, chainById, clientName, type LinkedWallet, type WalletChain, type WalletFamily } from "@/content/wallets";
 import { usePrivySession } from "@/components/social/SocialLinks";
-import MetaMaskDelegation from "@/components/wallets/MetaMaskDelegation";
 
 const PRIVY_ON = !!process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 const shortAddr = (a: string) => `${a.slice(0, 5)}…${a.slice(-4)}`;
@@ -180,11 +179,11 @@ function usePrivyWalletActions(s: State): WalletActions {
     },
   };
 }
-function PrivyWallets({ s, w }: { s: State; w: WalletsState }) { return <><WalletsPanel w={w} a={usePrivyWalletActions(s)} /><MetaMaskDelegation /></>; }
+function PrivyWallets({ s, w }: { s: State; w: WalletsState }) { return <><WalletsPanel w={w} a={usePrivyWalletActions(s)} /></>; }
 
 export default function WalletsSection({ s }: { s: State }) {
   const w = useWallets();
   useEffect(() => { void loadWallets(); }, []);
   if (PRIVY_ON) return <PrivyWallets s={s} w={w} />;
-  return <><WalletsPanel w={w} a={{ ready: false, busy: null, link: () => {}, unlink: () => {}, note: "Linking wallets is not set up on this server yet." }} /><MetaMaskDelegation /></>;
+  return <><WalletsPanel w={w} a={{ ready: false, busy: null, link: () => {}, unlink: () => {}, note: "Linking wallets is not set up on this server yet." }} /></>;
 }

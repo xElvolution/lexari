@@ -12,7 +12,7 @@ Your agent has one balance and Solana is its home. Other chains are routes your 
 | **Base** | Agent EVM address, balances, top ups (Base Sepolia) | [[testnet]] |
 | **Ethereum** | Agent EVM address, balances, top ups (Sepolia) | [[testnet]] |
 | **Arbitrum** | Top ups and balances (Arbitrum Sepolia) | [[testnet]] |
-| **Monad** | MON balance, MetaMask Delegation sends, AUSD, top ups (Monad testnet) | [[testnet]] |
+| **Monad** | MON balance, AUSD, top ups (Monad testnet) | [[testnet]] |
 | **Hyperliquid** | Perp orders with a trade-only key, HYPE top ups on HyperEVM (testnet) | [[testnet]] |
 | **Tempo** | Stablecoin sends, faucet, agent card, top ups (Moderato testnet) | [[testnet]] |
 | **Robinhood Chain** | Deposits into your balance | [[soon]] |

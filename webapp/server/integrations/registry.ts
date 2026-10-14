@@ -20,7 +20,6 @@ import { SELF_TOOLS } from "./self";
 import { HL_TOOLS } from "./hyperliquid";
 import { MONAD_TOOLS } from "./monad";
 import { cardPay } from "./tempoCard";
-import { DELEGATION_TOOLS } from "./delegation";
 import { INTENTS_TOOLS } from "./intents";
 import { AUSD_TOOLS } from "./ausd";
 import { ALCHEMY_TOOLS } from "./alchemy";
@@ -233,5 +232,5 @@ const pricesTool: ToolDef = {
   },
 };
 
-export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, ...POLYMARKET_TOOLS, ...EVMCHAIN_TOOLS, ...UNISWAP_TOOLS, ...ZCASH_TOOLS, pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, cardMpp, ...DELEGATION_TOOLS, ...INTENTS_TOOLS, ...AUSD_TOOLS, ...ALCHEMY_TOOLS, ...SELF_TOOLS];
+export const TOOLS: ToolDef[] = [solanaWallet, solanaTransfer, orcaQuoteTool, orcaSwapTool, jupiterQuoteTool, bridgeQuoteTool, polymarketTool, ...POLYMARKET_TOOLS, ...EVMCHAIN_TOOLS, ...UNISWAP_TOOLS, ...ZCASH_TOOLS, pricesTool, ...EXTRA_TOOLS, ...HL_TOOLS, ...MONAD_TOOLS, cardPay, cardMpp, ...INTENTS_TOOLS, ...AUSD_TOOLS, ...ALCHEMY_TOOLS, ...SELF_TOOLS];
 export const toolByName = (name: string) => TOOLS.find((t) => t.name === name.trim().toLowerCase());

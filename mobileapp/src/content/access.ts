@@ -16,7 +16,6 @@ const SCOPES: Record<string, Scope[]> = {
   tempo: ["read", "trade", "withdraw", "transfer"],
   hyperliquid: ["read", "trade"],
   kuru: ["read", "trade"],
-  metamask: ["read", "withdraw"],
   panta: ["read", "bet"],
   intents: ["read", "trade"],
   agora: ["read", "transfer"],
@@ -51,7 +50,6 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
   monad: { name: "Monad", color: "#836ef9", moves: true, chains: "Monad" },
   nansen: { name: "Nansen", color: "#1a1a2e", moves: false, chains: "Many chains" },
   kuru: { name: "Kuru", color: "#ff6b35", moves: true, trading: true, chains: "Monad" },
-  metamask: { name: "MetaMask Delegation", color: "#f6851b", moves: true, chains: "Monad" },
   intents: { name: "Aurora Intents", color: "#70d44b", moves: true, trading: true, chains: "Any chain" },
   agora: { name: "Agora AUSD", color: "#0b3d91", moves: true, chains: "Monad" },
   alchemy: { name: "Alchemy", color: "#363ff9", moves: false, chains: "Monad" },
@@ -65,7 +63,7 @@ export const INTEGRATION_META: Record<string, { name: string; color: string; mov
 /** Same labels as the web catalog (webapp/content/integrations.ts STATUS_LABEL). */
 export const STATUS_LABEL: Record<string, string> = { devnet: "Live on devnet", live: "Live on testnet", testnet: "Testnet wallet", needskey: "Setup needed", market: "Market data", soon: "Coming soon" };
 /** Each partner's site, for its logo. */
-export const INTEGRATION_DOMAIN: Record<string, string> = { skr: "solanamobile.com", solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", metamask: "metamask.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com", arbitrum: "arbitrum.io", robinhood: "robinhood.com", zcash: "z.cash", uniswap: "uniswap.org" };
+export const INTEGRATION_DOMAIN: Record<string, string> = { skr: "solanamobile.com", solana: "solana.com", orca: "orca.so", jupiter: "jup.ag", polymarket: "polymarket.com", panta: "panta.fi", base: "base.org", ethereum: "ethereum.org", tempo: "tempo.xyz", hyperliquid: "hyperliquid.xyz", monad: "monad.xyz", nansen: "nansen.ai", kuru: "kuru.io", intents: "intents.aurora.dev", agora: "agora.finance", alchemy: "alchemy.com", mera: "category.xyz", prices: "coingecko.com", arbitrum: "arbitrum.io", robinhood: "robinhood.com", zcash: "z.cash", uniswap: "uniswap.org" };
 
 export type AddedIntegration = {
   id: string; connector: string; enabled: boolean; agents: string[]; perTxUsd: number; dailyUsd: number; maxSlippageBps: number;
