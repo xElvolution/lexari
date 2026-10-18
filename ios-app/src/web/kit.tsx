@@ -1,10 +1,11 @@
 /** Phone kit that mirrors app.lexari.ai at 390px: colours, type scale, top bar, agent tiles with rings, labels, pills. */
+import { Glass } from "@/components/Glass";
 import { useEffect, useState, type ReactNode } from "react";
 import { useMotion } from "@/lib/motion";
 import Animated, { Easing, cancelAnimation, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withTiming } from "react-native-reanimated";
 import { useData } from "@/web/data";
 import Svg, { Circle, Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from "react-native-svg";
-import { Modal, Pressable, ScrollView, Text, View, type TextStyle, type ViewStyle } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
 import { router } from "expo-router";
 import { BlurView } from "expo-blur";
 import Icon from "@/components/Icon";
@@ -44,8 +45,11 @@ export function Label({ children, c, s = 10, style, lines }: { children: ReactNo
 }
 export function Card({ children, style, onPress }: { children: ReactNode; style?: ViewStyle | ViewStyle[]; onPress?: () => void }) {
   const k = useC();
-  const st = [{ backgroundColor: k.card, borderRadius: 18, borderWidth: 1, borderColor: k.line }, style as ViewStyle];
-  return onPress ? <Pressable onPress={() => { tap(); onPress(); }} style={({ pressed }) => [...st, pressed && { opacity: 0.85 }]}>{children}</Pressable> : <View style={st}>{children}</View>;
+  const flat = StyleSheet.flatten(style) || {};
+  const radius = typeof flat.borderRadius === "number" ? flat.borderRadius : 22;
+  void k;
+  const body = <Glass radius={radius} style={style}>{children}</Glass>;
+  return onPress ? <Pressable onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] })}>{body}</Pressable> : body;
 }
 /** Rounded pill button: brand (purple), light (white), ghost (tint), outline. */
 export function Pill({ label, onPress, kind = "brand", icon, h = 40, style, disabled, fs = 14 }: { label: string; onPress?: () => void; kind?: "brand" | "light" | "ghost" | "outline" | "soft" | "white"; icon?: string; h?: number; style?: ViewStyle; disabled?: boolean; fs?: number }) {
@@ -127,14 +131,14 @@ export function TopBar({ initials = "A", avatar }: { initials?: string; avatar?:
   const k = useC();
   const { setTheme, isDark } = usePrefs();
   return (
-    <View style={{ height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: k.line, backgroundColor: k.bg }}>
+    <Glass radius={0} rim={false} style={{ height: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: k.line }}>
       <Pressable onPress={() => router.navigate("/(tabs)/agents")}><Logo /></Pressable>
       <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
         <NotifyBell />
         <Round label="Theme" icon={isDark ? "sun" : "moon"} onPress={() => setTheme(isDark ? "light" : "dark")} />
         <Round label="Profile" filled={<Avatar at={avatar} initials={initials} size={44} fs={13} />} onPress={() => router.navigate("/(tabs)/profile")} />
       </View>
-    </View>
+    </Glass>
   );
 }
 
@@ -168,7 +172,7 @@ export function WSheet({ open, title, sub, icon, iconNode, right, onClose, child
       <Pressable onPress={onClose} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}>
         <BlurView intensity={18} tint="dark" style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }} />
       </Pressable>
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, maxHeight: "92%", backgroundColor: k.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: k.line }}>
+      <Glass radius={34} style={{ position: "absolute", left: 8, right: 8, bottom: 8, maxHeight: "92%" }}>
         <View style={{ alignItems: "center", paddingTop: 10 }}><View style={{ width: 44, height: 6, borderRadius: 3, backgroundColor: k.dark ? "rgba(255,255,255,0.2)" : "rgba(10,10,10,0.2)" }} /></View>
         <View style={{ flexDirection: "row", alignItems: icon || iconNode ? "flex-start" : "center", gap: 12, paddingHorizontal: 16, paddingTop: icon || iconNode ? 12 : 8, paddingBottom: 10 }}>
           {iconNode ?? (icon ? <View style={{ width: 40, height: 40, borderRadius: 16, backgroundColor: GRAPE, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={20} /></View> : null)}
@@ -181,7 +185,7 @@ export function WSheet({ open, title, sub, icon, iconNode, right, onClose, child
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: footer ? 12 : 28, paddingTop: 4 }}>{children}</ScrollView>
         {footer ? <View style={{ borderTopWidth: 1, borderTopColor: k.line, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}>{footer}</View> : null}
-      </View>
+      </Glass>
     </Modal>
   );
 }
@@ -238,7 +242,8 @@ export function Btn({ label, onPress, kind = "brand", h = 56, fs, icon, iconRigh
     <Pressable disabled={disabled} accessibilityRole="button" accessibilityLabel={a11y ?? label} onPress={() => { tap(); onPress?.(); }}
       style={({ pressed }) => [{ alignSelf: full ? "stretch" : "flex-start", height: h + drop, opacity: disabled ? 0.55 : 1, transform: [{ scale: pressed && !disabled ? 0.97 : 1 }] }, style]}>
       {drop ? <View style={{ position: "absolute", left: 0, right: 0, top: drop, height: h, borderRadius: 999, backgroundColor: dropC }} /> : null}
-      <View style={{ height: h, borderRadius: 999, backgroundColor: bg, borderWidth: kind === "line" ? 2 : 0, borderColor: k.ink, paddingHorizontal: h >= 52 ? 25.6 : 18.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8.8 }}>
+      {kind === "ghost" ? <Glass radius={h / 2} interactive style={StyleSheet.absoluteFill as ViewStyle} /> : null}
+      <View style={{ height: h, borderRadius: 999, borderCurve: "continuous", backgroundColor: kind === "ghost" ? "transparent" : bg, borderTopWidth: kind === "brand" ? 1 : 0, borderTopColor: "rgba(255,255,255,0.35)", borderWidth: kind === "line" ? 2 : 0, borderColor: k.ink, paddingHorizontal: h >= 52 ? 25.6 : 18.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8.8 }}>
         {icon ? <Icon name={icon} size={size + 2} color={fg} /> : null}
         {children ?? (label ? <Text style={{ fontFamily: F.bold, fontSize: size, color: fg }}>{label}</Text> : null)}
         {iconRight ? <Icon name={iconRight} size={size + 2} color={fg} /> : null}
