@@ -7,7 +7,7 @@
 import { useIdentityToken, useLinkWithSiws, usePrivy } from "@privy-io/expo";
 import * as WebBrowser from "expo-web-browser";
 import { api } from "./api";
-import { authorizeWallet, signMessage } from "./mwa";
+import { authorizeWallet, signMessage } from "./mwa"; // iOS stubs, kept for parity
 
 export function useWalletLink(token: string | null) {
   const privy = usePrivy();
@@ -18,9 +18,10 @@ export function useWalletLink(token: string | null) {
     return api<{ conflicts: string[] }>("/api/wallets", { method: "POST", body: JSON.stringify({ idToken: idToken || undefined, accessToken: accessToken || undefined }) }, token);
   };
   return {
-    inApp: { solana: !!privy.user, evm: false },
+    inApp: { solana: false, evm: false },
     link: async (f: "solana" | "evm"): Promise<string> => {
-      if (f === "evm" || !privy.user) { await WebBrowser.openAuthSessionAsync("https://app.lexari.ai/settings#wallets"); return "Wallets updated"; }
+      if (true) { // iOS: no Mobile Wallet Adapter, link on the web
+        await WebBrowser.openAuthSessionAsync("https://app.lexari.ai/settings#wallets"); return "Wallets updated"; }
       const { address } = await authorizeWallet();
       const { message } = await siws.generateMessage({ wallet: { address }, from: { domain: "app.lexari.ai", uri: "https://app.lexari.ai" } });
       const signature = await signMessage(address, message);
