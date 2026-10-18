@@ -1,4 +1,6 @@
 /** Reanimated ports of the web's CSS keyframe loops (webapp/app/globals.css) and its Toaster. */
+import { Glass } from "@/components/Glass";
+import { StyleSheet } from "react-native";
 import { Children, isValidElement, useCallback, useEffect, useState, type ReactNode } from "react";
 import { useFocusEffect } from "expo-router";
 import { Pressable, Text, View, useWindowDimensions, type ViewStyle } from "react-native";
@@ -139,10 +141,11 @@ function ToastItem({ t }: { t: Toast }) {
   const st = useAnimatedStyle(() => ({ opacity: o.value, transform: [{ translateX: x.value }, { translateY: y.value }, { scale: s.value }] }));
   return (
     <GestureDetector gesture={Gesture.Race(pan, fling)}>
-      <Animated.View accessibilityRole="alert" accessibilityLiveRegion="polite" style={[{ width: "100%", maxWidth: 420, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, backgroundColor: k.ink, paddingVertical: 10, paddingLeft: 14, paddingRight: 8, shadowColor: "#140050", shadowOpacity: 0.6, shadowRadius: 20, shadowOffset: { width: 0, height: 18 }, elevation: 12 }, st]}>
-        <Text style={{ flex: 1, fontFamily: F.semi, fontSize: 14, lineHeight: 19, color: k.bg }}>{t.text}</Text>
+      <Animated.View accessibilityRole="alert" accessibilityLiveRegion="polite" style={[{ width: "100%", maxWidth: 420, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 22, borderCurve: "continuous", overflow: "hidden", paddingVertical: 10, paddingLeft: 14, paddingRight: 8, shadowColor: "#140050", shadowOpacity: 0.6, shadowRadius: 20, shadowOffset: { width: 0, height: 18 }, elevation: 12 }, st]}>
+        <Glass radius={22} style={StyleSheet.absoluteFill as object} />
+        <Text style={{ flex: 1, fontFamily: F.semi, fontSize: 14, lineHeight: 19, color: k.ink }}>{t.text}</Text>
         {t.action ? <Pressable onPress={() => { t.action!.run(); leave(0); }} style={{ borderRadius: 999, backgroundColor: GRAPE, paddingHorizontal: 12, paddingVertical: 6 }}><Text style={{ fontFamily: F.bold, fontSize: 13, color: "#fff" }}>{t.action.label}</Text></Pressable> : null}
-        <Pressable accessibilityLabel="Dismiss" hitSlop={8} onPress={() => leave(0)} style={{ width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" }}><Icon name="x" size={15} color={k.dark ? "rgba(10,10,10,0.6)" : "rgba(255,255,255,0.6)"} /></Pressable>
+        <Pressable accessibilityLabel="Dismiss" hitSlop={8} onPress={() => leave(0)} style={{ width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" }}><Icon name="x" size={15} color={k.ink60} /></Pressable>
       </Animated.View>
     </GestureDetector>
   );
