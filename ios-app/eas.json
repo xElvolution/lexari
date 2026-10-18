@@ -1,10 +1,15 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "local" },
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": { "buildType": "apk" },
+      "ios": {
+        "simulator": true
+      },
       "env": {
         "EXPO_PUBLIC_PRIVY_APP_ID": "cmusfhplr019q0clb78qy382j",
         "EXPO_PUBLIC_PRIVY_CLIENT_ID": "client-WY6e1JSN3bHoZqWLAV4saDRYAdzBU3v7YtAFafJKrzJxQ",
@@ -17,7 +22,9 @@
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" },
+      "ios": {
+        "resourceClass": "m-medium"
+      },
       "env": {
         "EXPO_PUBLIC_PRIVY_APP_ID": "cmusfhplr019q0clb78qy382j",
         "EXPO_PUBLIC_PRIVY_CLIENT_ID": "client-WY6e1JSN3bHoZqWLAV4saDRYAdzBU3v7YtAFafJKrzJxQ",
@@ -29,20 +36,29 @@
       }
     },
     "production": {
-      "android": { "buildType": "apk" },
+      "distribution": "store",
+      "autoIncrement": true,
+      "ios": {
+        "resourceClass": "m-medium"
+      },
       "env": {
         "EXPO_PUBLIC_PRIVY_APP_ID": "cmusfhplr019q0clb78qy382j",
         "EXPO_PUBLIC_PRIVY_CLIENT_ID": "client-WY6e1JSN3bHoZqWLAV4saDRYAdzBU3v7YtAFafJKrzJxQ",
         "EXPO_PUBLIC_API_URL": "https://app.lexari.ai",
-        "EXPO_PUBLIC_SOLANA_CLUSTER": "mainnet-beta",
+        "EXPO_PUBLIC_SOLANA_CLUSTER": "devnet",
         "EXPO_PUBLIC_LEXARI_PROGRAM_ID": "BbnD28xf3kwfQRiRA6VQmw4p2R55WivUgozSoo81M6Po",
-        "EXPO_PUBLIC_SKR_MINT": "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3",
-        "EXPO_PUBLIC_USDC_MINT": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        "EXPO_PUBLIC_SKR_MINT": "ExGnANupZkiSRMDQXiTY9JEwPZa33m8ZfA5kKDuf3n68",
+        "EXPO_PUBLIC_USDC_MINT": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
       }
-    },
-    "production-aab": {
-      "extends": "production",
-      "android": { "buildType": "app-bundle" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "OWNER_APPLE_ID_EMAIL",
+        "ascAppId": "ASC_APP_ID",
+        "appleTeamId": "TEAMID"
+      }
     }
   }
 }
