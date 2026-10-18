@@ -1,3 +1,4 @@
+import { Glass } from "@/components/Glass";
 import { useEffect, type ReactNode } from "react";
 import { Modal, Pressable, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -84,9 +85,10 @@ export function Button({ label, onPress, kind = "primary", icon, disabled, style
 
 export function Card({ children, style, onPress }: { children: ReactNode; style?: ViewStyle; onPress?: () => void }) {
   const { palette } = usePrefs();
-  const base: ViewStyle = { backgroundColor: palette.card, borderRadius: 20, padding: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.line };
-  if (!onPress) return <View style={[base, style]}>{children}</View>;
-  return <Pressable onPress={() => { tap(); onPress(); }} style={({ pressed }) => [base, style, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}>{children}</Pressable>;
+  void palette;
+  const body = <Glass radius={22} style={[{ padding: 14 }, style]}>{children}</Glass>;
+  if (!onPress) return body;
+  return <Pressable onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>{body}</Pressable>;
 }
 
 export function Money({ amount, unit, size = 14 }: { amount: string; unit?: string; size?: number }) {
@@ -109,11 +111,11 @@ export function Sheet({ open, onClose, children, title }: { open: boolean; onClo
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)" }} onPress={onClose} accessibilityLabel="Close" />
-      <View style={{ backgroundColor: palette.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 18, paddingTop: 10, paddingBottom: insets.bottom + 18, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.line }}>
+      <Glass radius={34} style={{ marginHorizontal: 8, marginBottom: 8, paddingHorizontal: 18, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 10) + 10 }}>
         <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: palette.line, marginBottom: 12 }} />
         {title ? <Text style={[T.h2, { color: palette.ink, marginBottom: 10 }]}>{title}</Text> : null}
         <View style={{ gap: 10 }}>{children}</View>
-      </View>
+      </Glass>
     </Modal>
   );
 }
