@@ -38,7 +38,7 @@ npm run preview:web                              # web preview of the screens
 
 1. **Find the Team ID.** Go to developer.apple.com, then Account, then Membership details. The Team ID has 10 characters, for example `AB12CD34EF`.
 2. **Replace the placeholders.**
-   - In `webapp/public/.well-known/apple-app-site-association`, replace every `TEAMID` with the Team ID.
+   - In `iosapp/docs/apple-app-site-association` (kept out of webapp/public so a web deploy cannot ship the placeholder), replace every `TEAMID` with the Team ID.
    - In `iosapp/eas.json` under `submit.production.ios`, set `appleTeamId` to the Team ID, `appleId` to the owner's Apple ID email, and `ascAppId` to the app's numeric Apple ID (from step 4).
 3. **Log in to Expo and link the project.**
    ```bash
@@ -58,7 +58,7 @@ npm run preview:web                              # web preview of the screens
    eas submit -p ios --profile production --latest
    ```
    Apple's processing takes about 5 to 30 minutes.
-7. **Deploy the AASA** (only after step 2). Serve `https://app.lexari.ai/.well-known/apple-app-site-association` with `Content-Type: application/json`, HTTPS, and no redirects. Check it:
+7. **Deploy the AASA** (only after step 2). Copy `iosapp/docs/apple-app-site-association` to `webapp/public/.well-known/apple-app-site-association`, deploy the web app, and serve `https://app.lexari.ai/.well-known/apple-app-site-association` with `Content-Type: application/json`, HTTPS, and no redirects. Check it:
    ```bash
    curl -sI https://app.lexari.ai/.well-known/apple-app-site-association
    curl -s https://app-site-association.cdn-apple.com/a/v1/app.lexari.ai
