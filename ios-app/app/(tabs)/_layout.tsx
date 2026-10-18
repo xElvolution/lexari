@@ -6,6 +6,7 @@ type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tab
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 import Icon from "@/components/Icon";
+import { Glass } from "@/components/Glass";
 import { TourTarget } from "@/components/Tour";
 import { tap } from "@/components/ui";
 import { F, GRAPE, TopBar, useC } from "@/web/kit";
@@ -93,11 +94,14 @@ function PhoneNav({ state, navigation }: BottomTabBarProps) {
     </View>
   );
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: k.line, backgroundColor: k.bg, paddingBottom: insets.bottom }}>
-      <View style={{ height: NAV_H, overflow: "hidden" }}>
-        {row(rowA, !more)}
-        {row(rowB, more)}
-      </View>
+    <View pointerEvents="box-none" style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 14, paddingBottom: Math.max(insets.bottom - 6, 10) }}>
+      {/* iOS 26 floating Liquid Glass capsule */}
+      <Glass radius={NAV_H / 2 + 4} interactive style={{ height: NAV_H + 8, paddingTop: 2, shadowColor: "#140050", shadowOpacity: k.dark ? 0.5 : 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } }}>
+        <View style={{ height: NAV_H, overflow: "hidden" }}>
+          {row(rowA, !more)}
+          {row(rowB, more)}
+        </View>
+      </Glass>
     </View>
   );
 }
@@ -114,7 +118,7 @@ export default function TabsLayout() {
     <>
       <View style={{ flex: 1, backgroundColor: k.bg, paddingTop: insets.top }}>
         <Bar />
-        <Tabs tabBar={(p) => <PhoneNav {...p} />} screenListeners={{ tabPress: () => tap() }} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: k.bg }, animation: "fade" }}>
+        <Tabs tabBar={(p) => <PhoneNav {...p} />} screenListeners={{ tabPress: () => tap() }} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: k.bg, paddingBottom: NAV_H + insets.bottom + 4 }, animation: "fade" }}>
           {[...PRIMARY, ...SECONDARY].map((t) => <Tabs.Screen key={t.name} name={t.name} options={{ title: t.label }} />)}
           <Tabs.Screen name="marketplace/[slug]" options={{ href: null, title: "Listing" }} />
         </Tabs>
