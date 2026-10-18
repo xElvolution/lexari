@@ -1,4 +1,4 @@
-# Lexari for iPhone (iosapp/)
+# Lexari for iPhone (ios-app/)
 
 A standalone, iOS-only Expo project (Expo SDK 57). It has the same features, backend (`https://app.lexari.ai`) and endpoints as the Android app in `../mobileapp`, which stays untouched. The UI uses the iOS 26 Liquid Glass style everywhere through `src/components/Glass.tsx`:
 
@@ -26,7 +26,7 @@ Glass surfaces: the floating tab bar capsule, the top bar, cards, both sheet typ
 ## Local checks (they work on Linux)
 
 ```bash
-cd iosapp
+cd ios-app
 npm install
 npm run typecheck
 npx expo-doctor
@@ -38,12 +38,12 @@ npm run preview:web                              # web preview of the screens
 
 1. **Find the Team ID.** Go to developer.apple.com, then Account, then Membership details. The Team ID has 10 characters, for example `AB12CD34EF`.
 2. **Replace the placeholders.**
-   - In `iosapp/docs/apple-app-site-association` (kept out of webapp/public so a web deploy cannot ship the placeholder), replace every `TEAMID` with the Team ID.
-   - In `iosapp/eas.json` under `submit.production.ios`, set `appleTeamId` to the Team ID, `appleId` to the owner's Apple ID email, and `ascAppId` to the app's numeric Apple ID (from step 4).
+   - In `ios-app/docs/apple-app-site-association` (kept out of webapp/public so a web deploy cannot ship the placeholder), replace every `TEAMID` with the Team ID.
+   - In `ios-app/eas.json` under `submit.production.ios`, set `appleTeamId` to the Team ID, `appleId` to the owner's Apple ID email, and `ascAppId` to the app's numeric Apple ID (from step 4).
 3. **Log in to Expo and link the project.**
    ```bash
    npm i -g eas-cli
-   cd iosapp
+   cd ios-app
    eas login
    eas init            # makes or links the EAS project. Put the projectId in EAS_PROJECT_ID or extra.eas.projectId
    ```
@@ -58,7 +58,7 @@ npm run preview:web                              # web preview of the screens
    eas submit -p ios --profile production --latest
    ```
    Apple's processing takes about 5 to 30 minutes.
-7. **Deploy the AASA** (only after step 2). Copy `iosapp/docs/apple-app-site-association` to `webapp/public/.well-known/apple-app-site-association`, deploy the web app, and serve `https://app.lexari.ai/.well-known/apple-app-site-association` with `Content-Type: application/json`, HTTPS, and no redirects. Check it:
+7. **Deploy the AASA** (only after step 2). Copy `ios-app/docs/apple-app-site-association` to `webapp/public/.well-known/apple-app-site-association`, deploy the web app, and serve `https://app.lexari.ai/.well-known/apple-app-site-association` with `Content-Type: application/json`, HTTPS, and no redirects. Check it:
    ```bash
    curl -sI https://app.lexari.ai/.well-known/apple-app-site-association
    curl -s https://app-site-association.cdn-apple.com/a/v1/app.lexari.ai
