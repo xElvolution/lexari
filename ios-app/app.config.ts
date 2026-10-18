@@ -1,7 +1,7 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
 /**
- * Lexari for iPhone. A standalone iOS-only Expo project (the Android app lives in ../mobileapp).
+ * Lexari for iPhone. A standalone iOS-only Expo project (the Android app lives in ../android-app).
  * Same backend and endpoints as Android. Testnet bundle id until mainnet reopens.
  * LEXARI_WEB_PREVIEW=1 adds the web platform only for the 390x844 screenshot preview; store builds are iOS only.
  */
