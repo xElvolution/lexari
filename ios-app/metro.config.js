@@ -16,4 +16,6 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     : context;
   return resolve ? resolve(ctx, moduleName, platform) : ctx.resolveRequest(ctx, moduleName, platform);
 };
+// @solana/kit subpaths (program-client-core) are only reachable through package exports.
+config.resolver.unstable_enablePackageExports = true;
 module.exports = config;
