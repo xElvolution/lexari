@@ -203,30 +203,10 @@ function RailPay({ r, usd }: { r: LRail; usd: number }) {
   );
 }
 
-/** Solana via Mobile Wallet Adapter: the wallet you connect pays, to your own deposit address. */
-async function payFromSolana(r: LRail, to: string, amount: string) {
-  const { transact } = await import("@solana-mobile/mobile-wallet-adapter-protocol-web3js");
-  const { Connection } = await import("@solana/web3.js");
-  const conn = new Connection(env.cluster === "devnet" ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com", "confirmed");
-  const atoms = toAtoms(amount, r.decimals);
-  await transact(async (w) => {
-    const auth = await w.authorize({ identity: { name: "Lexari", uri: "https://lexari.ai" }, chain: env.cluster === "devnet" ? "solana:devnet" : "solana:mainnet" });
-    const me = new PublicKey(Buffer.from(auth.accounts[0].address, "base64"));
-    const dest = new PublicKey(to);
-    const tx = new Transaction();
-    if (!r.token) tx.add(SystemProgram.transfer({ fromPubkey: me, toPubkey: dest, lamports: Number(atoms) }));
-    else {
-      const mint = new PublicKey(r.token), from = ataOf(me, mint), toAta = ataOf(dest, mint);
-      tx.add(new TransactionInstruction({ programId: ATA, data: Buffer.from([1]), keys: [
-        { pubkey: me, isSigner: true, isWritable: true }, { pubkey: toAta, isSigner: false, isWritable: true }, { pubkey: dest, isSigner: false, isWritable: false },
-        { pubkey: mint, isSigner: false, isWritable: false }, { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }, { pubkey: TOKEN, isSigner: false, isWritable: false }] }));
-      const data = Buffer.alloc(10); data[0] = 12; let a = atoms; for (let i = 1; i <= 8; i++) { data[i] = Number(a & BigInt(255)); a >>= BigInt(8); } data[9] = r.decimals;
-      tx.add(new TransactionInstruction({ programId: TOKEN, data, keys: [
-        { pubkey: from, isSigner: false, isWritable: true }, { pubkey: mint, isSigner: false, isWritable: false }, { pubkey: toAta, isSigner: false, isWritable: true }, { pubkey: me, isSigner: true, isWritable: false }] }));
-    }
-    tx.feePayer = me; tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
-    await w.signAndSendTransactions({ transactions: [tx] });
-  });
+/** iOS has no Mobile Wallet Adapter: send to the deposit address above from any wallet app, or pay on app.lexari.ai. */
+async function payFromSolana(_r: LRail, _to: string, _amount: string) {
+  const { authorizeWallet } = await import("@/lib/mwa");
+  await authorizeWallet(); // throws a plain-words message on iPhone
 }
 
 function AuroraPay({ assetId, symbol, usd }: { assetId: string; symbol: string; usd: number }) {
